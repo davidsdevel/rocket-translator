@@ -1,0 +1,11 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+#main {
+	width: 100%;
+}
+#code-html,#code-js {
+	display: inline-block;
+	width: 49.5%;
+}
