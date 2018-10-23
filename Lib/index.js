@@ -68,7 +68,6 @@ export default ${name || "MyComponent"};
  * @return {string}
  */
 exports.VueCompiler = (name, html, css, js) =>{
-	console.log(js)
 	//Initialize Classes JsParser and StateManagement
 	let VueStateManagement = new VSM();
 	let parse = new Parser(js);
