@@ -39,6 +39,13 @@ or this
     }
 </script>
 ```
+###How to Use
 ```bash
-node index.js
+`Use: node index.js [command] [input-file] [output-folder]
+	node index.js -s [port]
+
+Commands:
+    Compile to react:    --react | -r
+    Compile to vue:      --vue   | -v
+    Help:                --help  | -h`
 ```
