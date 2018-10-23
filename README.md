@@ -1,5 +1,5 @@
 # RocketJS Server
-RocketJS is a HTML translator that with a few changes, you can use the same code to convert into React or Vue.
+RocketJS is a HTML translator that with a few changes, you can use the same code and convert it into React or Vue.
 ## Getting Started
 ### Basic
 You can convert this:
@@ -12,7 +12,7 @@ import React, {Component} from "react";
 
 class MyComponent extends Component {
 	super();
-    this.state = {
+	this.state = {
     	name:"World"
     };
     render(){
@@ -41,11 +41,11 @@ or this
 ```
 ###How to Use
 ```bash
-`Use: node index.js [command] [input-file] [output-folder]
+Use: node index.js [command] [input-file] [output-folder]
 	node index.js -s [port]
 
 Commands:
     Compile to react:    --react | -r
     Compile to vue:      --vue   | -v
-    Help:                --help  | -h`
+    Help:                --help  | -h
 ```
