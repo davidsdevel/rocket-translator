@@ -23,7 +23,7 @@ class TranslatorFileFunctions {
             return ""
         }
     }
-    writeFile({content, type}){
+    writeFile({content, type, name}){
         if(!existsSync(this._out)){
             mkdirSync(this._out);
         }
@@ -38,7 +38,7 @@ class TranslatorFileFunctions {
             default:
                 break;
         }
-        //appendFileSync(this._out+"/out."+mime, content);
+        //appendFileSync(join(this._out, `${name}.${mime}`), content);
         console.log(content);
     }
     _findFile(entry){
@@ -47,15 +47,16 @@ class TranslatorFileFunctions {
             process.exit(1);
 
         } else {
-            if (!entry.match(/\\\w*.html$/)){
+            if (!entry.match(/\w*.html$/)){
                 console.error("Please select a html file.");
                 process.exit(1);
                 
             } else {
                 let fileBuffer = readFileSync(entry);
                 let data = Buffer.from(fileBuffer).toString();
-                this._file = data.replace(/#js .*(\n|\r|\r\n)/g, "");
+                this._file = data.replace(/#js .*(\n|\r)/g, "").replace(/#css .*(\n|\r)/g, "");
                 this._getJS(data);
+                this._getCSS(data);
             }
         }
     }
@@ -64,6 +65,18 @@ class TranslatorFileFunctions {
         if (html.match(/#js .*/g)) {
             path = html.match(/#js .*/g).map(e=>{
                 return e.replace("#js ", "");
+            });
+        }
+        if (path !== null) {
+            let buff = readFileSync(join(__dirname, path[0]));
+            this._js = Buffer.from(buff).toString();
+        }
+    }
+    _getCSS(html){
+        let path = null;
+        if (html.match(/#css .*/g)) {
+            path = html.match(/#css .*/g).map(e=>{
+                return e.replace("#css ", "");
             });
         }
         if (path !== null) {
