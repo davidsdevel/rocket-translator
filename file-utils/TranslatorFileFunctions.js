@@ -7,6 +7,7 @@ class TranslatorFileFunctions {
         this._entry = undefined;
         this._out = undefined;
         this._js = undefined;
+        this._css = undefined;
     }
     setParams(fileName, output){
         this._entry = fileName;
@@ -19,6 +20,13 @@ class TranslatorFileFunctions {
     getJs(){
         if (this._js !== undefined){
             return this._js;
+        } else {
+            return ""
+        }
+    }
+    getCSS(){
+        if (this._css !== undefined){
+            return this._css;
         } else {
             return ""
         }
@@ -81,7 +89,7 @@ class TranslatorFileFunctions {
         }
         if (path !== null) {
             let buff = readFileSync(join(__dirname, path[0]));
-            this._js = Buffer.from(buff).toString();
+            this._css = Buffer.from(buff).toString();
         }
     }
 }
