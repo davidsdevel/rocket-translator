@@ -47,12 +47,12 @@ class StateManagement {
 	 * 
 	 * @public
 	 * @param {Array} JSParsed JS Content Array From JS Parser
-	 * @param {string} type This Can Be 'v' or 'r'
+	 * @param {String} type This Can Be 'v' or 'r'
 	 */
 	getJsData(JSParsed, type) {
 		if (JSParsed.length > 0) {
-			this._filterJS(JSParsed, type).forEach( e =>{
-				this.methods.forEach((ev, i) => {	
+			this._filterJS(JSParsed, type).forEach(e=>{
+				this.methods.forEach((ev, i)=>{	
 					if (e.funcName === ev.name) {
 						this.methods[i].content = e.content;
 					}
@@ -66,7 +66,7 @@ class StateManagement {
 		}
 	}
 	/**
-	 * Set State
+	 * Set States
 	 * 
 	 * Get States from JS Parsed and set to Component States
 	 * 
@@ -85,19 +85,39 @@ class StateManagement {
 			})
 		}
 	}
+	/**
+	 * Set State Watcher
+	 * 
+	 * Get State Watchers from JS Parsed and set to Component Watchers
+	 * 
+	 * @public
+	 * @param {Array} watchersArray 
+	 */
 	setStateWatchers(watchersArray){
 		if (watchersArray) {
 			this.watchers = watchersArray;
 		}
 	}
+	/**
+	 * Set Vars
+	 * 
+	 * Get Vars from JS Parsed and set the value in the corresponding state
+	 * 
+	 * @public
+	 * @param {Array} VarsArray 
+	 */
 	setVars(VarsArray){
+		//Map Vars Array
 		VarsArray.forEach(e=>{
+			//Map States, Get index, and replace whit the new value
 			this.states.forEach((ev, i)=>{
 				if (typeof ev === "object") {
+					//If match replace the corresponding state
 					if (ev.value === e.name) {
 						this.states[i].value = this._defineTypeFromString(e.value);
 					}
 				} else {
+					//If match replace the corresponding state
 					if (ev === e.name) {
 						this.states[i] = {
 							key:ev,
@@ -140,18 +160,27 @@ class StateManagement {
 	 * @param {string} html
 	 */
 	_getDataFromHTML(html){
+
 		this._getComponents(html); //Get Components
-		this._getInputs(html);	
+
+		this._getInputs(html); //Get Inputs, Textarea and Options
+
+		/*
+			Get all data that was be declared with "{Name - Type}" format.
+		*/
 		let _getBarsMatches = html.split("{").map(e=>{
-			let match = e.match(/.*(?=\})/g);
+			let match = e.match(/.*(?=\})/g); //Get All that continue with "}" 
+
 			if(match) return match[0];
 		}).filter(a=>{
+			//Filter the undefined values
 			if (a) return a
 		})
+
 		if (_getBarsMatches) {
-			this._getStates(_getBarsMatches);
-			this._getComputed(_getBarsMatches);
-			this._getProps(_getBarsMatches);
+			this._getStates(_getBarsMatches); //Get States
+			this._getComputed(_getBarsMatches); //Get Computed Methods 
+			this._getProps(_getBarsMatches); //Get Props
 		}	
 	}
 	/**
@@ -193,7 +222,7 @@ class StateManagement {
 		dataArray.forEach(e=>{
 			//If Match push to empty array
 			if (e.match(this._expComputed)) {
-				//This should match something like: {Name - computed}
+				//This would match something like: {Name - computed}
 				_getComputed.push(e.match(this._expComputed)[0]);
 			}
 		})
@@ -288,29 +317,51 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Get Props From Data Array
+	 * 
+	 * @private
+	 * @param {Array} dataArray 
+	 */
 	_getProps(dataArray){
+		//Map Array
 		dataArray.forEach(e=>{
+			//If Match Add Prop Name to Props
 			if (e.match(this._expProps)) {
 				this.props.push(e.replace(/\s-\s\w*/g, ""));
 			}
 		})
 	}
-	_getInputs(string) {
-		let inputs = string.match(/<(input|select|textarea).*(\/\>|\>)/g);
+	/**
+	 * Get Input, Textarea and Option Tags from HTML String
+	 * 
+	 * @private
+	 * @param {string} html 
+	 */
+	_getInputs(html) {
+		//Match Tags
+		let inputs = html.match(/<(input|select|textarea).*(\/\>|\>)/g);
 		if (inputs) {
+			//Map Matches Tags
 			inputs.forEach(e=>{
-				let name = e.match(/name=('|")\w*('|")/g)[0]
+				//If the tag have the attr "name" set an input handler
+				let name = e.match(/name=('|")\w*('|")/g)[0];
 				if (name) {
-					let stateKey = name.match(/('|")\w*(?="|')/)[0].slice(1);
+					let stateKey = name.match(/('|")\w*(?="|')/)[0].slice(1); //Get the name value to declare a state
 					this.inputs = true;
-					this.states.push(stateKey);
+					this.states.push(stateKey); //push to states
 				}
 			})
 		}
 	}
-	_filterJS(JSON, type){
+	/**
+	 * Get an Object's Array with JS Data and return with Vue or React Syntax
+	 * @param {Array} JsArray 
+	 * @param {String} type 
+	 */
+	_filterJS(JsArray, type){
 		//Watch if have Content
-		if (JSON.length > 0) {
+		if (JsArray.length > 0) {
 			let replace; //Empty var to set state declaration
 			let tab; //Empty var to set indent to code beauty
 			switch (type) {
@@ -323,10 +374,10 @@ class StateManagement {
 					tab = "\t\t";
 					break;
 				default:
-					break;
+					throw new Error("The type param would be \"v\" or \"r\"");
 			}
 			//Map JS Content
-			let JsonArray = JSON.map(e=>{
+			let JsonArray = JsArray.map(e=>{
 				var data = e.content; //Asign content to var data
 				/*
 					Map exist state to asign the state declaration to data
@@ -417,10 +468,8 @@ class StateManagement {
 		return retorno
 	}
 	/**
-	 * Parse Array and Define Type
+	 * Parse Array, Object and Define Type
 	 * 
-	 * @description Only works with a single Array: {"foo", 10, true},
-	 * cannot work with Array's Array or Objects Array.
 	 * @param {string} string String Value
 	 * @returns {Array}
 	 */
@@ -433,4 +482,4 @@ class StateManagement {
 		return JSON.parse(filtered);
 	}
 }
-module.exports = StateManagement
+module.exports = StateManagement;
