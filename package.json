@@ -4,18 +4,15 @@
   "description": "This is a HTML translator to React.js and Vue.js",
   "main": "index.js",
   "scripts":{
-    "serve":"node index.js",
-    "vue":"node offline.js -v ./test.html",
-    "react":"node offline.js -r ./test.html"
+    "serve":"node index.js -s",
+    "vue":"node index.js -v",
+    "react":"node index.js -r"
   },
   "dependencies": {
     "express":"*",
     "body-parser":"*"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "node index.js"
-  },
   "author": "David González",
   "license": "ISC"
 }
