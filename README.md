@@ -190,3 +190,9 @@ Example:
 - [ ] Angular Support
 
 **Note:** if you see that some feature is missing, you can write an issue, and tell what feature is missing.
+
+## Contributing
+
+Join on [Slack](https://rocketjs.slack.com) for more info \(**Spanish channel**\).
+
+Coming soon we add an english thread.
