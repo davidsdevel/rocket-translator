@@ -7,7 +7,7 @@ var htmlCodeMirror = CodeMirror.fromTextArea(htmlTextArea,{
    	mode:"text/xml",
    	theme:"darcula"
 })
-htmlCodeMirror.setValue("<!--Init to Write Code Here-->");
+htmlCodeMirror.setValue("<!--Start Coding Here-->");
 
 let jsTextArea = document.getElementById("text-js");
 var jsCodeMirror = CodeMirror.fromTextArea(jsTextArea,{
