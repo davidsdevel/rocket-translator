@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-process.title = "HTML Translator"; //Process Title
+process.title = "RocketJS"; //Process Title
 
 //Const
 const VueCompiler = require("./Lib").VueCompiler,
