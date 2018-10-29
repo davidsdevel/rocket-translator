@@ -93,11 +93,11 @@ class TranslatorFileFunctions {
                 throw new Error("Invalid Type "+type);
         }
         if (!existsSync(join(this._out, `${name}.${mime}`))){
-            //appendFileSync(join(this._out, `${name}.${mime}`), content);
+            appendFileSync(join(this._out, `${name}.${mime}`), content);
         } else {
-            //writeFileSync(join(this._out, `${name}.${mime}`), content);
+            writeFileSync(join(this._out, `${name}.${mime}`), content);
         }
-        console.log(content); //Console Log to debug
+        //console.log(content); //Console Log to debug
     }
     /**
      * Find File
