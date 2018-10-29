@@ -10,6 +10,7 @@ class ReactStateManagement extends StateManagement {
 	}
 	/**
 	 * Set React Components
+	 * 
 	 * @description Set Components Imports to String Template
 	 * @public
 	 * @return {string}
@@ -29,7 +30,6 @@ class ReactStateManagement extends StateManagement {
 		let methods = "";
 		let bindMethods = "";
 		let bindComputeds = "";
-		let props = "";
 		let watchers = "";
 		let inputHandler = "";
 
