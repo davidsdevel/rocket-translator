@@ -33,7 +33,7 @@ class JSParser {
 		}
 	}
 	getStates(){
-		let states = this.js.split(/(\n|\r)(?=watch|state|function|var)/g).filter(e=>{
+		let states = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
 			return e.startsWith("state");
 		})
 		if (states) {
@@ -57,13 +57,13 @@ class JSParser {
 		}
 	}
 	setWatchers(){
-		let watchers = this.js.split(/(\n|\r)(?=watch|state|function|var)/g).filter(e=>{
+		let watchers = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
 			return e.startsWith("watch");
 		})
 		if (watchers) {
 			watchers.forEach(e=>{
 				let name = e.match(/watch \w*/g)[0].replace("watch ", "");
-				let content = e.match(/\{((\n|\r).*(\n|\r)*)*\}$/g)[0];
+				let content = e.match(/\{((\n|\r).*(\n|\r)*)*\}(?=\n|\r|$)/g)[0];
 				let params = e.match(/(\w*|\(.*\))(\s)*(?=\=\>)|function(\s)*\(.*\)/g)[0]
 					.replace(/\s/g, "")
 					.replace(/function/g, "")
@@ -83,20 +83,24 @@ class JSParser {
 		}
 	}
 	setVars(){
-		let varMatched = this.js.split(/(\n|\r)(?=watch|state|function|var)/g).filter(e=>{
-			return e.startsWith("var");
+		let varMatched = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
+			if (
+				e.startsWith("var") ||
+				e.startsWith("let") ||
+				e.startsWith("const")
+			) 
+			  return e;
 		})
 		if (varMatched) {
 			varMatched.forEach(e=>{
-				let name = e.match(/var \w*/g)[0].replace("var ", "");
-				let filtered = e.replace(/var(\s)*\w*(\s)*=(\s)*/g, "").replace(/;$/, "").replace(/(^("|')|('|")$)/g, "");
+				let name = e.match(/(var|let|const)\s*\w*/g)[0].replace(/(var|let|const)(\s*)/, "");
+				let filtered = e.replace(/(var|let|const)\s*\w*\s*=\s*/g, "").replace(/;$/, "").replace(/(^("|')|('|")$)/g, "");
 				this.vars.push({
 					name,
 					value:filtered
 				})
 			})
 		}
-
 	}
 	getVars(){
 		return this.vars;
