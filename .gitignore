@@ -1,5 +1,8 @@
 dist
 tmp
+
+# Testing
+test/
 test.html
 test.js
 
