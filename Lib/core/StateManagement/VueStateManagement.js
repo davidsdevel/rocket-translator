@@ -13,7 +13,11 @@ class VueStateManagement extends StateManagement {
 		return this._setVueDataTemplate(componentName);
 	}
 	setVueFilterHTMLState(html){
+
+		//Quotes Replace
 		let replacedQuotes = html.replace(/(")/g, "'");
+
+		//Parse Data
 		let addOpenBraces = replacedQuotes
 			.split(/\{(?=\w*)/g)
 			.map(e=>{
@@ -51,7 +55,16 @@ class VueStateManagement extends StateManagement {
 			})
 			.join(":");
 
-		return bindDirectivesReplaced;
+		let condParsed = bindDirectivesReplaced
+			.replace(/(\/if|\/else)(?=>)/g, "/template")
+			.replace(/if\s*cond=/g, "template v-if=\"")
+			.replace(/else(?=>)/g, "template v-else")
+			.replace(/''(?=.*>)/g, "'\"");
+
+		let loopParse = condParsed
+			.replace(/for val=(?=.*>)/g, "template v-for=")
+			.replace(/\/for(?=>)/g, "/template")
+		return loopParse;
 	}
 
 	_setVueDataTemplate(componentName){

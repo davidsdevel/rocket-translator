@@ -1,11 +1,11 @@
 # RocketJS
 
-Translate HTML code to Vue or React
+Translate HTML code to Vue or React.
 
 ## Instalation
 
 To install simply:
-Clone the repository and install dependencies
+Clone the repository and install dependencies.
 
 ```sh 
 git clone https://github.com/David-ImpulseWD/RocketJS.git
@@ -62,17 +62,17 @@ or this:
 
 ### How to Use
 
-To use, simpy create a HTML file, with the code to translate, and run
+To use, simpy create a HTML file, with the code to translate, and run:
 
 ```sh
 node index.js [mode] path/to/file.html [output folder]
 ```
 
-The "mode" may be `-v` to Vue or `-r` to React.
+The **mode** may be `-v` to Vue or `-r` to React.
 
-The "output folder" is optional, if this is not defined will create a folder named "dist".
+The **output folder** is optional, if this is not defined will create a folder named **dist**.
 
-The "mode" also may be `-s`, in this case, the path will be the port number, or by default will be: 8080.
+The **mode** also may be `-s`, in this case, the path will be the port number, or by default will be: **8080**.
 
 ## Guide
 
@@ -83,21 +83,11 @@ The "mode" also may be `-s`, in this case, the path will be the port number, or 
 
 ### States Simple <a name="states-simple"></a>
 
-A **State** in a Vue or React component, are a way to set data the affect the view, and when this change, the component re-render the View.
+A **State** in a Vue or React component, are a way to set data that affect the view, and when this changes, the component re-render the view.
 
-To get values into the HTML, we would declare into `{}`. And to the declare a state, we have 3 modes to set it: **Simple**, **Declared**, **With Value**.
+To get values from the HTML, we must declare into `{}`. And to the declare a state, we have 2 modes to set it: **Simple**, **With Value**.
 
-The **Simple** mode, is write only the state name into the template.
-
-Example:
-
-```html
-<div>{myState}</div>
-```
-
-This will declare a empty state named **name**.
-
-In the **Declared** mode, we set the state name, and the type, in this case **state**.
+The **Simple** mode, is declared writing only the state name into the template and writing the type: **state**.
 
 Example:
 
@@ -105,20 +95,18 @@ Example:
 <div>{myState - state}</div>
 ```
 
-This is the same that the **Simple** mode, only that with this, we know that this **word** is a state.
-
-In the **With Value** mode, we declare the state name, the type \(**state**\) and the value to this state.
+In the **With Value** mode, is declared when, we write the state name, the type: **state** and the value for this state.
 
 Example:
 
 ```html
 <div>{stateName - state - "Some Value"}</div>
 ```
-The value may be `String`, `Number`, `Boolean`,`Array` and  `Object`.
+The **value** may be `String`, `Number`, `Boolean`,`Array` and  `Object`.
 
-And in the firts two case, we obtain the next component.
+And in the **simple** case, we obtain the next component state.
 
-On Vue:
+In Vue:
 
 ```js
 data(){
@@ -127,7 +115,7 @@ data(){
 	}
 }
 ```
-And on React we obtain:
+And in React we obtain:
 
 ```js
 this.state = {
@@ -135,7 +123,7 @@ this.state = {
 }
 ```
 
-In the last case we obtain. On Vue:
+In the **With value** case we obtain. In Vue:
 
 ```js
 data(){
@@ -145,7 +133,7 @@ data(){
 }
 ```
 
-And on React:
+And in React:
 
 ```js
 this.state = {
@@ -153,18 +141,75 @@ this.state = {
 }
 ```
 
-To know more about states, and Javascript Management. You can see [Javascript Management](#JS Management) section. 
+To know more about states, and Javascript Management. You can see [Javascript Management](#js-management) section. 
 
 ### Props <a name="props"></a>
 
-The **props** in a component, are data that a parent \(container\) component pass trough this.
+The **props** in a component, are data that a parent \(**container**\) component pass to a child component.
 
-And like the state, we may declare a prop with this format `{propName - prop}`.
+And like the **state**, we may declare a prop with this format `{propName - prop}`.
 
 Example:
+
 ```html
-<div>The next data is passed form the parent component: {parentData - prop}</div>
+<div>{parentData - prop}</div>
 ```
+
+And declaring a prop, the final template will render, in Vue:
+
+```js
+props:{
+	parentData:{
+		type:String,
+		required:true,
+		default:"Hello World"
+	}
+}
+```
+And in React, pass the props trought the **Component Constructor** and auto declares the props.
+
+```js
+constructor(props){
+	super(props);
+}
+render(){
+	return(
+		<div>{this.props.parentData}</div>
+	)
+}
+```
+
+### Computed <a name="computed"></a>
+
+A **Computed** method is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed method, simply we can set the computed method name and the type: **computed**.
+
+```html
+<div>{computedName - computed}</div>
+```
+
+
+
+
+### Methods <a name="methods"></a>
+
+### Components <a name="components"></a>
+
+### State Watchers <a name="watchers"></a>
+
+### Inputs Handler
+
+### Conditionals
+
+### Loops
+
+### Bind Attributes
+
+### Styles
+
+### JS Management
+
+### HTML Syntax
+
 
 ## To Do
 
@@ -193,6 +238,6 @@ Example:
 
 ## Contributing
 
-Join on [Slack](https://rocketjs.slack.com) for more info \(**Spanish channel**\).
+To contribute you can Join to our [Slack](https://rocketjs.slack.com) channel for more info. \(**Info in Spanish**\)
 
 Coming soon we add an english thread.

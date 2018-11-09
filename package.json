@@ -2,17 +2,32 @@
   "name": "rocket-translator",
   "version": "1.0.0",
   "description": "This is a HTML translator to React.js and Vue.js",
-  "main": "index.js",
-  "scripts":{
-    "serve":"node index.js -s",
-    "vue":"node index.js -v",
-    "react":"node index.js -r"
+  "keywords": [
+    "vue",
+    "react",
+    "translator",
+    "html translator"
+  ],
+  "engines": {
+    "node": ">= 0.1"
   },
-  "dependencies": {
-    "express":"*",
-    "body-parser":"*"
+  "directories": {
+    "test": "test"
   },
-  "devDependencies": {},
+  "main": "./lib/core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Davids-Devel/RocketJS.git"
+  },
+  "scripts": {
+    "serve": "node index.js -s",
+    "vue": "node index.js -v",
+    "react": "node index.js -r"
+  },
+  "bugs": {
+    "url": "https://github.com/Davids-Devel/RocketJS/issues"
+  },
+  "homepage": "https://github.com/Davids-Devel/RocketJS#readme",
   "author": "David González",
   "license": "ISC"
 }

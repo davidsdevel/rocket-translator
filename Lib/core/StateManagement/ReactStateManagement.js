@@ -1,4 +1,4 @@
-const StateManagement = require("./StateManagement")
+const StateManagement = require("./StateManagement");
 
 /**
  * Class React State Management
@@ -7,6 +7,10 @@ const StateManagement = require("./StateManagement")
 class ReactStateManagement extends StateManagement {
 	constructor(){
 		super();
+		this.condStates = new Array();
+		this.loopsState = new Array();
+		this.condMapped = false;
+		this.loopsMapped = false;
 	}
 	/**
 	 * Set React Components
@@ -24,7 +28,15 @@ class ReactStateManagement extends StateManagement {
 		}
 		return components;
 	}
+	/**
+	 * Set React Components
+	 * 
+	 * @description Set Components Imports to String Template
+	 * @public
+	 * @return {string}
+	 */
 	setReactStateToTemplate(){
+		//Empty vars to append into template
 		let states = "";
 		let computed = "";
 		let methods = "";
@@ -33,19 +45,19 @@ class ReactStateManagement extends StateManagement {
 		let watchers = "";
 		let inputHandler = "";
 
-		//States
+		//Map States
 		if (this.states.length > 0) {
-			var _mappedStates = {};
+			var _mappedStates = {}; //Empty Object to set States
 			this.states.forEach(e=>{
 				if (typeof e === "object") {
 					_mappedStates[e.key] = e.value;
 				} else if (typeof e === "string"){
-					_mappedStates[e.replace(/(\"|\')/g, "")] = "";
+					_mappedStates[e.replace(/(\"|\')/g, "")/*Delete String Quotes*/] = "";
 				}
 			})
-			states = `\n\t\tthis.state = ${this._JSONPrettify(_mappedStates)};`;
+			states = `\n\t\tthis.state = ${this._JSONPrettify(_mappedStates)};`; //Set States
 		}
-		//Computed
+		//Map Computeds
 		if (this.computed.length > 0) {
 			let mappedComputed = this.computed.map(e=>{
 				return `${e.name}()${e.content}`;
@@ -123,14 +135,47 @@ class ReactStateManagement extends StateManagement {
 	`constructor(${this.props.length > 0 ? "props": ""}) {
 		super(${this.props.length > 0 ? "props": ""});${states}${bindMethods}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}
 	}${computed}${methods}${inputHandler}${watchers}`;
-		if (!states && !computed && !methods && !watchers) {
+		if (!states && !computed && !methods && !watchers && this.props.length === 0) {
 			 mainTemplate = "";
 		}
 		return mainTemplate
 	}
 	setReactFilterHTMLState(html){
-
-		return html
+		if (!this.condMapped) {
+			this.cond.forEach(e=>{
+				let id = "";
+				for (var i = 0; i <= 3; i++) {
+					id += new String(Math.floor(Math.random()*10));
+				}
+				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)${e.if}(\n|\r|\r\n)(\t)*</if>(\r|\n|\r\n)`, "m"), `{data_${id}}`);
+				html = html.replace(new RegExp(`(\t)*<else>(\n|\r|\r\n)${e.else}</else>`, "m"), "");
+		
+				this.condStates.push({
+					id,
+					cond:e.cond,
+					if:e.if.replace(/^\t*/, ""),
+					else:e.else.replace(/^\t*/, "").replace(/(\n|\r|\r\n)(\t)*$/, "")
+				});
+			})
+			this.condMapped = true;
+		}
+		if (!this.loopsMapped){
+			this.loops.forEach(e=>{
+				let id = "";
+				for (var i = 0; i <= 3; i++) {
+					id += new String(Math.floor(Math.random()*10));
+				}
+				html = html.replace(new RegExp(`<for val=('|").*('|")>(\n|\r|\r\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".")}(\r\n|\n|\r)\t*</for>`), `{data_${id}}`);
+				this.loopsState.push({
+					id,
+					state:e.state,
+					value:e.value,
+					content:e.content.replace(/(\n|\r|\r\n|\t)/g, "")
+				});
+			})
+			this.loopsMapped = true;
+		}
+		html = html
 			.replace(/"/g, "'")
 			.split(/\{(?=\w*)/g)
 			.map((e, i)=>{
@@ -142,13 +187,15 @@ class ReactStateManagement extends StateManagement {
 						str = "{this.props."+e.replace(/(\s-.*\})/g, "}");
 					}else if (e.match(/computed/)) {
 						str = "{this."+e.replace(/(\s-.*\})/g, "()}");
-					} else {
+					} else if (e.match(/state/)){
 						str = "{this.state."+e.replace(/(\s-.*\})/g, "}");
+					} else {
+						str = "{"+e
 					}
 					return str;
 				}
 			})
-			.join("")			
+			.join("")
 			.split(/:(?=\w*='\w*)/g)
 			.map((e, i)=>{
 				let valueToReturn;
@@ -225,6 +272,17 @@ class ReactStateManagement extends StateManagement {
 			.join("<")
 			.replace(/class(?=='|={)/g, "className")
 			.replace(/for(?=='|={)/g, "htmlFor");
+
+			return html
+	}
+	setCondAndLoops(){
+		let cond = this.condStates.map(e=>{
+			return `var data_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tdata_${e.id} = ${e.if};\n\t\t} ${e.else ? `else {\n\t\t\tdata_${e.id} = ${e.else}`:""}`
+		})
+		let loops = this.loopsState.map(e=>{
+			return `var data_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t}`
+		})
+		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}`;
 	}
 }
 

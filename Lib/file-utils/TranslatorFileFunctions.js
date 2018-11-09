@@ -26,6 +26,8 @@ class TranslatorFileFunctions {
     setParams(fileName, output){
         this._entry = fileName;
         this._out = output;
+        this._js = [];
+        this._css = [];
         this._findFile(fileName); //Find all files
     }
     /**
@@ -49,7 +51,14 @@ class TranslatorFileFunctions {
      */
     getJs(){
         if (this._js !== undefined){
-            return this._js;
+            return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e=>{
+                if (e) return e.replace(/\t/, "");
+            })
+            .filter(e=>{
+                if (e) return e
+            })
+            .join("\r\n");
+            console.log(this._js)
         } else {
             return ""
         }
@@ -64,7 +73,7 @@ class TranslatorFileFunctions {
      */
     getCSS(){
         if (this._css !== undefined){
-            return this._css;
+            return this._css.join("\r\n").replace(/^(\n|\r|\r\n)\t*/g, "");
         } else {
             return ""
         }
@@ -121,11 +130,36 @@ class TranslatorFileFunctions {
                 let data = Buffer.from(fileBuffer).toString(); //Decode Buffer
 
                 //Remove external files routes
-                this._file = data.replace(/#js .*(\n|\r)/g, "").replace(/#css .*(\n|\r)/g, "");
+                this._file = data
+                    .replace(/#js .*(\n|\r)/g, "")
+                    .replace(/#css .*(\n|\r|\r\n)/g, "")
+                    .split(/<script.*>/g)
+                    .map((e, i)=>{
+                        if (i > 0) return e.replace(/(\n|\r|\r\n)*(.*(\n|\r|\r\n)*)*<\/script>/, "");
+                        else return e
+                    })
+                    .join("");
                 this._getFileData(data, "js"); //Get Js Route and Data
                 this._getFileData(data, "css"); //Get Css Route and Data
+                this._getScriptTag(data);
+                this._getStyleTags(data);
             }
         }
+    }
+    _getScriptTag(html) {
+        console.log(this._js)
+        html.split(/<script.*>/g).forEach((e, i)=>{
+            if (i > 0) {
+                this._js.push(e.replace(/<\/script>/g, ""));
+            }
+        })
+    }
+    _getStyleTags(html){
+        html.split(/<style.*>/g).forEach((e, i)=>{
+            if (i > 0) {
+                this._css.push(e.replace(/<\/style>/, ""));
+            }
+        })
     }
     /**
      * Get File Data
@@ -145,9 +179,11 @@ class TranslatorFileFunctions {
                 });
             }
             if (path !== null) {
-                let buff = readFileSync(join(__dirname,"..", path[0])); //Read File
-                let data = Buffer.from(buff).toString(); //Decode Buffer
-                type === "css" ? this._css = data : this._js = data; //Set Data
+                path.forEach(e=>{
+                    let buff = readFileSync(join(__dirname,"..", e)); //Read File
+                    let data = Buffer.from(buff).toString(); //Decode Buffer
+                    type === "css" ? this._css.push(data) : this._js.push(data); //Set Data                    
+                })
             }
         } else {
             throw new Error("Invalid Type "+type);

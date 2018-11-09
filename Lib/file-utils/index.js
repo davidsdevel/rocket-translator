@@ -1,2 +1,2 @@
-exports.fileFunctions = require("./fileFunctions");
+exports.ServerFileFunctions = require("./ServerFileFunctions");
 exports.TranslatorFileFunctions = require("./TranslatorFileFunctions");

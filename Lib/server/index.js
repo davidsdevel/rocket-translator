@@ -4,8 +4,8 @@ const express = require("express"),
 	  urlencodedParser = bodyParser.urlencoded({ extended: false }),
 	  {join} = require("path"),
 	  {exec} = require("child_process"),
-	  {write, remove} = require("./file-utils").fileFunctions,
-	  {VueCompiler, ReactCompiler} = require("./Lib"),
+	  {write, remove} = require("../file-utils").ServerFileFunctions,
+	  {VueCompiler, ReactCompiler} = require("../core"),
 	
 	  public = join(__dirname, "public");
 	  
@@ -28,20 +28,24 @@ server
 		let css = body.css; //Css Data
 		let filename = body.name; //Filename
 		if (body.type === "React") {
-			res.setHeader("Content-Type", "text/javascript; charset=utf-8");
-			res.send(ReactCompiler(filename, html, css, js));
 
+			let dir = {
+				folder:filename,
+				files:{}
+			}
+			dir.files[filename+".css"] = css;
+			dir.files[filename+".js"] = ReactCompiler(filename, html, css, js); 
 			// To download File
-			/*write(filename+".js", reactCompiler(html, css));
+			write(dir);
 			res.download(`./tmp/${filename}.js`,(err)=>{
-				remove(filename+".js");
-			});*/
+				remove(filename);
+			});
 		} else {
 			res.setHeader("Content-Type", "text/plain; charset=utf-8");
-			res.send(VueCompiler(filename, html, css, js));
+			res.send();
 
 			// To download File
-			/*write(filename+".vue", vueCompiler(html, css));
+			/*write(filename+".vue", VueCompiler(filename, html, css, js));
 			res.download(`./tmp/${filename}.vue`,err=>{
 				remove(filename+".vue");
 			});*/

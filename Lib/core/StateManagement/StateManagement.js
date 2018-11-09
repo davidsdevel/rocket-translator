@@ -13,8 +13,9 @@ class StateManagement {
 		this.watchers = new Array();
 		this.props = new Array();
 		this.inputs = false;
+		this.cond = new Array();
+		this.loops = new Array();
 
-		this._expStateSimple = /^\w*$/; //RegExp to get State Without Value
 		this._expState = /^\w*\s\-\sstate$/g; //RegExp to get State With Declaration
 		this._expStateValue = /^\w*\s\-\sstate\s\-\s.*$/g; //RegExp to get State With Value
 		this._expComputed = /^\w*\s\-\scomputed/g; //RegExp to get Computed Methods
@@ -22,7 +23,8 @@ class StateManagement {
 
 	}
 
-	/*--------------- Public Methods -----------------*/
+	//--------------- Public Methods -----------------
+
 	/**
 	 * Get States, Computed, Methods and Components
 	 * 
@@ -37,8 +39,10 @@ class StateManagement {
 		this.components = [];
 		this.watchers = [];
 		this.props = [];
-		this._getDataFromHTML(html); //Call Method to Get Data from HTML String
-		this._getMethods(html); //Call Method to Get Data from HTML String
+		this.cond = [];
+		this.loops = [];
+		this._setDataFromHTML(html); //Call Method to Get Data from HTML String
+		this._setMethods(html); //Call Method to Get Data from HTML String
 	}
 	/**
 	 * Get Js Data
@@ -78,7 +82,10 @@ class StateManagement {
 			//Map State Array
 			statesArray.forEach(e=>{
 				if (typeof e === "object"){
-					e.value = e.value.replace(/"/g, "'").replace(/'/g, ""); //Delete quotes to get Type
+					//If is not an Array or an Object
+					if (!e.value.startsWith("{") && !e.value.startsWith("[")) {
+						e.value = e.value.replace(/"/g, "'").replace(/'/g, ""); //Delete quotes to get Type
+					}
 					e.value = this._defineTypeFromString(e.value); //Get Type
 				}
 				this.states.push(e); //Push To Component States
@@ -133,11 +140,11 @@ class StateManagement {
 	/*Internal Methods*/
 	
 	/**
-	 * Convert object to string and add new lines and indents to code beauty
+	 * Convert an Object to String and add new lines and indents to code beauty
 	 * 
 	 * @protected
-	 * @param {object} json
-	 * @return {string}
+	 * @param {Object} json
+	 * @return {String}
 	 */
 	_JSONPrettify(json){
 		let jsonToString = JSON.stringify(json); //Convert to String
@@ -159,11 +166,15 @@ class StateManagement {
 	 * @private
 	 * @param {string} html
 	 */
-	_getDataFromHTML(html){
+	_setDataFromHTML(html){
 
-		this._getComponents(html); //Get Components
+		this._setComponents(html); //Get Components
 
-		this._getInputs(html); //Get Inputs, Textarea and Options
+		this._setInputs(html); //Get Inputs, Textarea and Options
+
+		this._setConditionals(html); //Get conditionals Data
+
+		this._setLoops(html); //Get Loops Data
 
 		/*
 			Get all data that was be declared with "{Name - Type}" format.
@@ -178,9 +189,9 @@ class StateManagement {
 		})
 
 		if (_getBarsMatches) {
-			this._getStates(_getBarsMatches); //Get States
-			this._getComputed(_getBarsMatches); //Get Computed Methods 
-			this._getProps(_getBarsMatches); //Get Props
+			this._setStates(_getBarsMatches); //Get States
+			this._setComputed(_getBarsMatches); //Get Computed Methods 
+			this._setProps(_getBarsMatches); //Get Props
 		}	
 	}
 	/**
@@ -189,7 +200,7 @@ class StateManagement {
 	 * @private
 	 * @param {string} html 
 	 */
-	_getComponents(html){
+	_setComponents(html){
 		let _matchComponents = html.match(/\<([A-Z]\w*).*\/\>/g); //Match Components
 		if (_matchComponents) {
 			_matchComponents.forEach(e=>{
@@ -216,13 +227,13 @@ class StateManagement {
 	 * @private
 	 * @param {array} dataArray Array With All Data
 	 */
-	_getComputed(dataArray){
+	_setComputed(dataArray){
 		let _getComputed=[]; //Declare Empty Array
 		//Map Array to get computed methods
 		dataArray.forEach(e=>{
 			//If Match push to empty array
 			if (e.match(this._expComputed)) {
-				//This would match something like: {Name - computed}
+				//This must match something like: {Name - computed}
 				_getComputed.push(e.match(this._expComputed)[0]);
 			}
 		})
@@ -231,9 +242,9 @@ class StateManagement {
 			_getComputed.forEach(e=>{
 				this.computed.push({
 					name:e.match(/^\w*/g)[0],
-					content:"{\n\t\t\treturn false\n\t\t}"
+					content:"{\n\t\t\treturn 'Hello World'\n\t\t}"
 				});
-			})
+			});
 		}
 	}
 	/**
@@ -242,19 +253,9 @@ class StateManagement {
 	 * @private
 	 * @param {array} dataArray 
 	 */
-	_getStates(dataArray){
+	_setStates(dataArray){
 		/* 
-			Capture State Simple and push to Empty Array
-		*/
-		let _getStateSimple = [];//Declare Empty Array to State Simple: {name}
-		dataArray.forEach(e=>{
-			if (e.match(this._expStateSimple)) {
-				let _toPush = e.match(this._expStateSimple)[0]; //Match State
-				_getStateSimple.push(_toPush);
-			}
-		});
-		/* 
-			Capture State Without Value With Instance and push to Empty Array
+			Capture State Without Value and push to Empty Array
 		*/
 		let _getState = []; //Declare Empty Array to State With Declaration: {name - state}
 		dataArray.forEach(e=>{
@@ -272,19 +273,12 @@ class StateManagement {
 			}
 		});
 
-		//If State Simple, Map and Push to Component States
-		if (_getStateSimple.length > 0) {
-			_getStateSimple.forEach(e=>{
-				this.states.push(e);
-			})
-		}
-
 		//If State With Declaration, Map and Push to Component States
 		if (_getState.length > 0){
 			_getState.forEach(e=>{
 				let _keyMatch = e.match(/^\w*/g); //Get State Name
 				this.states.push(_keyMatch[0]);
-			})
+			});
 		}
 
 		//If State With Value, Map and Push to Component States
@@ -293,8 +287,8 @@ class StateManagement {
 				let _getKey = e.match(/^\w*\s/);
 				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|(\'|\")\w*(\'|\"))$/)[0]); //Set Value
 				let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
-				this.states.push({key, value })
-			})
+				this.states.push({key, value });
+			});
 		}
 	}
 	/**
@@ -305,14 +299,14 @@ class StateManagement {
 	 * @private
 	 * @param {string} html HTML String
 	 */
-	_getMethods(html){
+	_setMethods(html){
 		let events = html.match(/on\w*=(\"|\')\w*\(\)(\"|\')/g); //Match RegExp
 		if (events) {
 			events.forEach(e=>{
 				let split = e.split("=");
 				this.methods.push({
 					name:split[1].slice(1, split[1].length - 1),/*Get Method Name*/
-					content:"{\n\t\treturn true\n\t}" /*Default Value If methods is not declared*/
+					content:"{\n\t\treturn\n\t}" /*Default Value If methods is not declared*/
 				});
 			});
 		}
@@ -323,7 +317,7 @@ class StateManagement {
 	 * @private
 	 * @param {Array} dataArray 
 	 */
-	_getProps(dataArray){
+	_setProps(dataArray){
 		//Map Array
 		dataArray.forEach(e=>{
 			//If Match Add Prop Name to Props
@@ -338,7 +332,7 @@ class StateManagement {
 	 * @private
 	 * @param {string} html 
 	 */
-	_getInputs(html) {
+	_setInputs(html) {
 		//Match Tags
 		let inputs = html.match(/<(input|select|textarea).*(\/\>|\>)/g);
 		if (inputs) {
@@ -353,6 +347,60 @@ class StateManagement {
 				}
 			})
 		}
+	}
+	_setConditionals(html){
+		let condArray = html.split("<if ")
+		.map((e, i)=>{
+			if (i > 0) {
+				let cond = e.match(/cond=('|").*('|")(?=>)/g);
+				let contentIf;
+				let contentElse;
+				if (e) {
+					cond = cond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
+					contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)\t*<\/if>/)[0];
+					contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
+					if (contentElse) {
+						contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
+					}
+				}
+				return {
+					cond,
+					if:contentIf,
+					else:contentElse
+				}
+			} else {
+				return null;
+			}
+		})
+		.filter(e=>{
+			if (e) return e;
+		});
+		this.cond = condArray;
+	}
+	_setLoops(html){
+		let loopsArray = html.split(/<for /)
+			.map((e, i)=>{
+				let data;
+				if (i > 0) {
+					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
+					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
+					let stateToMap = valueAndState.replace(/^.*in /, "");
+					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").replace(/(\n|\r|\r\n)<\/for>/, "");
+					data = {
+						value:valueToSetInTemplate,
+						state:stateToMap,
+						content:loopContent
+					};
+				} else {
+					data = null;
+				}
+				return data;
+			})
+			.filter(e=>{
+				if (e) return e;
+			});
+
+		this.loops = loopsArray;
 	}
 	/**
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
@@ -374,7 +422,7 @@ class StateManagement {
 					tab = "\t\t";
 					break;
 				default:
-					throw new Error("The type param would be \"v\" or \"r\"");
+					throw new Error("The type param must be \"v\" or \"r\"");
 			}
 			//Map JS Content
 			let JsonArray = JsArray.map(e=>{
@@ -428,10 +476,9 @@ class StateManagement {
 		let _isDigit = string.match(/^\d*$/); //Digit Match
 		let _isBoolean = string.match(/(true|false)$/g); //Boolean Match
 		let _isArray = string.match(/^\[.*\]$/); //Array Match
-		let _isObject = string.match(/^\{((\n).*)*\}/g);
-
+		let _isObject = string.match(/^\{(\r|\n)*((\t*).*(\r|\n*))*\}/g);
 		if (_isDigit) {
-			value = Number(_isDigit[0]); //Convert To Number
+			value = parseInt(_isDigit[0]); //Convert To Number
 		} else if (_isBoolean){
 			value = this._BooleanParser(_isBoolean[0]); //Convert To Boolean
 		} else if(_isArray){
@@ -474,11 +521,15 @@ class StateManagement {
 	 * @returns {Array}
 	 */
 	_ArrayAndObjectParser(string){
-		let filtered = string
-			.replace(/:/g, "\":")
-			.replace(/\t(?=.*:)/g, "\t\"")
-			.replace(/\t\"(?=\t\")/g, "\t")
-			.replace(/,(?=\n(\t)*})/g, "");
+		let filtered = string;
+		//If is Object, parse the content
+		if(string.startsWith("{")){
+			filtered = filtered
+				.replace(/:/g, "\":")
+				.replace(/\t(?=.*:)/g, "\t\"")
+				.replace(/\t\"(?=\t\")/g, "\t")
+				.replace(/,(?=\n(\t)*})/g, "");
+		}
 		return JSON.parse(filtered);
 	}
 }

@@ -3,19 +3,18 @@
 process.title = "RocketJS"; //Process Title
 
 //Const
-const VueCompiler = require("./Lib").VueCompiler,
-	  ReactCompiler = require("./Lib").ReactCompiler,
-	  FF = require("./file-utils").TranslatorFileFunctions,
-	  {startServer} = require("./server"),
+const {VueCompiler, ReactCompiler} = require("../lib").core,
+	  FF = require("../lib/file-utils").TranslatorFileFunctions,
+	  {startServer} = require("../lib/server"),
 	  {join} = require("path");
 
 const mode = process.argv[2]; //Get the mode to compile
 
-if (mode === "-h" || mode === "--help" || !mode){
+if (mode === "-h" || !mode){
 	//Help Commands
     console.log(
-    `Use: node index.js [command] [input-file] [output-folder]
-    	  node index.js -s [port]
+    `usage: rocket [-v | -r <input-file> <output-folder>]
+				   [-s <port>]
 
     Commands:
     	Start dev server:	 -s

@@ -1,15 +1,17 @@
 class JSParser {
 	constructor(js){
 		this.js = js;
-		this.content = [];
+		this.splitReg = /(\n|\r|\r\n)*(?=watch|state|function|var|let|const)/;
 		this.watchers = [];
-		this._separate();
 		this.vars = [];
-		this.setWatchers(js);
+		this.content = [];
+		this._separate();
+		this.setWatchers();
 		this.setVars();
 	}
 	_separate(){
-		let methods = this.js.split(/(\n|\r)(?=watch|state|function|var)/g).filter(e=>{
+		console.log(this.js)
+		let methods = this.js.split(this.splitReg).filter(e=>{
 			return e.startsWith("function");
 		})
 		if (methods) {
@@ -33,7 +35,7 @@ class JSParser {
 		}
 	}
 	getStates(){
-		let states = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
+		let states = this.js.split(this.splitReg).filter(e=>{
 			return e.startsWith("state");
 		})
 		if (states) {
@@ -43,7 +45,7 @@ class JSParser {
 				let toExport;
 				key = splited[0].replace("state ", "").replace(";", "");
 				if (splited.length > 1) {
-					var value = splited[1].replace(";", "");
+					var value = splited[1].replace(/;()/, "");
 					toExport = {
 						key,
 						value
@@ -57,7 +59,7 @@ class JSParser {
 		}
 	}
 	setWatchers(){
-		let watchers = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
+		let watchers = this.js.split(this.splitReg).filter(e=>{
 			return e.startsWith("watch");
 		})
 		if (watchers) {
@@ -82,8 +84,11 @@ class JSParser {
 			})
 		}
 	}
+	set vars(){
+
+	}
 	setVars(){
-		let varMatched = this.js.split(/(\n|\r)(?=watch|state|function|var|let|const)/g).filter(e=>{
+		let varMatched = this.js.split(this.splitReg).filter(e=>{
 			if (
 				e.startsWith("var") ||
 				e.startsWith("let") ||
