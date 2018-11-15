@@ -84,9 +84,6 @@ class JSParser {
 			})
 		}
 	}
-	set vars(){
-
-	}
 	setVars(){
 		let varMatched = this.js.split(this.splitReg).filter(e=>{
 			if (
