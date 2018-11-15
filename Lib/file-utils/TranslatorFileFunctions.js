@@ -1,5 +1,13 @@
-const {existsSync, appendFileSync, mkdirSync, readFileSync, writeFileSync} = require("fs");
-const { join } = require("path");
+const {
+    existsSync,
+    appendFileSync,
+    mkdirSync,
+    readFileSync,
+    writeFileSync,
+    realpathSync
+} = require("fs"),
+{ join } = require("path"),
+cliDir = realpathSync(".");
  /**
   * File Functions to CLI
   * 
@@ -58,7 +66,6 @@ class TranslatorFileFunctions {
                 if (e) return e
             })
             .join("\r\n");
-            console.log(this._js)
         } else {
             return ""
         }
@@ -141,12 +148,12 @@ class TranslatorFileFunctions {
                     .join("");
                 this._getFileData(data, "js"); //Get Js Route and Data
                 this._getFileData(data, "css"); //Get Css Route and Data
-                this._getScriptTag(data);
+                this._getScriptTags(data);
                 this._getStyleTags(data);
             }
         }
     }
-    _getScriptTag(html) {
+    _getScriptTags(html) {
         console.log(this._js)
         html.split(/<script.*>/g).forEach((e, i)=>{
             if (i > 0) {
@@ -180,7 +187,7 @@ class TranslatorFileFunctions {
             }
             if (path !== null) {
                 path.forEach(e=>{
-                    let buff = readFileSync(join(__dirname,"..", e)); //Read File
+                    let buff = readFileSync(join(__dirname,"..","..", e)); //Read File
                     let data = Buffer.from(buff).toString(); //Decode Buffer
                     type === "css" ? this._css.push(data) : this._js.push(data); //Set Data                    
                 })

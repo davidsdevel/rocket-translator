@@ -6,18 +6,20 @@ process.title = "RocketJS"; //Process Title
 const {VueCompiler, ReactCompiler} = require("../lib").core,
 	  FF = require("../lib/file-utils").TranslatorFileFunctions,
 	  {startServer} = require("../lib/server"),
-	  {join} = require("path");
+	  {join} = require("path"),
+	  {realpathSync} = require("fs"),
+	  cliDir = realpathSync(".");
 
 const mode = process.argv[2]; //Get the mode to compile
 
 if (mode === "-h" || !mode){
 	//Help Commands
     console.log(
-    `usage: rocket [-v | -r <input-file> <output-folder>]
-				   [-s <port>]
+`	Usage: rocket [-v | -r <input-file> <output-folder>]
+		      [-s <port>]
 
     Commands:
-    	Start dev server:	 -s
+    	Start dev server:    -s
         Compile to react:    -r
         Compile to vue:      -v
         Help:                -h`
@@ -35,12 +37,13 @@ if (mode === "-h" || !mode){
 		console.log(`Please select a file to compile.`);
 		process.exit(1);
 	} else {
-		fileName = join(__dirname, process.argv[3]); //Get the file path
+		fileName = join(cliDir, process.argv[3]); //Get the file path
 	}
 
 	//Dirname for the output folder
-	const output = process.argv[4] ? join(__dirname, process.argv[4]) : join(__dirname, "dist");
+	const output = process.argv[4] ? join(cliDir, process.argv[4]) : join(cliDir, "dist");
 	
+
 	//Instance the File Functions Class
 	const functions = new FF();
 	functions.setParams(fileName, output); //Set Input file and Output folder
