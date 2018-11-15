@@ -55,7 +55,7 @@ or this:
         	return {
             	name:"World"
             }
-		}
+	}
     }
 </script>
 ```
