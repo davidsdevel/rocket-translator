@@ -10,7 +10,6 @@ class JSParser {
 		this.setVars();
 	}
 	_separate(){
-		console.log(this.js)
 		let methods = this.js.split(this.splitReg).filter(e=>{
 			return e.startsWith("function");
 		})

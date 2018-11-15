@@ -154,7 +154,6 @@ class TranslatorFileFunctions {
         }
     }
     _getScriptTags(html) {
-        console.log(this._js)
         html.split(/<script.*>/g).forEach((e, i)=>{
             if (i > 0) {
                 this._js.push(e.replace(/<\/script>/g, ""));

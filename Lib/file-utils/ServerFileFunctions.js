@@ -20,7 +20,6 @@ exports.write = (filename, content) =>{
 
 		let filenames = Object.keys(files);
 
-		console.log(filenames)
 		if (!existsSync(join(tmpPath, folder))) {
 			mkdirSync(join(tmpPath, folder));
 		}
