@@ -1,6 +1,6 @@
 const RSM = require("./StateManagement").ReactStateManagement,
       VSM = require("./StateManagement").VueStateManagement,
-      Parser = require("./StateManagement").JsParser;
+      Parser = require("./JavascriptManagement");
 
 /**
  * React Compiler
