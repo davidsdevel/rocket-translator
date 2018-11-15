@@ -1,7 +1,7 @@
 {
   "name": "rocket-translator",
   "version": "1.0.0",
-  "description": "This is a HTML translator to React.js and Vue.js",
+  "description": "Translate your HTML files to React.js and Vue.js",
   "keywords": [
     "vue",
     "react",
@@ -20,9 +20,9 @@
     "url": "git+https://github.com/Davids-Devel/RocketJS.git"
   },
   "scripts": {
-    "serve": "node index.js -s",
-    "vue": "node index.js -v",
-    "react": "node index.js -r"
+    "serve": "node ./bin/cli.js -s",
+    "vue": "node ./bin/cli.js -v",
+    "react": "node ./bin/cli.js -r"
   },
   "bugs": {
     "url": "https://github.com/Davids-Devel/RocketJS/issues"
