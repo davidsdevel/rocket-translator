@@ -9,6 +9,7 @@ class ReactStateManagement extends StateManagement {
 		super();
 		this.condStates = new Array();
 		this.loopsState = new Array();
+		this.prerenderComputed = new Array();
 		this.condMapped = false;
 		this.loopsMapped = false;
 	}
@@ -60,6 +61,7 @@ class ReactStateManagement extends StateManagement {
 		//Map Computeds
 		if (this.computed.length > 0) {
 			let mappedComputed = this.computed.map(e=>{
+				this.prerenderComputed.push(`var ${e.name} = this.${e.name}();`);
 				return `${e.name}()${e.content}`;
 			});
 			computed = "\n\t"+mappedComputed.join("\n\t");
@@ -130,7 +132,6 @@ class ReactStateManagement extends StateManagement {
 	}`;
 		}
 
-
 		let mainTemplate = 	
 	`constructor(${this.props.length > 0 ? "props": ""}) {
 		super(${this.props.length > 0 ? "props": ""});${states}${bindMethods}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}
@@ -186,7 +187,7 @@ class ReactStateManagement extends StateManagement {
 					} else if (e.match(/prop/)) { 
 						str = "{this.props."+e.replace(/(\s-.*\})/g, "}");
 					}else if (e.match(/computed/)) {
-						str = "{this."+e.replace(/(\s-.*\})/g, "()}");
+						str = "{"+e.replace(/(\s-.*\})/g, "}");
 					} else if (e.match(/state/)){
 						str = "{this.state."+e.replace(/(\s-.*\})/g, "}");
 					} else {
@@ -275,14 +276,14 @@ class ReactStateManagement extends StateManagement {
 
 			return html
 	}
-	setCondAndLoops(){
+	setPrerenderLogical(){
 		let cond = this.condStates.map(e=>{
 			return `var data_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tdata_${e.id} = ${e.if};\n\t\t} ${e.else ? `else {\n\t\t\tdata_${e.id} = ${e.else}`:""}`
 		})
 		let loops = this.loopsState.map(e=>{
 			return `var data_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t}`
 		})
-		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}`;
+		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
 	}
 }
 

@@ -47,7 +47,7 @@ ${ReactStateManagement.setReactComponents()}
 class ${name || "MyComponent"} extends Component {
 	${ReactStateManagement.setReactStateToTemplate()}
 	render(){
-		${ReactStateManagement.setCondAndLoops()}
+		${ReactStateManagement.setPrerenderLogical()}
 		return(
 ${pretty}\t\t)
 	}
