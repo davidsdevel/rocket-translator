@@ -1,16 +1,17 @@
-class JSParser {
+class JavascriptManagement {
 	constructor(js){
-		this.js = js;
 		this.splitReg = /(\n|\r|\r\n)*(?=watch|state|function|var|let|const)/;
-		this.watchers = [];
-		this.vars = [];
-		this.content = [];
-		this._separate();
-		this.setWatchers();
-		this.setVars();
+		this._watchers = new Array();
+		this._vars = new Array();
+		this._states = new Array();
+		this._functions = new Array();
+		this.functions = js;
+		this.watchers = js;
+		this.vars = js;
+		this.states = js;
 	}
-	_separate(){
-		let methods = this.js.split(this.splitReg).filter(e=>{
+	set functions(js){
+		let methods = js.split(this.splitReg).filter(e=>{
 			return e.startsWith("function");
 		})
 		if (methods) {
@@ -28,17 +29,21 @@ class JSParser {
 					}
 				}
 			})
-			this.content = content.filter(e=>{ 
+			this._functions = content.filter(e=>{ 
 				return e !== undefined
 			})
 		}
 	}
-	getStates(){
-		let states = this.js.split(this.splitReg).filter(e=>{
+	get functions(){
+		return this._functions;
+	}
+
+	set states(js){
+		let states = js.split(this.splitReg).filter(e=>{
 			return e.startsWith("state");
 		})
 		if (states) {
-			let mapped = states.map(e=>{
+			states.forEach(e=>{
 				let splited = e.split(" = ");
 				let key;
 				let toExport;
@@ -52,13 +57,15 @@ class JSParser {
 				} else {
 					toExport = key;
 				}
-				return toExport;
+				this._states.push(toExport);
 			})
-			return mapped
 		}
 	}
-	setWatchers(){
-		let watchers = this.js.split(this.splitReg).filter(e=>{
+	get states(){
+		return this._states;
+	}
+	set watchers(js){
+		let watchers = js.split(this.splitReg).filter(e=>{
 			return e.startsWith("watch");
 		})
 		if (watchers) {
@@ -74,7 +81,7 @@ class JSParser {
 					.join(", ");
 
 					let funcName = `${name}(${params})`;
-					this.watchers.push({
+					this._watchers.push({
 						name,
 						funcName,
 						content,
@@ -83,8 +90,11 @@ class JSParser {
 			})
 		}
 	}
-	setVars(){
-		let varMatched = this.js.split(this.splitReg).filter(e=>{
+	get watchers(){
+		return this._watchers;
+	}
+	set vars(js){
+		let varMatched = js.split(this.splitReg).filter(e=>{
 			if (
 				e.startsWith("var") ||
 				e.startsWith("let") ||
@@ -96,22 +106,16 @@ class JSParser {
 			varMatched.forEach(e=>{
 				let name = e.match(/(var|let|const)\s*\w*/g)[0].replace(/(var|let|const)(\s*)/, "");
 				let filtered = e.replace(/(var|let|const)\s*\w*\s*=\s*/g, "").replace(/;$/, "").replace(/(^("|')|('|")$)/g, "");
-				this.vars.push({
+				this._vars.push({
 					name,
 					value:filtered
 				})
 			})
 		}
 	}
-	getVars(){
-		return this.vars;
-	}
-	getWatchers(){
-		return this.watchers;
-	}
-	getParsed(){
-		return this.content;
+	get vars(){
+		return this._vars;
 	}
 }
 
-module.exports = JSParser;
+module.exports = JavascriptManagement;

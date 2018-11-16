@@ -11,6 +11,7 @@ const RSM = require("./StateManagement").ReactStateManagement,
  * @param {string} html The HTML String
  * @param {string} css The CSS String
  * @param {string} js The Javascript String
+ *
  * @return {string}
  */
 exports.ReactCompiler = (name, html, css, js) =>{
@@ -22,14 +23,14 @@ exports.ReactCompiler = (name, html, css, js) =>{
 	ReactStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	ReactStateManagement.setStates(parse.getStates());
+	ReactStateManagement.setStates(parse.states);
 
 	//Get Methods from JS and set to Data
-	ReactStateManagement.getJsData(parse.getParsed(), "r");
+	ReactStateManagement.getJsData(parse.functions, "r");
 
-	ReactStateManagement.setStateWatchers(parse.getWatchers());
+	ReactStateManagement.setStateWatchers(parse.watchers);
 
-	ReactStateManagement.setVars(parse.getVars());
+	ReactStateManagement.setVars(parse.vars);
 
 	//Add new lines and idents to code beauty
 	let pretty = ReactStateManagement
@@ -82,14 +83,14 @@ exports.VueCompiler = (name, html, css, js) =>{
 	VueStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	VueStateManagement.setStates(parse.getStates());
+	VueStateManagement.setStates(parse.states);
 
 	//Get Methods from JS and set to Data
-	VueStateManagement.getJsData(parse.getParsed(), "v");
+	VueStateManagement.getJsData(parse.functions, "v");
 
-	VueStateManagement.setStateWatchers(parse.getWatchers());
+	VueStateManagement.setStateWatchers(parse.watchers);
 
-	VueStateManagement.setVars(parse.getVars());
+	VueStateManagement.setVars(parse.vars);
 	
 	//Add new lines and idents to code beauty
 	let pretty = VueStateManagement
