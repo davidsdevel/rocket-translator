@@ -3,8 +3,7 @@ tmp
 
 # Testing
 test/
-test.html
-test.js
+test.*
 
 # Logs
 logs
