@@ -3,9 +3,9 @@
 process.title = "RocketJS"; //Process Title
 
 //Const
-const {VueCompiler, ReactCompiler} = require("../lib").core,
-	  FF = require("../lib/file-utils").TranslatorFileFunctions,
-	  {startServer} = require("../lib/server"),
+const {VueCompiler, ReactCompiler} = require("../Lib").core,
+	  FF = require("../Lib/file-utils").TranslatorFileFunctions,
+	  {startServer} = require("../Lib/server"),
 	  {join} = require("path"),
 	  {realpathSync} = require("fs"),
 	  cliDir = realpathSync(".");
