@@ -8,11 +8,7 @@ To install simply:
 Clone the repository and install dependencies.
 
 ```sh 
-git clone https://github.com/David-ImpulseWD/RocketJS.git
-
-cd RocketJS
-
-npm install 
+npm i -g rocket-translator
 ```
 
 ## Getting Started
@@ -65,7 +61,7 @@ or this:
 To use, simpy create a HTML file, with the code to translate, and run:
 
 ```sh
-node index.js [mode] path/to/file.html [output folder]
+rocket [mode] path/to/file.html [output folder]
 ```
 
 The **mode** may be `-v` to Vue or `-r` to React.
@@ -80,6 +76,15 @@ The **mode** also may be `-s`, in this case, the path will be the port number, o
 * [Props](#props)
 * [Computed](#computed)
 * [Methods](#methods)
+* [Components](#components)
+* [Watchers](#watchers)
+* [Inputs Handler](#inputs)
+* [Conditionals](#conditionals)
+* [List Render](#loops)
+* [Bind Attributes](#binds)
+* [Styles](#styles)
+* [JavaScript Management](#js-management)
+* [HTML Syntax](#syntax)
 
 ### States Simple <a name="states-simple"></a>
 
@@ -141,7 +146,7 @@ this.state = {
 }
 ```
 
-To know more about states, and Javascript Management. You can see [Javascript Management](#js-management) section. 
+To know more about states, and Javascript Management. You can see [JavaScript Management](#js-management) section. 
 
 ### Props <a name="props"></a>
 
@@ -181,34 +186,149 @@ render(){
 
 ### Computed <a name="computed"></a>
 
-A **Computed** method is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed method, simply we can set the computed method name and the type: **computed**.
+A **Computed** propierty is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed propierty, simply we can set the computed propierty name and the type: **computed**.
 
 ```html
 <div>{computedName - computed}</div>
 ```
 
+This will create a computed propierties that returns a **Hello World**. And to set your own computed propierty, you must add a **script** tag and create a function named like the computed propierty.
 
+```html
+<div>Hi I Am {fullName - computed}!</div>
+<script>
+function fullName() {
+	var name = "Foo";
+	var lastName = "Bar";
 
+	return `${name} ${lastName}`;
+}
+</script>
+```
+Too know more about Javascript Management go to [JavaScript Management](#js-management) section.
 
 ### Methods <a name="methods"></a>
 
-### Components <a name="components"></a>
+A **Method** is a function executed by an event on the final render or by the render. Is not necesary declare the method only set the event into the tag.
+
+```html
+<button onclick="hello()">Say Hello</button>
+<script>
+function hello() {
+	alert("Hello World");
+}
+</script>
+```
+
+
+### Components \(**Partial**\)<a name="components"></a>
+
+To import a **component** inside the main component. Only add the tag with the component syntax.
+
+```html
+<MyComponent />
+```
+And to add a attr with a state value add `:` on the attr front.
+
+```html
+<MyComponent :my-bind-attr="stateName" />
+```  
 
 ### State Watchers <a name="watchers"></a>
 
-### Inputs Handler
+Para declarar un State Watcher añadan la palabra reservada `watch` seguido del nombre del estado igual a la funcion a ejecutar cuando cambie el estate.
 
-### Conditionals
+```js
+watch stateName = e => {
+	//Handle State
+}
+```
 
-### Loops
+### Inputs Handler <a name="inputs"></a>
 
-### Bind Attributes
+To **handle** a input, you must add the attr `name` on the input tag, and the value will be take to add a state with that name.
 
-### Styles
+```html
+<input type="text" name="username" />
+```
 
-### JS Management
+On **Vue** will render.
 
-### HTML Syntax
+```html
+<template>
+	<input type="text" v-model="username" name="username"/>
+</template>
+<script>
+	export default {
+		name:"MyComponent",
+		data() {
+			return {
+				username:""
+			}
+		}
+	}
+</script>
+```
+
+On React.
+
+```jsx
+import React, {Component} from "react";
+
+class MyComponent extends Component {
+	constructor() {
+		super();
+		this.state = {
+			username:""
+		}
+	}
+	inputHandler({target}){
+		const value = target.type === 'checkbox' ? target.checked : target.value;
+		const name = target.name;
+		this.setState({
+			[name]: value
+		})
+	}`
+}
+```
+
+### Conditionals <a name="conditionals"></a>
+
+To declare a **conditional**, add the `if` tag, with the `cond` attr, where `cond` is the condition to evaluate.
+
+Example:
+
+```html
+<if cond="auth">
+	<span>Congratulations! you are Sign in this platform</span>
+</if>
+```
+
+And you can set it with an `else` tag.
+```html
+<if cond="password.length < 6">
+	<span>Password must have more of 6 characters</span>
+</if>
+<else>
+	<span>Password is very strong</span>
+</else>
+```
+
+### List Render <a name="loops"></a>
+Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val` attr.
+
+```html
+<for val="varName in stateName">
+	<span>{varName}</span>
+</for>
+```
+### Bind Attributes <a name="binds"></a>
+
+### Styles <a name="styles"></a>
+
+### JavaScript Management <a name="js-management"></a>
+
+### HTML Syntax <a name="syntax"></a>
 
 
 ## To Do
@@ -224,8 +344,8 @@ A **Computed** method is a function that return a `String` or `Number` value, an
 - [x] Bind States, Props, JS Expresions
 - [x] Input Handlers
 - [x] Javscript Management \(**partial**\)
-- [ ] Conditionals
-- [ ] Loops
+- [x] Conditionals
+- [x] Loops
 - [ ] Inner HTML 
 - [ ] Lifecycles
 - [ ] React without JSX
