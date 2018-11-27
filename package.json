@@ -20,6 +20,9 @@
     "url": "git+https://github.com/Davids-Devel/RocketJS.git"
   },
   "scripts": {
+    "publish-major":"git push origin master && npm version major && npm publish --access public",
+    "publish-minor":"git push origin master && npm version minor && npm publish --access public",
+    "publish-patch":"git push origin master && npm version patch && npm publish --access public",
     "serve": "node ./bin/cli.js -s",
     "vue": "node ./bin/cli.js -v",
     "react": "node ./bin/cli.js -r"
