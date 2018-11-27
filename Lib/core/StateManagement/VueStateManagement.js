@@ -57,13 +57,14 @@ class VueStateManagement extends StateManagement {
 
 		let condParsed = bindDirectivesReplaced
 			.replace(/(\/if|\/else)(?=>)/g, "/template")
-			.replace(/if\s*cond=/g, "template v-if=\"")
+			.replace(/if\s*cond=/g, "template v-if=")
 			.replace(/else(?=>)/g, "template v-else")
 			.replace(/''(?=.*>)/g, "'\"");
 
 		let loopParse = condParsed
 			.replace(/for val=(?=.*>)/g, "template v-for=")
-			.replace(/\/for(?=>)/g, "/template")
+			.replace(/\/for(?=>)/g, "/template");
+			
 		return loopParse;
 	}
 
