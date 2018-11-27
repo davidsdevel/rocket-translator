@@ -385,7 +385,7 @@ class StateManagement {
 					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
 					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
 					let stateToMap = valueAndState.replace(/^.*in /, "");
-					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").replace(/(\n|\r|\r\n)<\/for>/, "");
+					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
 					data = {
 						value:valueToSetInTemplate,
 						state:stateToMap,
@@ -399,7 +399,6 @@ class StateManagement {
 			.filter(e=>{
 				if (e) return e;
 			});
-
 		this.loops = loopsArray;
 	}
 	/**
