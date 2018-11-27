@@ -122,8 +122,7 @@ class ReactStateManagement extends StateManagement {
 		}
 		if (this.inputs) {
 			inputHandler = `
-	inputHandler(event){
-		const target = event.target;
+	inputHandler({target}){
 		const value = target.type === 'checkbox' ? target.checked : target.value;
 		const name = target.name;
 		this.setState({
@@ -166,7 +165,8 @@ class ReactStateManagement extends StateManagement {
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`<for val=('|").*('|")>(\n|\r|\r\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".")}(\r\n|\n|\r)\t*</for>`), `{data_${id}}`);
+				console.log(new RegExp(`<for val=('|").*('|")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`))
+				html = html.replace(new RegExp(`<for val=(\\'|\\").*(\\'|\\")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`), `{data_${id}}`);
 				this.loopsState.push({
 					id,
 					state:e.state,
