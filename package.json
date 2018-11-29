@@ -1,5 +1,5 @@
 {
-  "name": "@davids-devel/rocket-translator",
+  "name": "rocket-translator",
   "version": "1.0.0",
   "description": "Translate your HTML files to React.js and Vue.js",
   "keywords": [
