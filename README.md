@@ -68,8 +68,6 @@ The **mode** may be `-v` to Vue or `-r` to React.
 
 The **output folder** is optional, if this is not defined will create a folder named **dist**.
 
-The **mode** also may be `-s`, in this case, the path will be the port number, or by default will be: **8080**.
-
 ## Guide
 
 * [States Simple](#states-simple)

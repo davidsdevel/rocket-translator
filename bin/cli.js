@@ -15,11 +15,9 @@ const mode = process.argv[2]; //Get the mode to compile
 if (mode === "-h" || !mode){
 	//Help Commands
     console.log(
-`	Usage: rocket [-v | -r <input-file> <output-folder>]
-		      [-s <port>]
+`	Usage: rocket [-v | -r] <input-file> <output-folder>
 
     Commands:
-    	Start dev server:    -s
         Compile to react:    -r
         Compile to vue:      -v
         Help:                -h`
@@ -77,15 +75,4 @@ if (mode === "-h" || !mode){
 	}
 	functions.writeFile(compiled); //Append Files to the output folder
 	console.log(`Thanks for use html compiler.\n\nOpen "${output}" to view your files.`);
-} else if(mode === "--server" || "-s"){
-
-	let port = parseInt(process.argv[3]); //Get if the port is a number
-
-	if (port.toString() === "NaN") {
-		console.log("Port should be a Number");
-	} else {
-		startServer(port);
-	}
-} else {
-	console.error(`Invalid Mode "${mode}"\n\nValid modes are -v and -r.\nPlease attemp with thats.`);
 }
