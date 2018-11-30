@@ -208,7 +208,7 @@ class StateManagement {
 				let bindData = e.match(/\:\w*\=(\'|\")\w*(\'|\")/g); //Get Bind Prop Data
 				let bindDataValue = e.match(/\:\w*\=(\'|\")\w*\s\-\s('|")\w*('|")(\'|\")/g); //Get Bind Prop Data and Value
 				if (bindData) {
-					this.states.push(bindData[0].slice(1).split("=")[1]); //Push Bind Data to States
+					this.states.push(bindData[0].replace(/'|"/g, "").slice(1).split("=")[1]); //Push Bind Data to States
 				}
 				if(bindDataValue){
 					let dataArray = bindDataValue[0].split('='); //Get Data Array
@@ -443,7 +443,7 @@ class StateManagement {
 					let stateName = typeof state === "object" ? state.key : state;
 
 					data = data
-						.replace(new RegExp(`\\t(${replace+stateName}|${stateName})`, "g"), "\t"+replace+stateName)
+						.replace(new RegExp(`\\t(${replace+stateName}|${stateName})(?!\\(|\\s*\\(|\\.)`, "g"), "\t"+replace+stateName)
 						.replace(new RegExp(`(\\(|\\(\\s*)(${replace+stateName}|${stateName})`, "g"), "("+replace+stateName)
 						.replace(new RegExp(`(\\[|\\[\\s*)(${replace+stateName}|${stateName})`, "g"), "["+replace+stateName)
 						.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+stateName}|${stateName})`, "g"), "${"+replace+stateName)
