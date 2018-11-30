@@ -1,6 +1,6 @@
 {
   "name": "rocket-translator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Translate your HTML files to React.js and Vue.js",
   "keywords": [
     "vue",
@@ -20,9 +20,9 @@
     "url": "git+https://github.com/Davids-Devel/RocketJS.git"
   },
   "scripts": {
-    "publish-major":"git push origin master && npm version major && npm publish --access public",
-    "publish-minor":"git push origin master && npm version minor && npm publish --access public",
-    "publish-patch":"git push origin master && npm version patch && npm publish --access public",
+    "publish-major": "git push origin master && npm version major && npm publish --access public",
+    "publish-minor": "git push origin master && npm version minor && npm publish --access public",
+    "publish-patch": "git push origin master && npm version patch && npm publish --access public",
     "vue": "node ./bin/cli.js -v",
     "react": "node ./bin/cli.js -r"
   },
