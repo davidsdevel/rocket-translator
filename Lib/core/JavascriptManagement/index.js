@@ -1,6 +1,6 @@
 class JavascriptManagement {
 	constructor(js){
-		this.splitReg = /(\n|\r|\r\n)*(?=watch|state|function|var|let|const)/;
+		this.splitReg = /(\n|\r\n|\r)*(?=watch|state|function(?!\(|\s*\()|var|let|const)/g;
 		this._watchers = new Array();
 		this._vars = new Array();
 		this._states = new Array();
