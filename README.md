@@ -320,8 +320,19 @@ Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val
 	<span>{varName}</span>
 </for>
 ```
-### Bind Attributes <a name="binds"></a>
 
+### Bind Attributes <a name="binds"></a>
+A **Bind Attribute** is a form to set a state value on a tag attribute. And the syntax is like on Vue.
+
+```html
+<span :style="stateName">Hello World</span>
+```
+
+And if you want add a default value you must add a `-` follow of the value.
+
+```html
+<button :class="classButton - active"></button>
+```
 ### Styles <a name="styles"></a>
 
 ### JavaScript Management <a name="js-management"></a>
