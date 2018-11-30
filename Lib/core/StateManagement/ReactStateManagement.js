@@ -147,7 +147,7 @@ class ReactStateManagement extends StateManagement {
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)${e.if}(\n|\r|\r\n)(\t)*</if>(\r|\n|\r\n)`, "m"), `{data_${id}}`);
+				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)${e.if}(\n|\r|\r\n)(\t)*</if>(\r|\n|\r\n)`, "m"), `\t{data_${id}}`);
 				html = html.replace(new RegExp(`(\t)*<else>(\n|\r|\r\n)${e.else}</else>`, "m"), "");
 		
 				this.condStates.push({
@@ -165,7 +165,6 @@ class ReactStateManagement extends StateManagement {
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				console.log(new RegExp(`<for val=('|").*('|")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`))
 				html = html.replace(new RegExp(`<for val=(\\'|\\").*(\\'|\\")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`), `{data_${id}}`);
 				this.loopsState.push({
 					id,
@@ -201,35 +200,35 @@ class ReactStateManagement extends StateManagement {
 			.map((e, i)=>{
 				let valueToReturn;
 				if (i !== 0) {
-					if(e.match(/\w*='w*'/)){
+					if(e.match(/^\w*='\w*'/)){
 						let isState = false;
+						let toCompare = e.match(/='\w*(?=')/)[0];
 						this.states.forEach(state=>{
-							let toCompare = e.match(/^\w*='\w*/g)[0];
-							if (typeof state === "object") {
-								if (toCompare.match(new RegExp(state.key))) {
-									isState = true;
-								}
-							} else {
-								if (toCompare.match(new RegExp(state))) {
-									isState = true;
-								}
+							state = typeof state === "object" ? state.key : state;
+							if (toCompare.match(new RegExp(state))) {
+								isState = true;
 							}
 						})
 						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." :  "{").replace(/('|\s\-.*')(?=\s|\/)/, "}");
-					} else if (e.match(/\w*='\w*\s\?/)) {
+					} else if (e.match(/^\w*='\w*\s*\-\s*\w*'/)) {
 						let isState = false;
+						let toCompare = e.match(/^\w*='\w*/g)[0];
 						this.states.forEach(state=>{
-							let toCompare = e.match(/^\w*='\w*/g)[0];
-							if (typeof state === "object") {
-								if (toCompare.match(new RegExp(state.key))) {
-									isState = true;
-								}
-							} else {
-								if (toCompare.match(new RegExp(state))) {
-									isState = true;
-								}
+							state = typeof state === "object" ? state.key : state;
+							if (toCompare.match(new RegExp(state))) {
+								isState = true;
 							}
 						})
+						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/''/, "'}").replace(/}'/, "}}");
+					} else if (e.match(/^\w*='\w*\s*\?\s*(\{|\')/)) {
+						let isState = false;
+						let toCompare = e.match(/\w*(?=\s*\?)/)[0];
+						this.states.forEach(state=>{
+							state = typeof state === "object" ? state.key : state;
+							if (toCompare.match(new RegExp(state))) {
+								isState = true;
+							}
+						});
 						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/''/, "'}").replace(/}'/, "}}");
 					}
 				} else {
@@ -278,10 +277,10 @@ class ReactStateManagement extends StateManagement {
 	}
 	setPrerenderLogical(){
 		let cond = this.condStates.map(e=>{
-			return `var data_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tdata_${e.id} = ${e.if};\n\t\t} ${e.else ? `else {\n\t\t\tdata_${e.id} = ${e.else}`:""}`
+			return `var data_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tdata_${e.id} = ${e.if};\n\t\t} ${e.else ? `else {\n\t\t\tdata_${e.id} = ${e.else}\n\t\t}\n\t\t`:""}`
 		})
 		let loops = this.loopsState.map(e=>{
-			return `var data_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t}`
+			return `var data_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t}\n\t\t`
 		})
 		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
 	}
