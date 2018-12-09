@@ -12,7 +12,8 @@
     "node": ">= 0.1"
   },
   "directories": {
-    "test": "test"
+    "bin":"bin",
+    "Lib":"Lib"
   },
   "main": "./Lib/core",
   "repository": {
@@ -20,6 +21,7 @@
     "url": "git+https://github.com/Davids-Devel/RocketJS.git"
   },
   "scripts": {
+    "test":"jest",
     "publish-major": "git push origin master && npm version major && npm publish --access public",
     "publish-minor": "git push origin master && npm version minor && npm publish --access public",
     "publish-patch": "git push origin master && npm version patch && npm publish --access public",
@@ -38,12 +40,15 @@
   "dependencies": {
     "accepts": "^1.3.5",
     "archiver": "^3.0.0",
+    "archiver-utils": "^2.0.0",
     "array-flatten": "^1.1.1",
     "async": "^2.6.1",
     "balanced-match": "^1.0.0",
+    "base64-js": "^1.3.0",
     "bl": "^1.2.2",
     "body-parser": "^1.18.3",
     "brace-expansion": "^1.1.11",
+    "buffer": "^5.2.1",
     "buffer-alloc": "^1.2.0",
     "buffer-alloc-unsafe": "^1.1.0",
     "buffer-crc32": "^0.2.13",
@@ -66,7 +71,6 @@
     "end-of-stream": "^1.4.1",
     "escape-html": "^1.0.3",
     "etag": "^1.8.1",
-    "base64-js": "^1.3.0",
     "express": "^4.16.4",
     "finalhandler": "^1.1.1",
     "forwarded": "^0.1.2",
@@ -77,19 +81,20 @@
     "graceful-fs": "^4.1.15",
     "http-errors": "^1.6.3",
     "iconv-lite": "^0.4.23",
+    "ieee754": "^1.1.12",
     "inflight": "^1.0.6",
     "inherits": "^2.0.3",
     "ipaddr.js": "^1.8.0",
     "isarray": "^1.0.0",
-    "buffer": "^5.2.1",
     "lazystream": "^1.0.0",
+    "lodash": "^4.17.11",
     "lodash.assign": "^4.2.0",
     "lodash.defaults": "^4.2.0",
     "lodash.difference": "^4.5.0",
     "lodash.flatten": "^4.4.0",
     "lodash.isplainobject": "^4.0.6",
-    "lodash.union": "^4.6.0",
     "lodash.toarray": "^4.4.0",
+    "lodash.union": "^4.6.0",
     "media-typer": "^0.3.0",
     "merge-descriptors": "^1.0.1",
     "methods": "^1.1.2",
@@ -104,7 +109,6 @@
     "once": "^1.4.0",
     "parseurl": "^1.3.2",
     "path-is-absolute": "^1.0.1",
-    "ieee754": "^1.1.12",
     "path-to-regexp": "^0.1.7",
     "process-nextick-args": "^2.0.0",
     "proxy-addr": "^2.0.4",
@@ -116,10 +120,10 @@
     "safe-buffer": "^5.1.2",
     "safer-buffer": "^2.1.2",
     "send": "^0.16.2",
-    "lodash": "^4.17.11",
     "serve-static": "^1.13.2",
     "setprototypeof": "^1.1.0",
     "statuses": "^1.4.0",
+    "string_decoder": "^1.1.1",
     "tar-stream": "^1.6.2",
     "to-buffer": "^1.1.1",
     "type-is": "^1.6.16",
@@ -129,8 +133,9 @@
     "vary": "^1.1.2",
     "wrappy": "^1.0.2",
     "xtend": "^4.0.1",
-    "zip-stream": "^2.0.1",
-    "archiver-utils": "^2.0.0",
-    "string_decoder": "^1.1.1"
+    "zip-stream": "^2.0.1"
+  },
+  "devDependencies": {
+    "jest": "^23.6.0"
   }
 }
