@@ -80,7 +80,6 @@ The **output folder** is optional, if this is not defined will create a folder n
 * [Conditionals](#conditionals)
 * [List Render](#loops)
 * [Bind Attributes](#binds)
-* [Styles](#styles)
 * [JavaScript Management](#js-management)
 * [HTML Syntax](#syntax)
 
@@ -333,12 +332,113 @@ And if you want add a default value you must add a `-` follow of the value.
 ```html
 <button :class="classButton - active"></button>
 ```
-### Styles <a name="styles"></a>
 
 ### JavaScript Management <a name="js-management"></a>
 
+Para el manejo de javascript he añadido un par de keywords para ayudar con la importacion del codigo. Y hay que seguir ciertas reglas para el correcto funcionamiento del traductor.
+
+Para incluir Javascript en la plantilla agreguen una etiqueta `script` con el codigo Javasript a traducir. O pueden añadir `#js path/to/js.js` para importar un archivo externo.
+
+#### Keywords
+
+El keyword `state` se usa para declarar un estado dentro de Javascript. Usando el siguiente formato `state stateName = stateValue`.
+
+El stateValue puede ser `String` `Number` `Boolean` `Array` y `Object`.
+
+El keyword `watch` se usa para asignarle un observador a un estado o prop. asignandole como valor la funcion a ejecutar con el parametro que se pasara a la funcion.
+
+```js
+watch stateOrProp = function(e) {
+	console.log(e);
+}
+
+// Or use ES6
+
+watch stateOrProp = e => {
+	console.log(e);
+}
+```
+
+Las funciones son para cambiar la ejecucion de metodos y computed propierties. Si el nombre del metodo o computed es igual al nombre de la funcion, ahora el metodo o computed sera la funcion.
+
+```html
+<div>
+	<span>This is my {computedPropierty - computed} propierty</span>
+	<button onclick="sayHello()">Say Hello</button>
+</div>
+<script>
+	function computedPropierty() {
+		return "Computed"
+	}
+
+	function sayHello() {
+		alert("Hello World");
+	}
+</script>
+``` 
+
+#### Filter
+
+El filtro de Javascript esta estructurado para filtrar los estados y props. Si dentro del codigo hay una funcion que contenga una variable con el nombre del estado este se reemplaza automaticamente. No es necesario decir que es un estado.
+
+```js
+state name = "Hello";
+state lastName = "World";
+
+function sayHello() {
+	alert(name + " " + lastName);
+	/* 
+		will return on React: alert(this.state.name + " " + this.state.lastName);
+		and on Vue: alert(this.name + " " + this.lastName);
+	*/
+} 
+```
+**Nota**: Evitar usar variables con nombres de estado hasta que arregle esto.
+
 ### HTML Syntax <a name="syntax"></a>
 
+Igual que en Javascript en HTML hay una sintaxis especifica que hay que seguir para el funcionamiento del traductor.
+
+#### Bars declaration
+
+La mas usada es la **bars declaration** `{}`, la cual se usa para asignar un estado, prop, computed y la sintaxis del framework destino.
+
+Sintaxis declarativa del framework: `{unsignedValue}`
+
+Estado sin valor: `{stateName - state}`
+
+Estado con Valor: `{stateName - state - value}`
+The `value` can be type: `String`, `Number`, `Boolean`, `Array` and `Object`.
+
+Prop: `{propName - prop}`
+
+Computed: `{computedName - computed}`
+
+#### Import Tag
+
+Para importar un archivo js externo se usa `#js path/to/js.js`.
+
+**Note**: Pensado en un futuro añadir soporte de **CSS**
+
+#### Bind Attributes
+
+Para una sintaxis de Javascript o asignar un estado a un atibuto se usa `:attrName="Js or State"`
+
+#### Conditionals And Loops Tags
+
+Añadi las etiquetas `if` `else` and `for` para asignar condicionales y bucles.
+
+```html
+<if cond="condToEvaluate">
+	<span>If Content</span>
+</if>
+<else>
+	<span>Else Content</span>
+</else>
+<for val="varName in stateName">
+	<span>For Content</span>
+</for>
+```
 
 ## To Do
 

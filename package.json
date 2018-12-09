@@ -32,7 +32,7 @@
     "url": "https://github.com/Davids-Devel/RocketJS/issues"
   },
   "homepage": "https://github.com/Davids-Devel/RocketJS#readme",
-  "author": "David González",
+  "author": "David González <djgm1206@gmail.com>",
   "license": "ISC",
   "bin": {
     "rocket": "bin/cli.js"
