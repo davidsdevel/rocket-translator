@@ -23,14 +23,14 @@ exports.ReactCompiler = (name, html, css, js) =>{
 	ReactStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	ReactStateManagement.setStates(parse.states);
+	ReactStateManagement.statesFromJS = parse.states;
 
 	//Get Methods from JS and set to Data
 	ReactStateManagement.getJsData(parse.functions, "r");
 
-	ReactStateManagement.setStateWatchers(parse.watchers);
+	ReactStateManagement.watchers = parse.watchers;
 
-	ReactStateManagement.setVars(parse.vars);
+	ReactStateManagement.setVarsToStatesContent(parse.vars);
 
 	//Add new lines and idents to code beauty
 	let pretty = ReactStateManagement
@@ -83,14 +83,14 @@ exports.VueCompiler = (name, html, css, js) =>{
 	VueStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	VueStateManagement.setStates(parse.states);
+	VueStateManagement.statesFromJS = parse.states;
 
 	//Get Methods from JS and set to Data
 	VueStateManagement.getJsData(parse.functions, "v");
 
-	VueStateManagement.setStateWatchers(parse.watchers);
+	VueStateManagement.watchers = parse.watchers;
 
-	VueStateManagement.setVars(parse.vars);
+	VueStateManagement.setVarsToStatesContent(parse.vars);
 	
 	//Add new lines and idents to code beauty
 	let pretty = VueStateManagement
