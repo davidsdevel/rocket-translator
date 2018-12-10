@@ -60,44 +60,44 @@ class ReactStateManagement extends StateManagement {
 		}
 		//Map Computeds
 		if (this.computed.length > 0) {
-			let mappedComputed = this.computed.map(e=>{
-				this.prerenderComputed.push(`var ${e.name} = this.${e.name}();`);
-				return `${e.name}()${e.content}`;
+			let mappedComputed = this.computed.map(({name, content})=>{
+				this.prerenderComputed.push(`var ${name} = this.${name}();\n\t\t`);
+				return `${name}()${content}`;
 			});
 			computed = "\n\t"+mappedComputed.join("\n\t");
 
-			let mappedBindComputeds = this.computed.map(e=>{
-				let sliced = e.name.replace("()", "");
+			let mappedBindComputeds = this.computed.map(({name})=>{
+				let sliced = name.replace("()", "");
 				return `this.${sliced} = this.${sliced}.bind(this);`;
 			})
 			bindComputeds = "\n\t\t"+mappedBindComputeds.join("\n\t\t");
 		}
 		//Methods
 		if(this.methods.length > 0){
-			let mappedMethods = this.methods.map(e=>{
-				return e.name+e.content;
+			let mappedMethods = this.methods.map(({name, content})=>{
+				return name+content;
 			})
 			methods = "\n\t"+mappedMethods.join("\n\t");
 
-			let mappedBindMethods = this.methods.map(e=>{
-				let sliced = e.name.replace("()", "");
+			let mappedBindMethods = this.methods.map(({name})=>{
+				let sliced = name.replace("()", "");
 				return `this.${sliced} = this.${sliced}.bind(this);`;
 			})
 			bindMethods = "\n\t\t"+mappedBindMethods.join("\n\t\t");
 		}
 		if (this.watchers.length > 0) {
-			let mappedWatchers = this._filterJS(this.watchers, "r").map((e,i)=>{
+			let mappedWatchers = this._filterJS(this.watchers, "r").map(({name, content, params},i)=>{
 				let isState = false;
 				let isProp = false;
 
 				this.states.forEach(state=>{
-					if (e.name === state || e.name === state.key) {
+					if (name === state || name === state.key) {
 						isState = true;
 					}
 				})
 				if (!isState) {
 					this.props.forEach(prop=>{
-						if (prop === e.name) {
+						if (prop === name) {
 							isProp = true;
 						}
 					})
@@ -115,7 +115,7 @@ class ReactStateManagement extends StateManagement {
 				} else if (isProp) {
 					stateOrProp = "prop.";
 				}
-				let final = `${bifurcacion} (${stateOrProp + e.name}) ${e.content.split(/\n/).join("\n\t").replace(/^{/, "{\n\t\t\tlet "+ e.params+" = "+stateOrProp+e.name+";").replace(/}$/, "}")}`;
+				let final = `${bifurcacion} (${stateOrProp + name}) ${content.split(/\n/).join("\n\t").replace(/^{/, "{\n\t\t\tlet " + params + " = " + stateOrProp + name + ";").replace(/}$/, "}")}`;
 				return final;
 			})
 			watchers = `\n\tcomponentDidUpdate(prop, state){\n\t\t${mappedWatchers.join(" ")}\n\t}`;
@@ -142,19 +142,19 @@ class ReactStateManagement extends StateManagement {
 	}
 	setReactFilterHTMLState(html){
 		if (!this.condMapped) {
-			this.cond.forEach(e=>{
+			this.conditionals.forEach(e=>{
 				let id = "";
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)${e.if}(\n|\r|\r\n)(\t)*</if>(\r|\n|\r\n)`, "m"), `\t{data_${id}}`);
+				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)*${e.if}(\n|\r|\r\n)*\t*</if>(\r|\n|\r\n)*`, "m"), `{cond_${id}}`);
 				html = html.replace(new RegExp(`(\t)*<else>(\n|\r|\r\n)${e.else}</else>`, "m"), "");
 		
 				this.condStates.push({
 					id,
 					cond:e.cond,
-					if:e.if.replace(/^\t*/, ""),
-					else:e.else.replace(/^\t*/, "").replace(/(\n|\r|\r\n)(\t)*$/, "")
+					if:e.if.replace(/\t|^\s*/g, ""),
+					else:e.else.replace(/\t|^\s*/g, "").replace(/(\n|\r|\r\n)(\t)*$/, "")
 				});
 			})
 			this.condMapped = true;
@@ -165,12 +165,12 @@ class ReactStateManagement extends StateManagement {
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`<for val=(\\'|\\").*(\\'|\\")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`), `{data_${id}}`);
+				html = html.replace(new RegExp(`<for val=(\\'|\\").*(\\'|\\")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`), `{loop_${id}}`);
 				this.loopsState.push({
 					id,
 					state:e.state,
 					value:e.value,
-					content:e.content.replace(/(\n|\r|\r\n|\t)/g, "")
+					content:e.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
 				});
 			})
 			this.loopsMapped = true;
@@ -211,6 +211,7 @@ class ReactStateManagement extends StateManagement {
 						})
 						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." :  "{").replace(/('|\s\-.*')(?=\s|\/)/, "}");
 					} else if (e.match(/^\w*='\w*\s*\-\s*\w*'/)) {
+
 						let isState = false;
 						let toCompare = e.match(/^\w*='\w*/g)[0];
 						this.states.forEach(state=>{
@@ -219,7 +220,7 @@ class ReactStateManagement extends StateManagement {
 								isState = true;
 							}
 						})
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/''/, "'}").replace(/}'/, "}}");
+						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
 					} else if (e.match(/^\w*='\w*\s*\?\s*(\{|\')/)) {
 						let isState = false;
 						let toCompare = e.match(/\w*(?=\s*\?)/)[0];
@@ -253,17 +254,17 @@ class ReactStateManagement extends StateManagement {
 			.split(/<(?=input|textarea|select)/g)
 			.map(e=>{
 				let name = e.match(/name=("|')\w*("|')/);
-				let newName = "";
+				let handler = "";
 				if (name) {
-					newName = `onChange={this.inputHandler.bind(this)}`;
+					handler = `onChange={this.inputHandler.bind(this)}`;
 				}
 				let replaced;
 				if (e.match(/input/)) {
-					replaced = e.replace("input", `input ${newName}`);
+					replaced = e.replace("input", `input ${handler}`);
 				} else if (e.match(/textarea/)) {
-					replaced = e.replace("textarea", `textarea ${newName}`);
+					replaced = e.replace("textarea", `textarea ${handler}`);
 				} else if (e.match(/select/)) {
-					replaced = e.replace("select", `select ${newName}`);
+					replaced = e.replace("select", `select ${handler}`);
 				} else {
 					replaced = e;
 				}
@@ -277,10 +278,10 @@ class ReactStateManagement extends StateManagement {
 	}
 	setPrerenderLogical(){
 		let cond = this.condStates.map(e=>{
-			return `var data_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tdata_${e.id} = ${e.if};\n\t\t} ${e.else ? `else {\n\t\t\tdata_${e.id} = ${e.else}\n\t\t}\n\t\t`:""}`
+			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${e.if}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${e.else}\n\t\t}\n\t\t`:""}`
 		})
 		let loops = this.loopsState.map(e=>{
-			return `var data_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t}\n\t\t`
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t})\n\t\t`
 		})
 		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
 	}
