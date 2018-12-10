@@ -143,7 +143,7 @@ this.state = {
 }
 ```
 
-To know more about states, and Javascript Management. You can see [JavaScript Management](#js-management) section. 
+To know more about states, and JavaScript Management. You can see [JavaScript Management](#js-management) section. 
 
 ### Props <a name="props"></a>
 
@@ -189,7 +189,7 @@ A **Computed** propierty is a function that return a `String` or `Number` value,
 <div>{computedName - computed}</div>
 ```
 
-This will create a computed propierties that returns a **Hello World**. And to set your own computed propierty, you must add a **script** tag and create a function named like the computed propierty.
+This will create a computed properties that returns a **Hello World**. And to set your own computed propierty, you must add a **script** tag and create a function named like the computed propierty.
 
 ```html
 <div>Hi I Am {fullName - computed}!</div>
@@ -202,7 +202,7 @@ function fullName() {
 }
 </script>
 ```
-Too know more about Javascript Management go to [JavaScript Management](#js-management) section.
+Too know more about JavaScript Management go to [JavaScript Management](#js-management) section.
 
 ### Methods <a name="methods"></a>
 
@@ -233,9 +233,13 @@ And to add a attr with a state value add `:` on the attr front.
 
 ### State Watchers <a name="watchers"></a>
 
-Para declarar un State Watcher añadan la palabra reservada `watch` seguido del nombre del estado igual a la funcion a ejecutar cuando cambie el estate.
+To declare a **State Watcher** you must add the keyword `watch` followed by the state name to watch equal to function to execute when the state changes.
 
 ```js
+watch stateName = function(e) {
+	//Handle State
+}
+//Or with ES6
 watch stateName = e => {
 	//Handle State
 }
@@ -327,25 +331,29 @@ A **Bind Attribute** is a form to set a state value on a tag attribute. And the 
 <span :style="stateName">Hello World</span>
 ```
 
-And if you want add a default value you must add a `-` follow of the value.
+If you want add a default value you must add a `-` followed of the value.
 
 ```html
-<button :class="classButton - active"></button>
+<button :class="classButton - 'value'"></button>
 ```
 
 ### JavaScript Management <a name="js-management"></a>
 
-Para el manejo de javascript he añadido un par de keywords para ayudar con la importacion del codigo. Y hay que seguir ciertas reglas para el correcto funcionamiento del traductor.
+To the JavaScript Management, we add a few of keywords to help with the code imports. We must follow some rules to the correctly function of the translator.
 
-Para incluir Javascript en la plantilla agreguen una etiqueta `script` con el codigo Javasript a traducir. O pueden añadir `#js path/to/js.js` para importar un archivo externo.
+To include JavaScript on the template, add a `script` tag with the JavaScript code to translate. Or you can add the line `#js path/to/js.js` to import a external file.
 
 #### Keywords
 
-El keyword `state` se usa para declarar un estado dentro de Javascript. Usando el siguiente formato `state stateName = stateValue`.
+##### State
 
-El stateValue puede ser `String` `Number` `Boolean` `Array` y `Object`.
+The keyword `state` is used to declare a state from JavaScript. Using the next format: `state stateName = stateValue`.
 
-El keyword `watch` se usa para asignarle un observador a un estado o prop. asignandole como valor la funcion a ejecutar con el parametro que se pasara a la funcion.
+The **State Value** can be type: `String`, `Number`, `Boolean`, `Array` or `Object`.
+
+##### Watch
+
+The keyword `watch` is used to assign a **Watcher** to a state or prop. Assigning like value the function to execute with the param that the function get.
 
 ```js
 watch stateOrProp = function(e) {
@@ -359,7 +367,9 @@ watch stateOrProp = e => {
 }
 ```
 
-Las funciones son para cambiar la ejecucion de metodos y computed propierties. Si el nombre del metodo o computed es igual al nombre de la funcion, ahora el metodo o computed sera la funcion.
+#### Functions
+
+The **Functions** are to change the method and computed properties execution. If the method or computed name match with the function name, this will be that method or computed.
 
 ```html
 <div>
@@ -379,7 +389,7 @@ Las funciones son para cambiar la ejecucion de metodos y computed propierties. S
 
 #### Filter
 
-El filtro de Javascript esta estructurado para filtrar los estados y props. Si dentro del codigo hay una funcion que contenga una variable con el nombre del estado este se reemplaza automaticamente. No es necesario decir que es un estado.
+The **JavaScript Filter** is structured to filter the states and props. If into the code we have a function that contain a var with the state or prop name, this will be replaced automaticaly. Is not necesary declare like a state.
 
 ```js
 state name = "Hello";
@@ -393,40 +403,40 @@ function sayHello() {
 	*/
 } 
 ```
-**Nota**: Evitar usar variables con nombres de estado hasta que arregle esto.
+**Note**: You must evite use vars with state names, until we fix this.
 
 ### HTML Syntax <a name="syntax"></a>
 
-Igual que en Javascript en HTML hay una sintaxis especifica que hay que seguir para el funcionamiento del traductor.
+Like on JavaScript, on HTML we have a specific **syntax**, that we must follow to the correctly translator function.
 
-#### Bars declaration
+#### Bars Declaration
 
-La mas usada es la **bars declaration** `{}`, la cual se usa para asignar un estado, prop, computed y la sintaxis del framework destino.
+The most used is the **bars declaration** `{}`, this is used to assign a state, prop, computed or the out framework syntax.
 
-Sintaxis declarativa del framework: `{unsignedValue}`
+Framework Declarative Syntax: `{ unsignedValue }`
 
-Estado sin valor: `{stateName - state}`
+State without value: `{stateName - state}`
 
-Estado con Valor: `{stateName - state - value}`
+State With Value: `{stateName - state - value}`
 The `value` can be type: `String`, `Number`, `Boolean`, `Array` and `Object`.
 
 Prop: `{propName - prop}`
 
-Computed: `{computedName - computed}`
+Computed Propierty: `{computedName - computed}`
 
 #### Import Tag
 
-Para importar un archivo js externo se usa `#js path/to/js.js`.
+To import a JavaScript external file, we use: `#js path/to/js.js`.
 
-**Note**: Pensado en un futuro añadir soporte de **CSS**
+**Note**: We like add **CSS** Support.
 
 #### Bind Attributes
 
-Para una sintaxis de Javascript o asignar un estado a un atibuto se usa `:attrName="Js or State"`
+To execute JavaScript syntax or assign a state or prop value on an HTML attribute, we use `:attrName="Js or State"`.
 
 #### Conditionals And Loops Tags
 
-Añadi las etiquetas `if` `else` and `for` para asignar condicionales y bucles.
+We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` and `for`.
 
 ```html
 <if cond="condToEvaluate">
@@ -452,14 +462,14 @@ Añadi las etiquetas `if` `else` and `for` para asignar condicionales y bucles.
 - [x] Components
 - [x] Bind States, Props, JS Expresions
 - [x] Input Handlers
-- [x] Javscript Management \(**partial**\)
+- [x] JavaScript Management \(**partial**\)
 - [x] Conditionals
 - [x] Loops
 - [ ] Inner HTML 
 - [ ] Lifecycles
 - [ ] React without JSX
 - [ ] React without ES6
-- [ ] Vue Web Browser
+- [ ] Vue Standalone
 - [ ] Next Framework
 - [ ] Angular Support
 
