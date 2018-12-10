@@ -50,7 +50,12 @@ class VueStateManagement extends StateManagement {
 		let bindDirectivesReplaced = addInputHandler
 			.split(/:(?=\w*=)/)
 			.map((e, i)=>{
-				if (i !== 0) return e.replace(/''/, "'\"").replace("'", "\"");
+				if (i !== 0) {
+					if (e.match(/^\w*='\w*'/))
+						return e
+					else
+						return e.replace(/''/, "'\"").replace("'", "\"");
+				}
 				else return e;
 			})
 			.join(":");
@@ -59,6 +64,7 @@ class VueStateManagement extends StateManagement {
 			.replace(/(\/if|\/else)(?=>)/g, "/template")
 			.replace(/if\s*cond=/g, "template v-if=")
 			.replace(/else(?=>)/g, "template v-else")
+			.replace(/v-if='/g, "v-if=\"")
 			.replace(/''(?=.*>)/g, "'\"");
 
 		let loopParse = condParsed
@@ -98,24 +104,26 @@ class VueStateManagement extends StateManagement {
 		}
 		//Computeds
 		if (this.computed.length > 0) {
-			let mappedComputed = this.computed.map(e=>{
-				return `${e.name}() ${e.content},\n`;
+			let mappedComputed = this.computed.map(({content, name}, i)=>{
+				let comma = i === this.computed.length -1 ? "\n":",\n\t\t";
+				return `${name}() ${content}${comma}`;
 			})
 			computed = `\n\tcomputed:{\n\t\t${mappedComputed.join("")}\t},`;
 		}
 		//Methods
 		if (this.methods.length > 0){
-			let mappedMethods = this.methods.map(e=>{
-				return e.name+e.content+",\n";
+			let mappedMethods = this.methods.map(({content, name}, i)=>{
+				let comma = i === this.methods.length -1 ? "\n":",\n";
+				return name + content + comma;
 			})
-			methods = `\n\tmethods:{\n\t\t${mappedMethods.join("\t\t")}\t}`;
+			methods = `\n\tmethods:{\n\t\t${mappedMethods.join("\t\t")}\t},`;
 		}
 		//Watchers
 		if (this.watchers.length > 0) {
-			let mappedWatchers = this._filterJS(this.watchers, "v").map(e=>{
-				return `${e.funcName} ${e.content}`;
+			let mappedWatchers = this._filterJS(this.watchers, "v").map(({content, funcName})=>{
+				return `${funcName} ${content}`;
 			})
-			watchers = `\n\twatch{\n\t\t${mappedWatchers.join("\n\t\t")}\n\t}`;
+			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join("\n\t\t")}\n\t}`;
 		}
 		//Props
 		if (this.props.length > 0) {
