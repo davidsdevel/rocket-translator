@@ -12,7 +12,7 @@ class JavascriptManagement {
 	}
 	set functions(js){
 		let methods = js.split(this.splitReg).filter(e=>{
-			return e.startsWith("function");
+			if(e && e.startsWith("function")) return e
 		})
 		if (methods) {
 			let content = methods.map(e=>{
@@ -40,7 +40,7 @@ class JavascriptManagement {
 
 	set states(js){
 		let states = js.split(this.splitReg).filter(e=>{
-			return e.startsWith("state");
+			if (e && e.startsWith("state")) return e
 		})
 		if (states) {
 			states.forEach(e=>{
@@ -66,7 +66,7 @@ class JavascriptManagement {
 	}
 	set watchers(js){
 		let watchers = js.split(this.splitReg).filter(e=>{
-			return e.startsWith("watch");
+			if(e && e.startsWith("watch")) return e;
 		})
 		if (watchers) {
 			watchers.forEach(e=>{
@@ -95,12 +95,12 @@ class JavascriptManagement {
 	}
 	set vars(js){
 		let varMatched = js.split(this.splitReg).filter(e=>{
-			if (
-				e.startsWith("var") ||
-				e.startsWith("let") ||
-				e.startsWith("const")
-			) 
-			  return e;
+			if (e)
+				if (e.startsWith("var") ||
+					e.startsWith("let") ||
+					e.startsWith("const")
+				) 
+			  		return e;
 		})
 		if (varMatched) {
 			varMatched.forEach(e=>{
