@@ -60,10 +60,10 @@ class TranslatorFileFunctions {
     getJs(){
         if (this._js !== undefined){
             return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e=>{
-                if (e) return e.replace(/\t/, "");
+                if (e) return e.replace(/\t|\s\s\s\s|\s\s/, "");
             })
             .filter(e=>{
-                if (e) return e
+                return e
             })
             .join("\r\n");
         } else {
