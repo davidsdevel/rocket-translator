@@ -4,8 +4,9 @@ tmp
 # Testing
 test/
 test.*
-public/
+public/*
 Lib/server
+testing/
 
 # Logs
 logs
