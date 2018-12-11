@@ -14,18 +14,19 @@ const mode = process.argv[2]; //Get the mode to compile
 if (mode === "-h" || !mode){
 	//Help Commands
     console.log(
-`	Usage: rocket [-v | -r] <input-file> <output-folder>
+`	Usage: rocket [vue | react] <input-file> <output-folder>
 
     Commands:
-        Compile to react:    -r
-        Compile to vue:      -v
-        Help:                -h`
+        Translate to React:		react
+        Translate to Vue:		vue
+        Help:				--help | -h
+        Version:			--version | -v`
     );
     process.exit(1); //Stop execution
 
 } else if (
-	mode === "-v" || 
-	mode === "-r"
+	mode === "vue" || 
+	mode === "react"
 ) {
 
 	var fileName;
@@ -56,13 +57,13 @@ if (mode === "-h" || !mode){
 	var css = functions.getCSS(); //Get the CSS file data
 	
 	var compiled;
-	if (mode === "-v"){
+	if (mode === "vue"){
 		compiled = {
 			name,/*File Name*/
 			content: VueCompiler(name, file, css, js),/*File Content*/
 			type: "vue"
 		}
-	} else if (mode === "-r"){
+	} else if (mode === "react"){
 		compiled = {
 			name,
 			content: ReactCompiler(name, file, css, js),
@@ -74,4 +75,7 @@ if (mode === "-h" || !mode){
 	}
 	functions.writeFile(compiled); //Append Files to the output folder
 	console.log(`Thanks for use html compiler.\n\nOpen "${output}" to view your files.`);
+} else if(mode === "--version" || mode === "-v") {
+	let {version} = require("../package.json");
+	console.log("v"+version);
 }

@@ -70,7 +70,7 @@ To use, simpy create a HTML file, with the code to translate, and run:
 rocket [mode] path/to/file.html [output folder]
 ```
 
-The **mode** may be `-v` to Vue or `-r` to React.
+The **mode** may be `vue` or `react`.
 
 The **output folder** is optional, if this is not defined will create a folder named **dist**.
 
