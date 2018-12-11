@@ -9,6 +9,11 @@ To install simply: Use npm
 ```sh 
 npm i -g rocket-translator
 ```
+or Yarn
+
+```sh
+yarn global add rocket-translator
+```
 
 ## Getting Started
 
@@ -25,16 +30,16 @@ into this:
 import React, {Component} from "react";
 
 class MyComponent extends Component {
-	constructor() {
-		super();
-		this.state = {
-    			name:"World"
-    		};
-	}
+    constructor() {
+        super();
+        this.state = {
+            name:"World"
+        };
+    }
     render(){
-    	return(
-        	<div>Hello {this.state.name}!</div>
-		)
+        return(
+            <div>Hello {this.state.name}!</div>
+        )
     }
 }
 export default MyComponent;
@@ -43,16 +48,16 @@ or this:
 
 ```html
 <template>
-	<div>Hello {{name}}!</div>
+    <div>Hello {{name}}!</div>
 </template>
 <script>
-	export default {
-		name:"MyComponent",
-		data(){
-			return {
-            	name:"World"
-			}
-		}
+    export default {
+        name:"MyComponent",
+        data(){
+            return {
+                name:"World"
+            }
+        }
     }
 </script>
 ```
@@ -113,16 +118,16 @@ In Vue:
 
 ```js
 data(){
-	return {
-		myState:""
-	}
+    return {
+        myState:""
+    }
 }
 ```
 And in React we obtain:
 
 ```js
 this.state = {
-	myState:""
+    myState:""
 }
 ```
 
@@ -130,9 +135,9 @@ In the **With value** case we obtain. In Vue:
 
 ```js
 data(){
-	return {
-		stateName:"Some Value"
-	}
+    return {
+        stateName:"Some Value"
+    }
 }
 ```
 
@@ -140,7 +145,7 @@ And in React:
 
 ```js
 this.state = {
-	stateName:"Some Value"
+    stateName:"Some Value"
 }
 ```
 
@@ -162,18 +167,18 @@ And declaring a prop, the final template will render, in Vue:
 
 ```js
 props:{
-	parentData:{
-		type:String,
-		required:true,
-		default:"Hello World"
-	}
+    parentData:{
+        type:String,
+        required:true,
+        default:"Hello World"
+    }
 }
 ```
 And in React, auto declares the prop.
 
 ```js
 return(
-	<div>{this.props.parentData}</div>
+    <div>{this.props.parentData}</div>
 )
 ```
 
@@ -191,10 +196,10 @@ This will create a computed properties that returns a **Hello World**. And to se
 <div>Hi I Am {fullName - computed}!</div>
 <script>
 function fullName() {
-	var name = "Foo";
-	var lastName = "Bar";
+    var name = "Foo";
+    var lastName = "Bar";
 
-	return name + " " + lastName;
+    return name + " " + lastName;
 }
 </script>
 ```
@@ -208,7 +213,7 @@ A **Method** is a function executed by an event on the final render or by the re
 <button onclick="hello()">Say Hello</button>
 <script>
 function hello() {
-	alert("Hello World");
+    alert("Hello World");
 }
 </script>
 ```
@@ -233,11 +238,11 @@ To declare a **State Watcher** you must add the keyword `watch` followed by the 
 
 ```js
 watch stateName = function(e) {
-	//Handle State
+    //Handle State
 }
 //Or with ES6
 watch stateName = e => {
-	//Handle State
+    //Handle State
 }
 ```
 
@@ -253,17 +258,17 @@ On **Vue** will render.
 
 ```html
 <template>
-	<input type="text" v-model="username" name="username"/>
+    <input type="text" v-model="username" name="username"/>
 </template>
 <script>
-	export default {
-		name:"MyComponent",
-		data() {
-			return {
-				username:""
-			}
-		}
-	}
+    export default {
+        name:"MyComponent",
+        data() {
+            return {
+                username:""
+            }
+        }
+    }
 </script>
 ```
 
@@ -273,19 +278,19 @@ On React.
 import React, {Component} from "react";
 
 class MyComponent extends Component {
-	constructor() {
-		super();
-		this.state = {
-			username:""
-		}
-	}
-	inputHandler({target}){
-		const value = target.type === 'checkbox' ? target.checked : target.value;
-		const name = target.name;
-		this.setState({
-			[name]: value
-		})
-	}`
+    constructor() {
+        super();
+        this.state = {
+            username:""
+        }
+    }
+    inputHandler({target}){
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+        this.setState({
+            [name]: value
+        })
+    }`
 }
 ```
 
@@ -297,17 +302,17 @@ Example:
 
 ```html
 <if cond="auth">
-	<span>Congratulations! you are Sign in this platform</span>
+    <span>Congratulations! you are Sign in this platform</span>
 </if>
 ```
 
 And you can set it with an `else` tag.
 ```html
 <if cond="password.length < 6">
-	<span>Password must have more of 6 characters</span>
+    <span>Password must have more of 6 characters</span>
 </if>
 <else>
-	<span>Password is very strong</span>
+    <span>Password is very strong</span>
 </else>
 ```
 
@@ -316,7 +321,7 @@ Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val
 
 ```html
 <for val="varName in stateName">
-	<span>{varName}</span>
+    <span>{varName}</span>
 </for>
 ```
 
@@ -353,13 +358,13 @@ The keyword `watch` is used to assign a **Watcher** to a state or prop. Assignin
 
 ```js
 watch stateOrProp = function(e) {
-	console.log(e);
+    console.log(e);
 }
 
 // Or use ES6
 
 watch stateOrProp = e => {
-	console.log(e);
+    console.log(e);
 }
 ```
 
@@ -369,17 +374,17 @@ The **Functions** are to change the method and computed properties execution. If
 
 ```html
 <div>
-	<span>This is my {computedPropierty - computed} propierty</span>
-	<button onclick="sayHello()">Say Hello</button>
+    <span>This is my {computedPropierty - computed} propierty</span>
+    <button onclick="sayHello()">Say Hello</button>
 </div>
 <script>
-	function computedPropierty() {
-		return "Computed"
-	}
+    function computedPropierty() {
+        return "Computed"
+    }
 
-	function sayHello() {
-		alert("Hello World");
-	}
+    function sayHello() {
+        alert("Hello World");
+    }
 </script>
 ``` 
 
@@ -392,11 +397,11 @@ state name = "Hello";
 state lastName = "World";
 
 function sayHello() {
-	alert(name + " " + lastName);
-	/* 
-		will return on React: alert(this.state.name + " " + this.state.lastName);
-		and on Vue: alert(this.name + " " + this.lastName);
-	*/
+    alert(name + " " + lastName);
+    /* 
+        will return on React: alert(this.state.name + " " + this.state.lastName);
+        and on Vue: alert(this.name + " " + this.lastName);
+    */
 } 
 ```
 **Note**: You must evite use vars with state names, until we fix this.
@@ -436,13 +441,13 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` an
 
 ```html
 <if cond="condToEvaluate">
-	<span>If Content</span>
+    <span>If Content</span>
 </if>
 <else>
-	<span>Else Content</span>
+    <span>Else Content</span>
 </else>
 <for val="varName in stateName">
-	<span>For Content</span>
+    <span>For Content</span>
 </for>
 ```
 
