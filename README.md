@@ -1,11 +1,10 @@
-# RocketJS
+# RocketJS [![npm version](https://badge.fury.io/js/rocket-translator.svg)](https://badge.fury.io/js/rocket-translator)
 
 Translate HTML code to Vue or React.
 
 ## Instalation
 
-To install simply:
-Clone the repository and install dependencies.
+To install simply: Use npm
 
 ```sh 
 npm i -g rocket-translator
@@ -26,10 +25,12 @@ into this:
 import React, {Component} from "react";
 
 class MyComponent extends Component {
-	super();
-	this.state = {
-    	name:"World"
-    };
+	constructor() {
+		super();
+		this.state = {
+    			name:"World"
+    		};
+	}
     render(){
     	return(
         	<div>Hello {this.state.name}!</div>
@@ -46,12 +47,12 @@ or this:
 </template>
 <script>
 	export default {
-    	name:"MyComponent",
-        data(){
-        	return {
+		name:"MyComponent",
+		data(){
+			return {
             	name:"World"
-            }
-	}
+			}
+		}
     }
 </script>
 ```
@@ -168,17 +169,12 @@ props:{
 	}
 }
 ```
-And in React, pass the props trought the **Component Constructor** and auto declares the props.
+And in React, auto declares the prop.
 
 ```js
-constructor(props){
-	super(props);
-}
-render(){
-	return(
-		<div>{this.props.parentData}</div>
-	)
-}
+return(
+	<div>{this.props.parentData}</div>
+)
 ```
 
 ### Computed <a name="computed"></a>
@@ -198,7 +194,7 @@ function fullName() {
 	var name = "Foo";
 	var lastName = "Bar";
 
-	return `${name} ${lastName}`;
+	return name + " " + lastName;
 }
 </script>
 ```
@@ -353,7 +349,7 @@ The **State Value** can be type: `String`, `Number`, `Boolean`, `Array` or `Obje
 
 ##### Watch
 
-The keyword `watch` is used to assign a **Watcher** to a state or prop. Assigning like value the function to execute with the param that the function get.
+The keyword `watch` is used to assign a **Watcher** to a state or prop. Assigning as value the function to execute with the param that the function get.
 
 ```js
 watch stateOrProp = function(e) {
@@ -428,7 +424,7 @@ Computed Propierty: `{computedName - computed}`
 
 To import a JavaScript external file, we use: `#js path/to/js.js`.
 
-**Note**: We like add **CSS** Support.
+**Note**: We want add **CSS** Support.
 
 #### Bind Attributes
 
@@ -464,7 +460,9 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` an
 - [x] Input Handlers
 - [x] JavaScript Management \(**partial**\)
 - [x] Conditionals
+- [ ] Nested Conditionals 
 - [x] Loops
+- [ ] Nested Loops
 - [ ] Inner HTML 
 - [ ] Lifecycles
 - [ ] React without JSX
@@ -473,7 +471,7 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` an
 - [ ] Next Framework
 - [ ] Angular Support
 
-**Note:** if you see that some feature is missing, you can write an issue, and tell what feature is missing.
+**Note:** If you see that some feature is missing, you can open a pull request or write an issue, and tell what feature is missing.
 
 ## Contributing
 
