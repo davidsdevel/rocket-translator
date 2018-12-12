@@ -57,18 +57,18 @@ class StateManagement {
 		if (JSParsed.length > 0) {
 			this._filterJS(JSParsed, type).forEach(e=>{
 				//Map Methods
-				this.methods.forEach(({name}, i)=>{	
-					if (e.funcName === name) {
-						this.methods[i].content = e.content;
+				this.methods.forEach((method, i)=>{ 
+					if (e.name === method.name) {
+						this._methods[i].content = e.content;
+						this._methods[i].params = e.params;
 					}
-				})
-
+				});
 				//Map Computed
 				this.computed.forEach(({name}, i)=>{
 					if (e.name === name) {
-						this.computed[i].content = e.content;
+						this._computed[i].content = e.content;
 					}
-				})
+				});
 			});
 		}
 	}
@@ -147,132 +147,154 @@ class StateManagement {
 	* @private
 	* @param {string} html 
 	*/
-   set components(html){
-	   let _matchComponents = html.match(/\<([A-Z]\w*).*\/\>/g); //Match Components
-	   if (_matchComponents) {
-		   _matchComponents.forEach(e=>{
-			   let name = e.match(/[A-Z]\w*/g)[0]; //Get Component Name
-			   let bindData = e.match(/\:\w*\=(\'|\")\w*(\'|\")/g); //Get Bind Prop Data
-			   let bindDataHasNameAndValue = e.match(/\:\w*\=(\'|\")\w*\s\-\s('|")\w*('|")(\'|\")/g); //Get Bind Prop Data and Value
-			   if (bindData) {
-				   this._states.push(bindData[0].replace(/'|"/g, "").slice(1).split("=")[1]); //Push Bind Data to States
-			   }
-			   if(bindDataHasNameAndValue){
-				   let dataArray = bindDataHasNameAndValue[0].split('='); //Get Data Array
-				   let keyValue = dataArray[1].split(' - '); //Split Key And Value
-				   let key = keyValue[0].slice(1); //Set Key Name
-				   let value = this._defineTypeFromString(keyValue[1].slice(0, keyValue[1].length - 1)); //Get Type of Value and Set it
-				   this._states.push({key, value}); //Push Bind Data With Value to States
-			   }
-			   this._components.push(name);
-		   })
-	   }
-   }
-   get components() {
-	   return this._components;
-   }
-   /**
-	* Get Computed Methods from the data Array
-	* 
-	* @private
-	* @param {array} dataArray Array With All Data
-	*/
-   set computed(dataArray){
-	   let _computedArray=[]; //Declare Empty Array
-	   //Map Array to get computed methods
-	   dataArray.forEach(e=>{
-		   let _computedMatched = e.match(this._regExpToMatchComputed);
-		   //If Match push to empty array
-		   if (_computedMatched) {
-			   //This must match something like: {Name - computed}
-			   _computedArray.push(_computedMatched[0]);
-		   }
-	   })
-	   //If have matched computed push to Component Computed
-	   if (_computedArray.length > 0) {
-		   _computedArray.forEach(e=>{
-			   this._computed.push({
-				   name:e.match(/^\w*/g)[0],
-				   content:"{\n\t\t\treturn 'Hello World'\n\t\t}"
-			   });
-		   });
-	   }
-   }
-   get computed() {
-	   return this._computed;
-   }
-   /**
-	* Get State From Data Array
-	* 
-	* @private
-	* @param {array} dataArray 
-	*/
-   set states(dataArray){
-	   /* 
-		   Capture State Without Value and push to Empty Array
-	   */
-	   let _stateArray = []; //Declare Empty Array to State With Declaration: {name - state}
-	   dataArray.forEach(e=>{
-		   let _matched = e.match(this._regExpToMatchState);
-		   if(_matched){
-			   _stateArray.push(_matched[0]);
-		   }
-	   });
-	   /* 
-		   Capture State With Value and Instance and push to Empty Array
-	   */		
-	   let _stateWithValueArray = []; //Declare Empty Array to State With Value: {name - state - someValue}
-	   dataArray.forEach(e=>{
-		   let _matched = e.match(this._regExpToMatchStateWithValue); 
-		   if (_matched) {
-			   _stateWithValueArray.push(_matched[0]);
-		   }
-	   });
+	set components(html){
+		let _matchComponents = html.match(/\<([A-Z]\w*).*\/\>/g); //Match Components
+		if (_matchComponents) {
+			_matchComponents.forEach(e=>{
+				let name = e.match(/[A-Z]\w*/g)[0]; //Get Component Name
+				let bindData = e.match(/\:\w*\=(\'|\")\w*(\'|\")/g); //Get Bind Prop Data
+				let bindDataHasNameAndValue = e.match(/\:\w*\=(\'|\")\w*\s\-\s('|")\w*('|")(\'|\")/g); //Get Bind Prop Data and Value
+				if (bindData) {
+					this._states.push(bindData[0].replace(/'|"/g, "").slice(1).split("=")[1]); //Push Bind Data to States
+				}
+				if(bindDataHasNameAndValue){
+					let dataArray = bindDataHasNameAndValue[0].split('='); //Get Data Array
+					let keyValue = dataArray[1].split(' - '); //Split Key And Value
+					let key = keyValue[0].slice(1); //Set Key Name
+					let value = this._defineTypeFromString(keyValue[1].slice(0, keyValue[1].length - 1)); //Get Type of Value and Set it
+					this._states.push({key, value}); //Push Bind Data With Value to States
+				}
+				this._components.push(name);
+			})
+		}
+	}
+	get components() {
+		return this._components;
+	}
+	/**
+	 * Get Computed Methods from the data Array
+	 * 
+	 * @private
+	 * @param {array} dataArray Array With All Data
+	 */
+	set computed(dataArray){
+		let _computedArray=[]; //Declare Empty Array
+		//Map Array to get computed methods
+		dataArray.forEach(e=>{
+			let _computedMatched = e.match(this._regExpToMatchComputed);
+			//If Match push to empty array
+			if (_computedMatched) {
+				//This must match something like: {Name - computed}
+				_computedArray.push(_computedMatched[0]);
+			}
+		});
 
-	   //If State With Declaration, Map and Push to Component States
-	   if (_stateArray.length > 0){
-		   _stateArray.forEach(e=>{
-			   let _stateName = e.match(/^\w*/g)[0]; //Get State Name
-			   this._states.push(_stateName);
-		   });
-	   }
+		//If have matched computed push to Component Computed
+		if (_computedArray.length > 0) {
+			let computedList = ["1234"];
 
-	   //If State With Value, Map and Push to Component States
-	   if (_stateWithValueArray) {
-		   _stateWithValueArray.forEach(e=>{
-			   let _getKey = e.match(/^\w*\s/);
-			   let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|(\'|\")\w*(\'|\"))$/)[0]); //Set Value
-			   let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
-			   this.states.push({key, value });
-		   });
-	   }
-   }
-   get states() {
-	   return this._states;
-   }
-   /**
-	* Get Methods from HTML String
-	* 
-	* Map and get all HTML events attr like onclick, onsubmit, etc.
-	* 
-	* @public
-	* @param {string} html HTML String
-	*/
-   set methods(html){
-	   let events = html.match(/on\w*=(\"|\')\w*\(\)(\"|\')/g); //Match RegExp
-	   if (events) {
-		   events.forEach(e=>{
-			   let split = e.split("=");
-			   this._methods.push({
-				   name:split[1].slice(1, split[1].length - 1),/*Get Method Name*/
-				   content:"{\n\t\treturn\n\t}" /*Default Value If methods is not declared*/
-			   });
-		   });
-	   }
-   }
-   get methods() {
-	   return this._methods;
-   }
+			_computedArray = _computedArray.filter(e=>{
+				let duplicate = false;
+				computedList.forEach(ev=>{
+					if (e.name === ev) duplicate = true;
+					else computedList.push(e.name);
+				});
+				if (!duplicate) return e;
+			});
+			_computedArray.forEach(e=>{
+				this._computed.push({
+					name:e.match(/^\w*/g)[0],
+					content:"{\n\t\t\treturn 'Hello World'\n\t\t}"
+				});
+			});
+		}
+	}
+	get computed() {
+		return this._computed;
+	}
+	/**
+	 * Get State From Data Array
+	 * 
+	 * @private
+	 * @param {array} dataArray 
+	 */
+	set states(dataArray){
+		/* 
+			Capture State Without Value and push to Empty Array
+		*/
+		let _stateArray = []; //Declare Empty Array to State With Declaration: {name - state}
+		dataArray.forEach(e=>{
+			let _matched = e.match(this._regExpToMatchState);
+			if(_matched){
+				_stateArray.push(_matched[0]);
+			}
+		});
+		/* 
+			Capture State With Value and Instance and push to Empty Array
+		*/       
+		let _stateWithValueArray = []; //Declare Empty Array to State With Value: {name - state - someValue}
+		dataArray.forEach(e=>{
+			let _matched = e.match(this._regExpToMatchStateWithValue); 
+			if (_matched) {
+				_stateWithValueArray.push(_matched[0]);
+			}
+		});
+
+		//If State With Declaration, Map and Push to Component States
+		if (_stateArray.length > 0){
+			_stateArray.forEach(e=>{
+				let _stateName = e.match(/^\w*/g)[0]; //Get State Name
+				this._states.push(_stateName);
+			});
+		}
+
+		//If State With Value, Map and Push to Component States
+		if (_stateWithValueArray) {
+			_stateWithValueArray.forEach(e=>{
+				let _getKey = e.match(/^\w*\s/);
+				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|(\'|\")\w*(\'|\"))$/)[0]); //Set Value
+				let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
+				this.states.push({key, value });
+			});
+		}
+	}
+	get states() {
+		return this._states;
+	}
+	/**
+	 * Get Methods from HTML String
+	 * 
+	 * Map and get all HTML events attr like onclick, onsubmit, etc.
+	 * 
+	 * @public
+	 * @param {string} html HTML String
+	 */
+	set methods(html){
+		let events = html.match(/on\w*=(\"|\')\w*\(.*\)(\"|\')/g); //Match RegExp
+		if (events) {
+			events.forEach(e=>{
+				let split = e.split("=");
+				let name = split[1].match(/\w*(?=\()/)[0];
+				this._methods.push({
+					name,/*Get Method Name*/
+					content:"{\n\t\treturn\n\t}" /*Default Value If methods is not declared*/
+				});
+			});
+			let methodsList = ["1234"];
+
+			this._methods = this._methods.filter(e=>{
+				let duplicate = false;
+				methodsList.forEach(ev=>{
+					if (e.name === ev) duplicate = true;
+					else methodsList.push(e.name);
+				});
+				if (!duplicate) return e;
+			});
+		}
+	}
+	get methods() {
+		return this._methods;
+	}
    /**
 	* Get Props From Data Array
 	* 
@@ -434,7 +456,7 @@ class StateManagement {
 			this.states = _getBarsSyntax; //Get States
 			this.computed = _getBarsSyntax; //Get Computed Methods 
 			this.props = _getBarsSyntax; //Get Props
-		}	
+		}   
 	}
 	/**
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
@@ -579,9 +601,10 @@ class StateManagement {
 		if(string.startsWith("{")){
 			filtered = filtered
 				.replace(/:/g, "\":")
-				.replace(/\t(?=.*:)/g, "\t\"")
-				.replace(/\t\"(?=\t\")/g, "\t")
-				.replace(/,(?=\n(\t)*})/g, "");
+				.replace(/(\t|\s\s|\s\s\s\s)(?=.*:)/g, "\t\"")
+				.replace(/(\t|\s\s|\s\s\s\s)\"(?=\t\")/g, "\t")
+				.replace(/,(?=\n(\t)*})/g, "")
+				.replace(/""/g, "\"");
 		}
 		return JSON.parse(filtered);
 	}
