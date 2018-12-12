@@ -1,6 +1,7 @@
 class JavascriptManagement {
 	constructor(js){
-		this.splitReg = /(\n|\r\n|\r)*(?=watch|state|function(?!\(|\s*\()|var|let|const)/g;
+		this.splitVars = /(\n|\r\n|\r)*(var|let|const)/g;
+		this.splitJs = /(\n|\r\n|\r)*(?=watch|state|function(?!\(|\s*\())/g;
 		this._watchers = new Array();
 		this._vars = new Array();
 		this._states = new Array();
@@ -11,7 +12,7 @@ class JavascriptManagement {
 		this.states = js;
 	}
 	set functions(js){
-		let methods = js.split(this.splitReg).filter(e=>{
+		let methods = js.split(this.splitJs).filter(e=>{
 			if(e && e.startsWith("function")) return e
 		})
 		if (methods) {
@@ -21,10 +22,10 @@ class JavascriptManagement {
 						.replace("function ", "")
 						.replace(/\(.*\)/g, "");
 					let content = e.replace(/function \w*\(.*\)/g, "");
-					let funcName = e.match(/function \w*\(.*\)/g)[0].replace("function ", "");
+					let params = e.match(/\(.*(?=\))/g)[0].slice(1);
 					return {
 						name,
-						funcName,
+						params,
 						content
 					}
 				}
@@ -37,9 +38,8 @@ class JavascriptManagement {
 	get functions(){
 		return this._functions;
 	}
-
 	set states(js){
-		let states = js.split(this.splitReg).filter(e=>{
+		let states = js.split(this.splitJs).filter(e=>{
 			if (e && e.startsWith("state")) return e
 		})
 		if (states) {
@@ -65,9 +65,9 @@ class JavascriptManagement {
 		return this._states;
 	}
 	set watchers(js){
-		let watchers = js.split(this.splitReg).filter(e=>{
+		let watchers = js.split(this.splitJs).filter(e=>{
 			if(e && e.startsWith("watch")) return e;
-		})
+		});
 		if (watchers) {
 			watchers.forEach(e=>{
 				let name = e.match(/watch \w*/g)[0].replace("watch ", "");
@@ -94,7 +94,7 @@ class JavascriptManagement {
 		return this._watchers;
 	}
 	set vars(js){
-		let varMatched = js.split(this.splitReg).filter(e=>{
+		let varMatched = js.split(this.splitVars).filter(e=>{
 			if (e)
 				if (e.startsWith("var") ||
 					e.startsWith("let") ||
@@ -117,5 +117,4 @@ class JavascriptManagement {
 		return this._vars;
 	}
 }
-
 module.exports = JavascriptManagement;
