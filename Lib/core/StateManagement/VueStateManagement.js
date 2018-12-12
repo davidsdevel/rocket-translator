@@ -15,7 +15,7 @@ class VueStateManagement extends StateManagement {
 	setVueFilterHTMLState(html){
 
 		//Quotes Replace
-		let replacedQuotes = html.replace(/(")/g, "'");
+		let replacedQuotes = html.replace(/(')/g, "\"");
 
 		//Parse Data
 		let addOpenBraces = replacedQuotes
@@ -24,15 +24,15 @@ class VueStateManagement extends StateManagement {
 				if (e) return e.replace(/(\s-.*\}|\})/g, "}}");
 			})
 			.join("{{");
-		let replaceTypeValueData = addOpenBraces.replace(/\s\-\s(\w*|(')*\w*(')*)(?=\s|\/|\>)/g, "'");
-		let addEventToVue = replaceTypeValueData.replace(/on(?=\w*=\'\w*\(\)')/g, "@");
+		let replaceTypeValueData = addOpenBraces.replace(/\s\-\s(\w*|(")*\w*(")*)(?=\s|\/|\>)/g, "\"");
+		let addEventToVue = replaceTypeValueData.replace(/on(?=\w*=\"\w*\(\)")/g, "@");
 		let addInputHandler = addEventToVue
 			.split(/<(?=input|textarea|select)/g)
 			.map(e=>{
 				let name = e.match(/name=("|')\w*("|')/);
 				let newName = "";
 				if (name) {
-					newName = `v-model='${name[0].match(/'\w*(?=')/)[0].slice(1)}'`
+					newName = `v-model='${name[0].match(/"\w*(?=")/)[0].slice(1)}'`
 				}
 				let replaced;
 				if (e.match(/input/)) {
@@ -51,10 +51,10 @@ class VueStateManagement extends StateManagement {
 			.split(/:(?=\w*=)/)
 			.map((e, i)=>{
 				if (i !== 0) {
-					if (e.match(/^\w*='\w*'/))
+					if (e.match(/^\w*="\w*"/))
 						return e
 					else
-						return e.replace(/''/, "'\"").replace("'", "\"");
+						return e.replace(/""/, "\"'").replace("\"", "'");
 				}
 				else return e;
 			})
@@ -64,7 +64,7 @@ class VueStateManagement extends StateManagement {
 			.replace(/(\/if|\/else)(?=>)/g, "/template")
 			.replace(/if\s*cond=/g, "template v-if=")
 			.replace(/else(?=>)/g, "template v-else")
-			.replace(/v-if='/g, "v-if=\"")
+			.replace(/'(?=\s*.*>)/g, "\"")
 			.replace(/''(?=.*>)/g, "'\"");
 
 		let loopParse = condParsed
@@ -112,9 +112,9 @@ class VueStateManagement extends StateManagement {
 		}
 		//Methods
 		if (this.methods.length > 0){
-			let mappedMethods = this.methods.map(({content, name}, i)=>{
+			let mappedMethods = this.methods.map(({content, name, params}, i)=>{
 				let comma = i === this.methods.length -1 ? "\n":",\n";
-				return name + content + comma;
+				return `${name}(${params}) ${content}${comma}`;
 			})
 			methods = `\n\tmethods:{\n\t\t${mappedMethods.join("\t\t")}\t},`;
 		}

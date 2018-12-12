@@ -1,5 +1,5 @@
 const StateManagement = require("./StateManagement");
-
+const JavaScriptEvents = require("../../const/Events.json");
 /**
  * Class React State Management
  * @extends StateManagement
@@ -74,8 +74,8 @@ class ReactStateManagement extends StateManagement {
 		}
 		//Methods
 		if(this.methods.length > 0){
-			let mappedMethods = this.methods.map(({name, content})=>{
-				return name+content;
+			let mappedMethods = this.methods.map(({name, content, params})=>{
+				return `${name}(${params}) ${content}`;
 			})
 			methods = "\n\t"+mappedMethods.join("\n\t");
 
@@ -142,30 +142,56 @@ class ReactStateManagement extends StateManagement {
 	}
 	setReactFilterHTMLState(html){
 		if (!this.condMapped) {
-			this.conditionals.forEach(e=>{
+			let splittedCond = html.split(/<(?=if\s*cond)/);
+			this.conditionals.forEach((e, ind)=>{
 				let id = "";
-				for (var i = 0; i <= 3; i++) {
+				for (let a = 0; a <= 3; a++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`(\t)*<if cond=('|")${e.cond}('|")>(\n|\r|\r\n)*${e.if}(\n|\r|\r\n)*\t*</if>(\r|\n|\r\n)*`, "m"), `{cond_${id}}`);
-				html = html.replace(new RegExp(`(\t)*<else>(\n|\r|\r\n)${e.else}</else>`, "m"), "");
-		
+				let replaced = splittedCond[ind+1].split("</else>");
+				replaced[0] = `{cond_${id}}`;
+				splittedCond[ind+1] = replaced.join("");
+
+				let filterIf = e.if
+					.replace(/\t|\s\s/g, "")
+					.replace(/(\n|\r\n|\r)/g, "")
+					.split(/<(?=img|br|input)/)
+					.map((ev, i)=>{
+						if (i > 0) return ev.replace(/>|\/>/, "/>");
+						else return ev;
+					}).join("<")
+
+
+				let filterElse = e.else
+					.replace(/\t|\s\s/g, "")
+					.replace(/(\n|\r\n|\r)/g, "")
+					.split(/<(?=img|br|input)/)
+					.map((ev, i)=>{
+						if (i > 0) return ev.replace(/>|\/>/, "/>");
+						else return ev;
+					}).join("<");
+
 				this.condStates.push({
 					id,
 					cond:e.cond,
-					if:e.if.replace(/\t|^\s*/g, ""),
-					else:e.else.replace(/\t|^\s*/g, "").replace(/(\n|\r|\r\n)(\t)*$/, "")
+					if:filterIf,
+					else:filterElse
 				});
-			})
+			});
+			html = splittedCond.join("");
 			this.condMapped = true;
 		}
 		if (!this.loopsMapped){
+			let splittedLoops = html.split(/<(?=for\s*val)/);
 			this.loops.forEach(e=>{
 				let id = "";
 				for (var i = 0; i <= 3; i++) {
 					id += new String(Math.floor(Math.random()*10));
 				}
-				html = html.replace(new RegExp(`<for val=(\\'|\\").*(\\'|\\")>(\\n|\\r|\\r\\n)${e.content.replace(/\(/g, ".").replace(/\)/g ,".").replace(/\t/g, "\\t")}<\\/for>`), `{loop_${id}}`);
+				let replaced = splittedCond[ind+1].split("</for>");
+				replaced[0] = `{loop_${id}}`;
+				splittedCond[ind+1] = replaced.join("");
+				
 				this.loopsState.push({
 					id,
 					state:e.state,
@@ -173,6 +199,7 @@ class ReactStateManagement extends StateManagement {
 					content:e.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
 				});
 			})
+			html = splittedLoops.join("");
 			this.loopsMapped = true;
 		}
 		html = html
@@ -209,9 +236,8 @@ class ReactStateManagement extends StateManagement {
 								isState = true;
 							}
 						})
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." :  "{").replace(/('|\s\-.*')(?=\s|\/)/, "}");
+						valueToReturn = e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
 					} else if (e.match(/^\w*='\w*\s*\-\s*\w*'/)) {
-
 						let isState = false;
 						let toCompare = e.match(/^\w*='\w*/g)[0];
 						this.states.forEach(state=>{
@@ -221,16 +247,16 @@ class ReactStateManagement extends StateManagement {
 							}
 						})
 						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
-					} else if (e.match(/^\w*='\w*\s*\?\s*(\{|\')/)) {
+					} else if (e.match(/^\w*='(\w*|\w*(\.\w*)*)\s*(\<|\>|\=\=|\=\=\=|\?)/)) {
 						let isState = false;
-						let toCompare = e.match(/\w*(?=\s*\?)/)[0];
+						let toCompare = e.match(/(\w*|\w*(\.\w*)*)(?=\s*(\<|\>|\=\=|\=\=\=|\?))/)[0];
 						this.states.forEach(state=>{
 							state = typeof state === "object" ? state.key : state;
 							if (toCompare.match(new RegExp(state))) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/''/, "'}").replace(/}'/, "}}");
+						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/'''/, "\"\"}").replace(/''/, "'}").replace(/='}/, "=''").replace(/}'/, "}}");
 					}
 				} else {
 					valueToReturn = e;
@@ -239,46 +265,265 @@ class ReactStateManagement extends StateManagement {
 			})
 			.join("")
 			.replace(/\s\-\s.*'/g, "}")
-			.split(/on(?=\w*='\w*\(\)')/)
+			.split(new RegExp(`on(?=${JavaScriptEvents.join("|")})`))
 			.map((e, index)=>{
 				if (index === 0) {
 					return e;
 				} else {
-					
-					return "on" + e[0].toUpperCase() + e.slice(1)
-						.replace(/'(?=\w*)/, "{this.")
-						.replace(/\(\)'(?=\s|\/|\>)/, "}");
+					let eventName = e.match(/^\w*/)[0].toLowerCase();
+					switch (eventName) {
+						case "afterprint":
+							eventName = "AfterPrint";
+							break;
+						case "animationend":
+							eventName = "AnimationEnd";
+							break;
+						case "animationiteration":
+							eventName = "AnimationIteration";
+							break;
+						case "animationstart":
+							eventName = "AnimationStart";
+							break;
+						case "beforeprint":
+							eventName = "BeforePrint";
+							break;
+						case "beforeunload":
+							eventName = "BeforeUnload";
+							break;
+						case "canplay":
+							eventName = "CanPlay";
+							break;
+						case "canplaythrough":
+							eventName = "CanPlayThrough";
+							break;
+						case "contextmenu":
+							eventName = "ContextMenu";
+							break;
+						case "compositionend": 
+							eventName = "CompositionEnd";
+							break;
+						case "compositionstart":
+							eventName = "CompositionStart";
+							break;
+						case "compositionupdate":
+							eventName = "CompositionUpdate";
+							break;
+						case "dblclick":
+							eventName = "DoubleClick";
+							break;
+						case "dragend":
+							eventName = "DragEnd";
+							break;
+						case "dragenter":
+							eventName = "DragEnter";
+							break;
+						case "dragleave":
+							eventName = "DragLeave";
+							break;
+						case "dragover":
+							eventName = "DragOver";
+							break;
+						case "dragstart":
+							eventName = "DragStart";
+							break;
+						case "durationchange":
+							eventName = "DurationChange";
+							break;
+						case "focusin":
+							eventName = "FocusIn";
+							break;
+						case "focusout":
+							eventName = "FocusOut";
+							break;
+						case "fullscreenchange":
+							break;
+						case "fullscreenerror":
+							break;
+						case "hashchange":
+							eventName = "HashChange";
+							break;
+						case "keydown":
+							eventName = "KeyDown";
+							break;
+						case "keypress":
+							eventName = "KeyPress"; 
+							break;
+						case "keyup":
+							eventName = "KeyUp";
+							break;
+						case "loadeddata":
+							eventName = "LoadedData";
+							break;
+						case "loadedmetadata":
+							eventName = "LoadedMetadata";
+							break;
+						case "loadstart":
+							eventName = "LoadStart";
+							break;
+						case "mousedown":
+							eventName = "MouseDown";
+							break;
+						case "mouseenter":
+							eventName = "MouseEnter";
+							break;
+						case "mouseleave":
+							eventName = "MouseLeave";
+							break;
+						case "mousemove":
+							eventName = "MouseMove";
+							break;
+						case "mouseover":
+							eventName = "MouseOver";
+							break;
+						case "mouseout":
+							eventName = "MouseOut";
+							break;
+						case "mouseup":
+							eventName = "MouseUp";
+							break;
+						case "pagehide":
+							eventName = "PageHide";
+							break;
+						case "pageshow":
+							eventName = "PageShow";
+							break;
+						case "pointerdown":
+							eventName = "PointerDown";
+							break;
+						case "pointermove":
+							eventName = "PointerMove";
+							break;
+						case "pointerup":
+							eventName = "PointerUp";
+							break;
+						case "pointercancel":
+							eventName = "PointerCancel";
+							break;
+						case "gotpointercapture":
+							eventName = "GotPointerCapture";
+							break;
+						case "lostpointercapture":
+							eventName = "LostPointerCapture";
+							break;
+						case "pointerenter":
+							eventName = "PointerEnter";
+							break;
+						case "pointerleave":
+							eventName = "PointerLeave";
+							break;
+						case "pointerover":
+							eventName = "PointerOver";
+							break;
+						case "pointerout":
+							eventName = "PointerOut";
+							break;
+						case "popstate":
+							eventName = "PopState";
+							break;
+						case "ratechange":
+							eventName = "RateChange";
+							break;
+						case "timeupdate":
+							eventName = "TimeUpdate";
+							break;
+						case "touchcancel":
+							eventName = "TouchCancel";
+							break;
+						case "touchend":
+							eventName = "TouchEnd";
+							break;
+						case "touchmove":
+							eventName = "TouchMove";
+							break;
+						case "touchstart":
+							eventName = "TouchStart";
+							break;
+						case "transitionend":
+							eventName = "TransitionEnd";
+							break;
+						case "volumechange":
+							eventName = "VolumeChange";
+							break;
+						default:
+							eventName = eventName[0].toUpperCase() + eventName.slice(1);
+							break;
+					}
+					if(e.match(/='\w*\(\)/)) {
+						return e.replace(/\w*/, eventName)
+							.replace(/'(?=\w*)/, "{this.")
+							.replace(/\(\)'(?=\s|\/|\>)/, "}");
+
+					} else if(e.match(/='\w*\(.*\)/)) {
+						return e.replace(/\w*/, eventName)
+							.replace(/'(?=\w*)/, "{()=>this.")
+							.replace(/\)'(?=\s|\/|\>)/, ")}");
+					} else {
+						return e.replace(/\w*/, eventName)
+							.replace("'", "{")
+							.replace("'", "}");
+					}
 				} 
 			})
-			.join("")
-			.split(/<(?=input|textarea|select)/g)
-			.map(e=>{
-				let name = e.match(/name=("|')\w*("|')/);
-				let handler = "";
-				if (name) {
-					handler = `onChange={this.inputHandler.bind(this)}`;
-				}
-				let replaced;
-				if (e.match(/input/)) {
-					replaced = e.replace("input", `input ${handler}`);
-				} else if (e.match(/textarea/)) {
-					replaced = e.replace("textarea", `textarea ${handler}`);
-				} else if (e.match(/select/)) {
-					replaced = e.replace("select", `select ${handler}`);
-				} else {
-					replaced = e;
-				}
-				return replaced;
+			.join("on")
+			.split(/<input/)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let handler = "";
+					if (name) {
+						handler = `onChange={this.inputHandler.bind(this)}`;
+					}
+					return handler + e;
+				} else return e;
 			})
-			.join("<")
+			.join("<input ")
+			.split(/<textarea/)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let handler = "";
+					if (name) {
+						handler = `onChange={this.inputHandler.bind(this)}`;
+					}
+					return handler + e;
+				} else return e;
+			})
+			.join("<textarea ")
+			.split(/<select/)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let handler = "";
+					if (name) {
+						handler = `onChange={this.inputHandler.bind(this)}`;
+					}
+					return handler + e;
+				} else return e;
+			})
+			.join("<select ")
 			.replace(/class(?=='|={)/g, "className")
-			.replace(/for(?=='|={)/g, "htmlFor");
+			.replace(/for(?=='|={)/g, "htmlFor")
+			.split(/<br/)
+			.map((e, i)=>{
+				if (i > 0) return e.replace(/>|\/>/, "/>");
+				else return e 
+			}).join("<br")
+			.split(/<img/)
+			.map((e, i)=>{
+				if (i > 0) return e.replace(/>|\/>/, "/>");
+				else return e 
+			}).join("<img")
+			.split(/<input/)
+			.map((e, i)=>{
+				if (i > 0) return e.replace(/>|\/>/, "/>");
+				else return e 
+			}).join("<input")
 
 			return html
 	}
 	setPrerenderLogical(){
 		let cond = this.condStates.map(e=>{
-			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${e.if}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${e.else}\n\t\t}\n\t\t`:""}`
+			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.else)}\n\t\t}\n\t\t`:""}`
 		})
 		let loops = this.loopsState.map(e=>{
 			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t})\n\t\t`
