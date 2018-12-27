@@ -3,7 +3,7 @@
 process.title = "RocketJS"; //Process Title
 
 //Const
-const {VueCompiler, ReactCompiler} = require("../Lib").core,
+const {VueCompiler, ReactCompiler, Components} = require("../Lib").core,
 	  FF = require("../Lib/file-utils").TranslatorFileFunctions,
 	  {join} = require("path"),
 	  {realpathSync} = require("fs"),
@@ -74,6 +74,7 @@ if (mode === "-h" || !mode){
 		process.exit(1);
 	}
 	functions.writeFile(compiled); //Append Files to the output folder
+	functions.writeComponents(name, mode, Components())
 	console.log(`Thanks for use html compiler.\n\nOpen "${output}" to view your files.`);
 } else if(mode === "--version" || mode === "-v") {
 	let {version} = require("../package.json");

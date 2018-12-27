@@ -21,6 +21,7 @@ class StateManagement {
 		this._regExpToMatchComputed = /^\w*\s\-\scomputed/g; //RegExp to get Computed Methods
 		this._regExpToMatchProps = /^\w*\s\-\sprop/g; //RegExp to get Props
 
+		this.componentsContent = new Array();
 	}
 
 	//--------------- Public Methods -----------------
@@ -41,6 +42,7 @@ class StateManagement {
 		this._props = [];
 		this._cond = [];
 		this._loops = [];
+		this.componentsContent = [];
 		this._setDataFromHTML(html); //Call Method to Get Data from HTML String
 		this.methods = html; //Call Method to Get Data from HTML String
 	}
@@ -167,6 +169,20 @@ class StateManagement {
 				this._components.push(name);
 			})
 		}
+
+		let splitComponentWithContent = html.split("<component ");
+		splitComponentWithContent.forEach((e, i)=>{
+			if (i > 0) {
+				let componentName = e.match(/name=('|")\w*/)[0].slice(6);
+				let componentContent = e.replace(/name=("|')\w*('|")>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
+				this._components.push(componentName);
+				
+				this.componentsContent.push({
+					name:componentName,
+					content:componentContent.replace(/.*(\r\n|\n|\r)/, "")
+				});
+			}
+		});
 	}
 	get components() {
 		return this._components;

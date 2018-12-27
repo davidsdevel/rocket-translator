@@ -24,15 +24,14 @@ class ReactStateManagement extends StateManagement {
 		let components = "";
 		if (this.components.length > 0) {
 			this.components.forEach(e=>{
-				components += `import ${e} from "~/components/${e}"\n`; //Add Import for each Component Value
+				components += `import ${e} from "./components/${e}"\n`; //Add Import for each Component Value
 			})
 		}
 		return components;
 	}
 	/**
-	 * Set React Components
+	 * Set React States Into Template
 	 * 
-	 * @description Set Components Imports to String Template
 	 * @public
 	 * @return {string}
 	 */
@@ -335,10 +334,6 @@ class ReactStateManagement extends StateManagement {
 						case "focusout":
 							eventName = "FocusOut";
 							break;
-						case "fullscreenchange":
-							break;
-						case "fullscreenerror":
-							break;
 						case "hashchange":
 							eventName = "HashChange";
 							break;
@@ -518,6 +513,17 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) return e.replace(/>|\/>/, "/>");
 				else return e 
 			}).join("<input")
+			.split("<component ")
+			.map((e, i) => {
+				if (i > 0) {
+					let name = e.match(/name=('|")\w*/)[0].slice(6);
+					let splitted = e.split("</component>")
+					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+				} 
+				else return e
+			})
+			.join("<")
 
 			return html
 	}
@@ -532,4 +538,4 @@ class ReactStateManagement extends StateManagement {
 	}
 }
 
-module.exports = ReactStateManagement
+module.exports = new ReactStateManagement();

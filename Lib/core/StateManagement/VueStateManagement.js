@@ -71,7 +71,19 @@ class VueStateManagement extends StateManagement {
 			.replace(/for val=(?=.*>)/g, "template v-for=")
 			.replace(/\/for(?=>)/g, "/template");
 			
-		return loopParse;
+		let componentsParse = loopParse
+			.split("<component ")
+			.map((e, i) => {
+				if (i > 0) {
+					let name = e.match(/name=('|")\w*/)[0].slice(6);
+					let splitted = e.split("</component>");
+					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+				} 
+				else return e
+			})
+			.join("<");
+		return componentsParse;
 	}
 
 	_setVueDataTemplate(componentName){
@@ -97,7 +109,7 @@ class VueStateManagement extends StateManagement {
 		}
 		//Components
 		if (this.components.length > 0) {
-			components = `\n\tcomponents:{\n\t\t${this.components.join(', \n\t\t')}\n\t},`;
+			components = `\n\tcomponents:{\n\t\t${this.components.join(',\n\t\t')}\n\t},`;
 			this.components.forEach(e=>{
 				importComponents += `import ${e} from "~/components/${e}"\n`;
 			})
@@ -136,7 +148,8 @@ class VueStateManagement extends StateManagement {
 		}
 
 		let mainTemplate = 	`${importComponents}\nexport default {\n\tname:${componentName || "MyComponent"},${components}${props}${states}${computed}${methods}${watchers}\n}`;
-		if (states ||
+		if (componentName ||
+			states ||
 			computed ||
 			methods ||
 			components ||
@@ -149,4 +162,4 @@ class VueStateManagement extends StateManagement {
 		}
 	}
 }
-module.exports = VueStateManagement
+module.exports = new VueStateManagement();

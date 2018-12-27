@@ -1,6 +1,7 @@
-const RSM = require("./StateManagement").ReactStateManagement,
-      VSM = require("./StateManagement").VueStateManagement,
+const {ReactStateManagement, VueStateManagement} = require("./StateManagement"),
       Parser = require("./JavascriptManagement");
+
+var Components = [];
 
 /**
  * React Compiler
@@ -15,9 +16,8 @@ const RSM = require("./StateManagement").ReactStateManagement,
  * @return {string}
  */
 exports.ReactCompiler = (name, html, css, js) =>{
-	//Initialize Classes JsParser and StateManagement
-	let ReactStateManagement = new RSM();
-	let parse = new Parser(js); //Pass JS String
+
+	let parse = new Parser(js); //JS Parser
 
 	//Get all data from HTML string
 	ReactStateManagement.getHTMLString(html);
@@ -31,6 +31,8 @@ exports.ReactCompiler = (name, html, css, js) =>{
 	ReactStateManagement.watchers = parse.watchers;
 
 	ReactStateManagement.setVarsToStatesContent(parse.vars);
+
+	Components = ReactStateManagement.componentsContent;
 
 	//Add new lines and idents to code beauty
 	let pretty = ReactStateManagement
@@ -70,9 +72,8 @@ export default ${name || "MyComponent"};
  * @return {string}
  */
 exports.VueCompiler = (name, html, css, js) =>{
-	//Initialize Classes JsParser and StateManagement
-	let VueStateManagement = new VSM();
-	let parse = new Parser(js);
+
+	let parse = new Parser(js); //JS Parser
 
 	let style; // Declare empty var to asign styles
 
@@ -92,6 +93,9 @@ exports.VueCompiler = (name, html, css, js) =>{
 
 	VueStateManagement.setVarsToStatesContent(parse.vars);
 	
+	Components = VueStateManagement.componentsContent;
+
+	
 	//Add new lines and idents to code beauty
 	let pretty = VueStateManagement
 		.setVueFilterHTMLState(html)
@@ -107,8 +111,19 @@ exports.VueCompiler = (name, html, css, js) =>{
 ${pretty}
 </template>
 <script>
- ${VueStateManagement.getVueDataTemplate(name)}
+${VueStateManagement.getVueDataTemplate(name)}
 </script>
 ${style}`;
 	return template
 }
+
+/**
+ * Components
+ *
+ * Function that return the Main Component's Components.
+ *
+ * @return {String}
+ */
+exports.Components = () => {
+	return Components;
+};
