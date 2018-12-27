@@ -1,2 +1,2 @@
 exports.ReactStateManagement = require("./ReactStateManagement");
-exports.VueStateManagement = require("./VueStateManagement")
+exports.VueStateManagement = require("./VueStateManagement");
