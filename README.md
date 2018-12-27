@@ -230,7 +230,17 @@ And to add a attr with a state value add `:` on the attr front.
 
 ```html
 <MyComponent :my-bind-attr="stateName" />
-```  
+```
+
+To write the component content, add a `component` tag with the component content. And a attr `name` with the component name. And others attrs can be passed to the component.
+
+```html
+<component name="HelloWorldComponent" name="World">
+    <div>
+        <h1>Hello {name}!</h1>
+    </div>
+</component>
+```
 
 ### State Watchers <a name="watchers"></a>
 
@@ -450,7 +460,15 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` an
     <span>For Content</span>
 </for>
 ```
+#### Component Tag
 
+We add this tag to declare a **custom** component inside the **Main Component**
+
+```html
+<component name="ComponentName">
+    <span>Component Content</span>
+</component>
+```
 ## To Do
 
 ### Features Support

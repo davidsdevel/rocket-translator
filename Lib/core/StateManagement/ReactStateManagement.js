@@ -513,17 +513,16 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) return e.replace(/>|\/>/, "/>");
 				else return e 
 			}).join("<input")
-			.split("<component ")
-			.map((e, i) => {
+			.split("<component ").map((e, i) => {
 				if (i > 0) {
 					let name = e.match(/name=('|")\w*/)[0].slice(6);
-					let splitted = e.split("</component>")
+					let splitted = e.split("</component>");
 					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
 					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 				} 
 				else return e
 			})
-			.join("<")
+		.join("<");
 
 			return html
 	}

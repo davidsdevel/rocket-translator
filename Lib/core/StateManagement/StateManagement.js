@@ -174,12 +174,12 @@ class StateManagement {
 		splitComponentWithContent.forEach((e, i)=>{
 			if (i > 0) {
 				let componentName = e.match(/name=('|")\w*/)[0].slice(6);
-				let componentContent = e.replace(/name=("|')\w*('|")>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
+				let componentContent = e.replace(/.*>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
 				this._components.push(componentName);
 				
 				this.componentsContent.push({
 					name:componentName,
-					content:componentContent.replace(/.*(\r\n|\n|\r)/, "")
+					content:componentContent
 				});
 			}
 		});
@@ -449,6 +449,16 @@ class StateManagement {
 	_setDataFromHTML(html){
 
 		this.components = html; //Get Components
+		html = html.split("<component ").map((e, i) => {
+			if (i > 0) {
+				let name = e.match(/name=('|")\w*/)[0].slice(6);
+				let splitted = e.split("</component>");
+				let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+				return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+			} 
+			else return e
+		})
+		.join("<");
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 

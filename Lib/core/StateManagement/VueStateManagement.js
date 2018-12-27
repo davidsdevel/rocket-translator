@@ -71,19 +71,18 @@ class VueStateManagement extends StateManagement {
 			.replace(/for val=(?=.*>)/g, "template v-for=")
 			.replace(/\/for(?=>)/g, "/template");
 			
-		let componentsParse = loopParse
-			.split("<component ")
-			.map((e, i) => {
-				if (i > 0) {
-					let name = e.match(/name=('|")\w*/)[0].slice(6);
-					let splitted = e.split("</component>");
-					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
-					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
-				} 
-				else return e
-			})
-			.join("<");
-		return componentsParse;
+		let componentParse = loopParse.split("<component ").map((e, i) => {
+			if (i > 0) {
+				let name = e.match(/name=('|")\w*/)[0].slice(6);
+				let splitted = e.split("</component>");
+				let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+				return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+			} 
+			else return e
+		})
+		.join("<");
+
+		return componentParse;
 	}
 
 	_setVueDataTemplate(componentName){
