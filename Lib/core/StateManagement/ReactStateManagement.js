@@ -279,7 +279,7 @@ class ReactStateManagement extends StateManagement {
 				}
 				return valueToReturn;
 			})
-			.join("")
+			.join(" ")
 			.replace(/\s\-\s.*'/g, "}")
 			.split(new RegExp(`on(?=${JavaScriptEvents.join("|")})`))
 			.map((e, index)=>{
@@ -546,12 +546,14 @@ class ReactStateManagement extends StateManagement {
 	setPrerenderLogical(){
 		this.loopsMapped = false;
 		let loops = this.loopsState.map(e=>{
-			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.setReactFilterHTMLState(e.content)})\n\t\t});\n\t\t`
-		})
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.setReactFilterHTMLState(e.content)})\n\t\t);\n\t\t`
+		});
 		this.condMapped = false;
 		let cond = this.condStates.map(e=>{
 			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.else)}\n\t\t}\n\t\t`:""}`
-		})
+		});
+		this.condStates = [];
+		this.loopsState = [];
 		return `${loops ? loops.join(""):""}${cond ? cond.join("") : ""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
 	}
 }

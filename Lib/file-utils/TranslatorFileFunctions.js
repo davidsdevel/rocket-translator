@@ -106,13 +106,12 @@ class TranslatorFileFunctions {
 				let name = ComponentsArray[i].name;
 				let content = ComponentsArray[i].content;
 				let mime;
-
+				
 				if (type === "vue") {
-					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", "");
+					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
 					mime = "vue";
-				}
-				else if (type === "react") {
-					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", "");
+				} else if (type === "react") {
+					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
 					mime = "jsx";
 				}
 				else throw new Error("Type must be 'react' or 'vue'");

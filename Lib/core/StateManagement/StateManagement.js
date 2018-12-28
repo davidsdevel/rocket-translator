@@ -44,7 +44,6 @@ class StateManagement {
 		this._loops = [];
 		this.componentsContent = [];
 		this._setDataFromHTML(html); //Call Method to Get Data from HTML String
-		this.methods = html; //Call Method to Get Data from HTML String
 	}
 	/**
 	 * Get Js Data
@@ -466,6 +465,9 @@ class StateManagement {
 
 		this.loops = html; //Get Loops Data
 
+		this.methods = html; //Call Method to Get Data from HTML String
+
+
 		/*
 			Get all data that was be declared with "{Name - Type}" format.
 		*/
@@ -492,15 +494,18 @@ class StateManagement {
 	_filterJS(JsArray, type){
 		//Watch if have Content
 		if (JsArray.length > 0) {
-			let replace; //Empty var to set state declaration
+			let stateReplace; //Empty var to set state declaration
+			let propReplace; //Empty var to set props declaration
 			let tab; //Empty var to set indent to code beauty
 			switch (type) {
 				case "r":
-					replace = "this.state.";
+					stateReplace = "this.state.";
+					propReplace = "this.props."
 					tab = "\t";
 					break;
 				case "v":
-					replace = "this.";
+					stateReplace = "this.";
+					propReplace = "this."
 					tab = "\t\t";
 					break;
 				default: throw new Error("The type param must be \"v\" or \"r\"");
@@ -524,29 +529,10 @@ class StateManagement {
 					*/
 					let stateName = typeof state === "object" ? state.key : state;
 
-					data = data
-						.replace(new RegExp(`\\t(${replace+stateName}|${stateName})(?!\\(|\\s*\\(|\\.)`, "g"), "\t"+replace+stateName)
-						.replace(new RegExp(`(\\(|\\(\\s*)(${replace+stateName}|${stateName})`, "g"), "("+replace+stateName)
-						.replace(new RegExp(`(\\[|\\[\\s*)(${replace+stateName}|${stateName})`, "g"), "["+replace+stateName)
-						.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+stateName}|${stateName})`, "g"), "${"+replace+stateName)
-						.replace(new RegExp(`(=|=\\s*)(${replace+stateName}|${stateName})`, "g"), "= "+replace+stateName)
-						.replace(new RegExp(`(>|>\\s*)(${replace+stateName}|${stateName})`, "g"), "> "+replace+stateName)
-						.replace(new RegExp(`(<|<\\s*)(${replace+stateName}|${stateName})`, "g"), "< "+replace+stateName)
-						.replace(new RegExp(`(~|~\\s*)(${replace+stateName}|${stateName})`, "g"), "~"+replace+stateName)
-						.replace(new RegExp(`(\\!|\\!\\s*)(${replace+stateName}|${stateName})`, "g"), "\\! "+replace+stateName)
-						.replace(new RegExp(`(:|:\\s*)(${replace+stateName}|${stateName})`, "g"), ": "+replace+stateName)
-						.replace(new RegExp(`(\\?|\\?\\s*)(${replace+stateName}|${stateName})`, "g"), "? "+replace+stateName)
-						.replace(new RegExp(`(\\+|\\+\\s*)(${replace+stateName}|${stateName})`, "g"), "+ "+replace+stateName)
-						.replace(new RegExp(`(\\-|\\-\\s*)(${replace+stateName}|${stateName})`, "g"), "- "+replace+stateName)
-						.replace(new RegExp(`(\\*|\\*\\s*)(${replace+stateName}|${stateName})`, "g"), "* "+replace+stateName)
-						.replace(new RegExp(`(\\/|\\/\\s*)(${replace+stateName}|${stateName})`, "g"), "/ "+replace+stateName)
-						.replace(new RegExp(`(\\%|\\%\\s*)(${replace+stateName}|${stateName})`, "g"), "% "+replace+stateName)
-						.replace(new RegExp(`(return|return\\s*)(${replace+stateName}|${stateName})`, "g"), "return "+replace+stateName)
-						.replace(new RegExp(`(typeof|typeof\\s*)(${replace+stateName}|${stateName})`, "g"), "typeof "+replace+stateName)
-						.replace(new RegExp(`(\\&|\\&\\s*)(${replace+stateName}|${stateName})(!=.*(\\\`|\\"|\\'))`, "g"), "& "+replace+stateName)
-						.replace(new RegExp(`(\\||\\|\\s*)(${replace+stateName}|${stateName})(!=.*(\\\`|\\"|\\'))`, "g"), "| "+replace+stateName)
-						.replace(new RegExp(`(in|in\\s*)(${replace+stateName}|${stateName})(!=.*(\\\`|\\"|\\'))`, "g"), "in "+replace+stateName)
-						.replace(new RegExp(`(case|case\\s*)(${replace+stateName}|${stateName})(!=.*(\\\`|\\"|\\'))`, "g"), "case "+replace+stateName);
+					data = this._expressionsFilter(data, stateName, stateReplace);
+				});
+				this.props.forEach(prop=>{
+					data = this._expressionsFilter(data, prop, propReplace)
 				})
 				return {
 					funcName,
@@ -565,6 +551,31 @@ class StateManagement {
 			})
 			return JsonArray;
 		}
+	}
+	_expressionsFilter(html, name, replace) {
+		return html
+			.replace(new RegExp(`\\t(${replace+name}|${name})(?!\\(|\\s*\\(|\\.)`, "g"), "\t"+replace+name)
+			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), "("+replace+name)
+			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), "["+replace+name)
+			.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+name}|${name})`, "g"), "${"+replace+name)
+			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})`, "g"), "= "+replace+name)
+			.replace(new RegExp(`(>|>\\s*)(${replace+name}|${name})`, "g"), "> "+replace+name)
+			.replace(new RegExp(`(<|<\\s*)(${replace+name}|${name})`, "g"), "< "+replace+name)
+			.replace(new RegExp(`(~|~\\s*)(${replace+name}|${name})`, "g"), "~"+replace+name)
+			.replace(new RegExp(`(\\!|\\!\\s*)(${replace+name}|${name})`, "g"), "\\! "+replace+name)
+			.replace(new RegExp(`(:|:\\s*)(${replace+name}|${name})`, "g"), ": "+replace+name)
+			.replace(new RegExp(`(\\?|\\?\\s*)(${replace+name}|${name})(?=.*:)`, "g"), "? "+replace+name)
+			.replace(new RegExp(`(\\+|\\+\\s*)(${replace+name}|${name})`, "g"), "+ "+replace+name)
+			.replace(new RegExp(`(\\-|\\-\\s*)(${replace+name}|${name})`, "g"), "- "+replace+name)
+			.replace(new RegExp(`(\\*|\\*\\s*)(${replace+name}|${name})`, "g"), "* "+replace+name)
+			.replace(new RegExp(`(\\/|\\/\\s*)(${replace+name}|${name})`, "g"), "/ "+replace+name)
+			.replace(new RegExp(`(\\%|\\%\\s*)(${replace+name}|${name})`, "g"), "% "+replace+name)
+			.replace(new RegExp(`(return|return\\s*)(${replace+name}|${name})`, "g"), "return "+replace+name)
+			.replace(new RegExp(`(typeof|typeof\\s*)(${replace+name}|${name})`, "g"), "typeof "+replace+name)
+			.replace(new RegExp(`(\\&|\\&\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "& "+replace+name)
+			.replace(new RegExp(`(\\||\\|\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "| "+replace+name)
+			.replace(new RegExp(`(in|in\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "in "+replace+name)
+			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "case "+replace+name);
 	}
 	/**
 	 * Get String Value and Parse that

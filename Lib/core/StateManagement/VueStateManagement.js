@@ -13,7 +13,6 @@ class VueStateManagement extends StateManagement {
 		return this._setVueDataTemplate(componentName);
 	}
 	setVueFilterHTMLState(html){
-
 		//Quotes Replace
 		let replacedQuotes = html.replace(/(')/g, "\"");
 
@@ -25,38 +24,59 @@ class VueStateManagement extends StateManagement {
 			})
 			.join("{{");
 		let replaceTypeValueData = addOpenBraces.replace(/\s\-\s(\w*|(")*\w*(")*)(?=\s|\/|\>)/g, "\"");
-		let addEventToVue = replaceTypeValueData.replace(/on(?=\w*=\"\w*\(\)")/g, "@");
+		let addEventToVue = replaceTypeValueData.replace(/on(?=\w*=\"\w*\(.*\)")/g, "@");
+
 		let addInputHandler = addEventToVue
-			.split(/<(?=input|textarea|select)/g)
-			.map(e=>{
-				let name = e.match(/name=("|')\w*("|')/);
-				let newName = "";
-				if (name) {
-					newName = `v-model='${name[0].match(/"\w*(?=")/)[0].slice(1)}'`
-				}
-				let replaced;
-				if (e.match(/input/)) {
-					replaced = e.replace("input", `input ${newName}`);
-				} else if (e.match(/textarea/)) {
-					replaced = e.replace("textarea", `textarea ${newName}`);
-				} else if (e.match(/select/)) {
-					replaced = e.replace("select", `select ${newName}`);
-				} else {
-					replaced = e;
-				}
-				return replaced;
+			.split(/<input/g)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let newName = "";
+					if (name) {
+						newName = `v-model='${name[0].match(/"\w*(?=")/)[0].slice(1)}'`
+					}
+					return e.replace(" ", ` ${newName}`);
+				} 
+				return e
 			})
-			.join("<");
+			.join("<input")
+			.split(/<textarea/g)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let newName = "";
+					if (name) {
+						newName = `v-model='${name[0].match(/"\w*(?=")/)[0].slice(1)}'`
+					}
+					return e.replace(" ", ` ${newName}`);
+				} 
+				return e
+			})
+			.join("<textarea")
+			.split(/<select/g)
+			.map((e, i)=>{
+				if (i > 0) {
+					let name = e.match(/name=("|')\w*("|')/);
+					let newName = "";
+					if (name) {
+						newName = `v-model='${name[0].match(/"\w*(?=")/)[0].slice(1)}'`
+					}
+					return e.replace(" ", ` ${newName}`);
+				} 
+				return e
+			})
+			.join("<select")
+
 		let bindDirectivesReplaced = addInputHandler
 			.split(/:(?=\w*=)/)
 			.map((e, i)=>{
 				if (i !== 0) {
-					if (e.match(/^\w*="\w*"/))
+					if (e.match(/^\w*="\w*"/)) {
 						return e
-					else
-						return e.replace(/""/, "\"'").replace("\"", "'");
+					}
+					return e.replace(/""/, "\"'").replace("\"", "'");
 				}
-				else return e;
+				return e;
 			})
 			.join(":");
 
@@ -78,7 +98,7 @@ class VueStateManagement extends StateManagement {
 				let tag = splitted[0].split(/\r\n|\n|\r/)[0];
 				return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 			} 
-			else return e
+			return e
 		})
 		.join("<");
 
