@@ -139,14 +139,15 @@ class ReactStateManagement extends StateManagement {
 		}
 		return mainTemplate
 	}
-	setReactFilterHTMLState(html){
-		if (!this.condMapped) {
-			let splittedCond = html.split(/<(?=if\s*cond)/);
-			this.conditionals.forEach((e, ind)=>{
-				let id = "";
-				for (let a = 0; a <= 3; a++) {
-					id += new String(Math.floor(Math.random()*10));
-				}
+	mapConditionals(htmlIn) {
+		let splittedCond = htmlIn.split(/<(?=if\s*cond)/);
+		let splittedLoops = htmlIn.split(/<(?=for\s*val)/);
+		this.conditionals.forEach((e, ind)=>{
+			let id = "";
+			for (let a = 0; a <= 3; a++) {
+				id += new String(Math.floor(Math.random()*10));
+			}
+			if(splittedCond.length > 1) {
 				let replaced = splittedCond[ind+1].split("</else>");
 				replaced[0] = `{cond_${id}}`;
 				splittedCond[ind+1] = replaced.join("");
@@ -158,8 +159,10 @@ class ReactStateManagement extends StateManagement {
 					.map((ev, i)=>{
 						if (i > 0) return ev.replace(/>|\/>/, "/>");
 						else return ev;
-					}).join("<")
+					}).join("<");
 
+				if(filterIf.match(/<for\s*val/))
+					filterIf = this.mapLoops(filterIf);
 
 				let filterElse = e.else
 					.replace(/\t|\s\s/g, "")
@@ -170,26 +173,32 @@ class ReactStateManagement extends StateManagement {
 						else return ev;
 					}).join("<");
 
+				if(filterElse.match(/<for\s*val/))
+					filterElse = this.mapLoops(filterElse);
+
 				this.condStates.push({
 					id,
 					cond:e.cond,
 					if:filterIf,
 					else:filterElse
 				});
-			});
-			html = splittedCond.join("");
-			this.condMapped = true;
-		}
-		if (!this.loopsMapped){
-			let splittedLoops = html.split(/<(?=for\s*val)/);
-			this.loops.forEach(e=>{
-				let id = "";
-				for (var i = 0; i <= 3; i++) {
-					id += new String(Math.floor(Math.random()*10));
-				}
-				let replaced = splittedCond[ind+1].split("</for>");
+			}
+		});
+		this.condMapped = true;
+		return splittedCond.join("");
+	}
+	mapLoops(htmlIn) {
+		let splittedLoops = htmlIn.split(/<(?=for\s*val)/);
+		this.loops.forEach((e, ind)=>{
+			let id = "";
+			for (var i = 0; i <= 3; i++) {
+				id += new String(Math.floor(Math.random()*10));
+			}
+			if(splittedLoops.length > 1) {
+				let replaced = splittedLoops[ind+1].split("</for>");
 				replaced[0] = `{loop_${id}}`;
-				splittedCond[ind+1] = replaced.join("");
+				splittedLoops[ind+1] = replaced.join("");
+
 				
 				this.loopsState.push({
 					id,
@@ -197,9 +206,17 @@ class ReactStateManagement extends StateManagement {
 					value:e.value,
 					content:e.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
 				});
-			})
-			html = splittedLoops.join("");
-			this.loopsMapped = true;
+			}
+		});
+		this.loopsMapped = true;
+		return splittedLoops.join("");
+	}
+	setReactFilterHTMLState(html){
+		if (!this.condMapped) {
+			html = this.mapConditionals(html);	
+		}
+		if (!this.loopsMapped){
+			html = this.mapLoops(html);
 		}
 		html = html
 			.replace(/"/g, "'")
@@ -527,13 +544,15 @@ class ReactStateManagement extends StateManagement {
 			return html
 	}
 	setPrerenderLogical(){
+		this.loopsMapped = false;
+		let loops = this.loopsState.map(e=>{
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.setReactFilterHTMLState(e.content)})\n\t\t});\n\t\t`
+		})
+		this.condMapped = false;
 		let cond = this.condStates.map(e=>{
 			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.else)}\n\t\t}\n\t\t`:""}`
 		})
-		let loops = this.loopsState.map(e=>{
-			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>{\n\t\t\treturn ${this.setReactFilterHTMLState(e.content)}\n\t\t})\n\t\t`
-		})
-		return `${cond ? cond.join("") : ""}${loops ? loops.join(""):""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
+		return `${loops ? loops.join(""):""}${cond ? cond.join("") : ""}${this.prerenderComputed.length > 0 ? this.prerenderComputed.join(""):""}`;
 	}
 }
 
