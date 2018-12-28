@@ -1,6 +1,6 @@
 {
   "name": "rocket-translator",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Translate your HTML files to React.js and Vue.js",
   "keywords": [
     "vue",
