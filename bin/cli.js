@@ -8,6 +8,7 @@ const {VueCompiler, ReactCompiler, Components} = require("../Lib").core,
 	  {setErrorHandler} = require("../Lib/core"),
 	  {join} = require("path"),
 	  {realpathSync} = require("fs"),
+	  clc = require("cli-color"),
 	  cliDir = realpathSync(".");
 
 const mode = process.argv[2]; //Get the mode to compile
@@ -33,7 +34,8 @@ if (mode === "-h" || !mode){
 	var fileName;
 	
 	if (process.argv.length <= 3){
-		console.log(`Please select a file to compile.`);
+		console.log(clc.redBright("\nError!!!\n"))
+		console.log(clc.redBright(`Please select a file to compile.`));
 		process.exit(1);
 	} else {
 		fileName = join(cliDir, process.argv[3]); //Get the file path
@@ -73,12 +75,14 @@ if (mode === "-h" || !mode){
 			type: "react"
 		}
 	} else {
-		console.error("Invalid Mode.");
+		console.log(clc.redBright("\nError!!!\n"))
+		console.log(clc.redBright(`Invalid Mode.`));
 		process.exit(1);
 	}
 	functions.writeFile(compiled); //Append Files to the output folder
-	functions.writeComponents(name, mode, Components())
-	console.log(`Thanks for use html compiler.\n\nOpen "${output}" to view your files.`);
+	functions.writeComponents(name, mode, Components());
+	console.log(clc.greenBright("\nSuccess...\n"))
+	console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(output)} to view your files.`);
 } else if(mode === "--version" || mode === "-v") {
 	let {version} = require("../package.json");
 	console.log("v"+version);
