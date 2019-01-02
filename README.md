@@ -237,7 +237,7 @@ To write the component content, add a `component` tag with the component content
 ```html
 <component name="HelloWorldComponent" name="World">
     <div>
-        <h1>Hello {name}!</h1>
+        <h1>Hello {name - prop}!</h1>
     </div>
 </component>
 ```
