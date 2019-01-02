@@ -35,8 +35,8 @@ class ErrorManagement {
 		console.log(clc.whiteBright(`Duplicate State:\n`))
 
 		linesArray.forEach(({name, content, line})=> {
-			console.log(`${clc.whiteBright(name)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`);
-		})
+			console.log(`-> ${clc.whiteBright(name)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`);
+		});
 		process.exit(1);
 	}
 	missingVar(stateName, varName) {
@@ -56,9 +56,25 @@ class ErrorManagement {
 		});
 		console.log(clc.whiteBright("Duplicate Component:\n"))
 		linesArray.forEach(({line, content})=>{
-			console.log(`${clc.whiteBright(componentName)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`)
+			console.log(`-> ${clc.whiteBright(componentName)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`)
 		});
 		process.exit(1);
+	}
+	undefinedMethodError(methodName) {
+		console.log(clc.whiteBright(`Undefined Method:\n`));
+		this.lines.forEach((line, i) => {
+			let matched = line.match(new RegExp(`on.*=('|")${methodName}\\(.*\\)('|")`));
+			if (matched) console.log(`-> ${clc.whiteBright(methodName)} on line: ${i+1} ${clc.red(line.replace(/\t/g, ""))}`);
+		});
+		process.exit(1)
+	}
+	undefinedComputedError(computedName){
+		console.log(clc.whiteBright(`Undefined Computed:\n`));
+		this.lines.forEach((line, i) => {
+			let matched = line.match(new RegExp(`{${computedName}\\s*-\\s*computed}`));
+			if (matched) console.log(`-> ${clc.whiteBright(computedName)} on line: ${i+1} ${clc.red(line.replace(/\t/g, ""))}`);
+		});
+		process.exit(1)
 	}
 }
 
@@ -81,11 +97,26 @@ class DuplicateComponentError extends ErrorManagement {
 		this.duplicateComponent(componentName);
 	}
 }
+class UndefinedMethodError extends ErrorManagement {
+	constructor(methodName) {
+		super();
+		this.undefinedMethodError(methodName)
+	}
+}
+class UndefinedComputedError extends ErrorManagement {
+	constructor(computedName) {
+		super();
+		this.undefinedComputedError(computedName)
+	}
+}
+
 module.exports = () => {
 	global = {
 		...global,
 		DuplicateStateError,
 		MissingVarError,
-		DuplicateComponentError
+		DuplicateComponentError,
+		UndefinedComputedError,
+		UndefinedMethodError
 	}
 }

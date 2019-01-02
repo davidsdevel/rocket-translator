@@ -70,8 +70,16 @@ class StateManagement {
 						this._computed[i].content = e.content;
 					}
 				});
+
 			});
 		}
+		/*Error Handle*/
+		this.methods.forEach(({content, name})=>{
+			if(!content) new global.UndefinedMethodError(name);
+		});
+		this.computed.forEach(({content, name})=>{
+			if(!content) new global.UndefinedComputedError(name);
+		})
 	}
 	/**
 	 * Set Vars
@@ -190,7 +198,6 @@ class StateManagement {
 			}
 			
 		})
-		console.log(this.componentsContent);
 	}
 	get components() {
 		return this._components;
@@ -228,7 +235,7 @@ class StateManagement {
 			_computedArray.forEach(e=>{
 				this._computed.push({
 					name:e.match(/^\w*/g)[0],
-					content:"{\n\t\t\treturn 'Hello World'\n\t\t}"
+					content:null
 				});
 			});
 		}
@@ -312,7 +319,7 @@ class StateManagement {
 				let name = split[1].match(/\w*(?=\()/)[0];
 				this._methods.push({
 					name,/*Get Method Name*/
-					content:"{\n\t\treturn\n\t}" /*Default Value If methods is not declared*/
+					content:null
 				});
 			});
 			let methodsList = ["1234"];
