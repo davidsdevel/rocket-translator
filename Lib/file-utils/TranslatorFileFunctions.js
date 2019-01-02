@@ -8,7 +8,7 @@ const {
 } = require("fs"),
 { join } = require("path"),
 {VueCompiler, ReactCompiler} = require("..").core,
-
+clc = require("cli-color"),
 cliDir = realpathSync(".");
  /**
   * File Functions to CLI
@@ -114,7 +114,7 @@ class TranslatorFileFunctions {
 					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
 					mime = "jsx";
 				}
-				else throw new Error("Type must be 'react' or 'vue'");
+				else console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
 
 				writeFileSync(join(componentsFolder, `${name}.${mime}`), content);
 			}
@@ -166,13 +166,14 @@ class TranslatorFileFunctions {
 	 */
 	_findFile(pathname){
 		if (!existsSync(pathname)) {
-			console.error("File does not exist.");
+			console.log(clc.redBright("\nError!!!\n"))
+			console.error(clc.whiteBright("File does not exist."));
 			process.exit(1);
-
 		} else {
 			//If is not a HTML file
 			if (!pathname.match(/\w*.html$/)){
-				console.error("Please select a html file.");
+				console.log(clc.redBright("\nError!!!\n"))
+				console.error(clc.whiteBright("Please select a html file."));
 				process.exit(1);
 			} else {
 				let fileBuffer = readFileSync(pathname); //Read file
