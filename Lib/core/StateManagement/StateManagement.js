@@ -254,7 +254,6 @@ class StateManagement {
 				_stateWithValueArray.push(_matched[0]);
 			}
 		});
-
 		//If State With Declaration, Map and Push to Component States
 		if (_stateArray.length > 0){
 			_stateArray.forEach(e=>{
@@ -269,9 +268,21 @@ class StateManagement {
 				let _getKey = e.match(/^\w*\s/);
 				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|(\'|\")\w*(\'|\"))$/)[0]); //Set Value
 				let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
-				this.states.push({key, value });
+				this._states.push({key, value });
 			});
 		}
+		this.states.forEach(e=>{
+			let array = [];
+			let eName = typeof e === "object" ? e.key : e;
+				this.states.forEach(ev=>{
+					let name = typeof ev === "object" ? ev.key : ev;
+
+					if (eName === name) { 
+						array.push(ev);
+					}
+				});
+				if (array.length > 1) new global.DuplicateStateError(array);
+		})
 	}
 	get states() {
 		return this._states;

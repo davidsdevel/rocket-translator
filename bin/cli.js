@@ -5,6 +5,7 @@ process.title = "RocketJS"; //Process Title
 //Const
 const {VueCompiler, ReactCompiler, Components} = require("../Lib").core,
 	  FF = require("../Lib/file-utils").TranslatorFileFunctions,
+	  {setErrorHandler} = require("../Lib/core"),
 	  {join} = require("path"),
 	  {realpathSync} = require("fs"),
 	  cliDir = realpathSync(".");
@@ -36,6 +37,8 @@ if (mode === "-h" || !mode){
 		process.exit(1);
 	} else {
 		fileName = join(cliDir, process.argv[3]); //Get the file path
+		global.translatorFilePath = fileName;
+		setErrorHandler();
 	}
 
 	//Dirname for the output folder

@@ -3,6 +3,7 @@ const {ReactStateManagement, VueStateManagement} = require("./StateManagement"),
 
 var Components = [];
 
+exports.setErrorHandler = require("./ErrorManagement");
 /**
  * React Compiler
  * 
