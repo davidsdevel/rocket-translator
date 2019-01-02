@@ -10,6 +10,7 @@ const {
 {VueCompiler, ReactCompiler} = require("..").core,
 clc = require("cli-color"),
 cliDir = realpathSync(".");
+
  /**
   * File Functions to CLI
   * 

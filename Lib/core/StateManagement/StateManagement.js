@@ -142,6 +142,16 @@ class StateManagement {
 	 */
 	set watchers(watchersArray){
 		if (watchersArray) {
+			watchersArray.forEach(({name})=>{
+				let count = 0;
+				this.states.forEach(state=>{
+					let key = typeof state === "object" ? state.key : state;
+					if (key === name) count++;
+				});
+				if (count === 0){
+					new global.UnableToWatchStateError(name);
+				}
+			})
 			this._watchers = watchersArray;
 		}
 	}

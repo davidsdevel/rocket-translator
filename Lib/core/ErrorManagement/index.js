@@ -76,6 +76,16 @@ class ErrorManagement {
 		});
 		process.exit(1)
 	}
+	unableToWatchState(watcherName) {
+		console.log(clc.whiteBright(`Unable to Watch State:\n`));
+		this.lines.forEach((line, i)=>{
+			let matched = line.match(new RegExp(`watch\\s*${watcherName}\\s*=`));
+			if (matched) {
+				console.log(`-> ${clc.whiteBright(watcherName)} on line: ${i+1}`);
+				process.exit(1);
+			}
+		});
+	}
 }
 
 class DuplicateStateError extends ErrorManagement {
@@ -109,7 +119,12 @@ class UndefinedComputedError extends ErrorManagement {
 		this.undefinedComputedError(computedName)
 	}
 }
-
+class UnableToWatchStateError extends ErrorManagement {
+	constructor(watcherName) {
+		super();
+		this.unableToWatchState(watcherName);
+	}
+}
 module.exports = () => {
 	global = {
 		...global,
@@ -117,6 +132,7 @@ module.exports = () => {
 		MissingVarError,
 		DuplicateComponentError,
 		UndefinedComputedError,
-		UndefinedMethodError
+		UndefinedMethodError,
+		UnableToWatchStateError
 	}
 }
