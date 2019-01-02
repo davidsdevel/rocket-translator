@@ -35,7 +35,7 @@ class ErrorManagement {
 		console.log(clc.whiteBright(`Duplicate State:\n`))
 
 		linesArray.forEach(({name, content, line})=> {
-			console.log(`${clc.whiteBright(name)} on line ${clc.whiteBright(line)} ${clc.red(content)}`);
+			console.log(`${clc.whiteBright(name)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`);
 		})
 		process.exit(1);
 	}
@@ -43,10 +43,22 @@ class ErrorManagement {
 		this.lines.forEach((line, i)=>{
 			let matched = line.match(new RegExp(`{${stateName}\\s*-\\s*state\\s*-\\s*${varName}}`))
 			if (matched) {
-				console.log(`Missing Var: ${clc.whiteBright(varName)} on line ${clc.whiteBright(i+1)} ${clc.red(line.replace(/\t/g, ""))}`);
+				console.log(`Missing Var: ${clc.whiteBright(varName)} on line: ${clc.whiteBright(i+1)} ${clc.red(line.replace(/\t/g, ""))}`);
 				process.exit(1)
 			}
 		});
+	}
+	duplicateComponent(componentName) {
+		let linesArray = [];
+		this.lines.forEach((line, i) => {
+			let matched = line.match(new RegExp(`<component name=('|")${componentName}('|")`));
+			if (matched) linesArray.push({content:line, line:i+1})
+		});
+		console.log(clc.whiteBright("Duplicate Component:\n"))
+		linesArray.forEach(({line, content})=>{
+			console.log(`${clc.whiteBright(componentName)} on line: ${clc.whiteBright(line)} ${clc.red(content)}`)
+		});
+		process.exit(1);
 	}
 }
 
@@ -62,12 +74,18 @@ class MissingVarError extends ErrorManagement {
 		super();
 		this.missingVar(stateName, varName);
 	}
-	
+}
+class DuplicateComponentError extends ErrorManagement {
+	constructor(componentName) {
+		super();
+		this.duplicateComponent(componentName);
+	}
 }
 module.exports = () => {
 	global = {
 		...global,
 		DuplicateStateError,
-		MissingVarError
+		MissingVarError,
+		DuplicateComponentError
 	}
 }

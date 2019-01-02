@@ -180,6 +180,17 @@ class StateManagement {
 				});
 			}
 		});
+		this.componentsContent.forEach(({name})=>{
+			let duplicates = 0;
+			this.componentsContent.forEach(ev=>{
+				if (name === ev.name) duplicates++;
+			});
+			if (duplicates > 1) {
+				new global.DuplicateComponentError(name);
+			}
+			
+		})
+		console.log(this.componentsContent);
 	}
 	get components() {
 		return this._components;
