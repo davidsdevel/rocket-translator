@@ -5,14 +5,9 @@ class ErrorManagement {
 	constructor() {
 		let file = Buffer.from(readFileSync(translatorFilePath)).toString();
 		this.lines = file.split(/\r\n|\n|\r/);
+		console.log(clc.redBright("\nError!!!\n"))
 	}
-}
-class DuplicateStateError extends ErrorManagement {
-	constructor(states) {
-		super();
-		this.getLines(states);
-	}
-	getLines(array) {
+	duplicateState(array) {
 		let linesArray = [];
 		this.lines.forEach((line, i)=>{
 			array.forEach(state => {
@@ -37,7 +32,6 @@ class DuplicateStateError extends ErrorManagement {
 				}
 			})
 		});
-		console.log(clc.redBright("Error!!!"))
 		console.log(clc.whiteBright(`Duplicate State:\n`))
 
 		linesArray.forEach(({name, content, line})=> {
@@ -45,11 +39,35 @@ class DuplicateStateError extends ErrorManagement {
 		})
 		process.exit(1);
 	}
+	missingVar(stateName, varName) {
+		this.lines.forEach((line, i)=>{
+			let matched = line.match(new RegExp(`{${stateName}\\s*-\\s*state\\s*-\\s*${varName}}`))
+			if (matched) {
+				console.log(`Missing Var: ${clc.whiteBright(varName)} on line ${clc.whiteBright(i+1)} ${clc.red(line.replace(/\t/g, ""))}`);
+				process.exit(1)
+			}
+		});
+	}
 }
 
+class DuplicateStateError extends ErrorManagement {
+	constructor(states) {
+		super();
+		this.duplicateState(states);
+	}
+}
+
+class MissingVarError extends ErrorManagement {
+	constructor(stateName, varName) {
+		super();
+		this.missingVar(stateName, varName);
+	}
+	
+}
 module.exports = () => {
 	global = {
 		...global,
-		DuplicateStateError
+		DuplicateStateError,
+		MissingVarError
 	}
 }

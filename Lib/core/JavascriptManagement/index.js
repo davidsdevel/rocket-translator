@@ -1,6 +1,6 @@
 class JavascriptManagement {
 	constructor(js){
-		this.splitVars = /(\n|\r\n|\r)*(var|let|const)/g;
+		this.splitVars = /(\r\n|\n|\r)(var|let|const)(?=\s*\w*\s*=)/g;
 		this.splitJs = /(\n|\r\n|\r)*(?=watch|state|function(?!\(|\s*\())/g;
 		this._watchers = new Array();
 		this._vars = new Array();
@@ -105,7 +105,7 @@ class JavascriptManagement {
 		if (varMatched) {
 			varMatched.forEach(e=>{
 				let name = e.match(/(var|let|const)\s*\w*/g)[0].replace(/(var|let|const)(\s*)/, "");
-				let filtered = e.replace(/(var|let|const)\s*\w*\s*=\s*/g, "").replace(/;$/, "").replace(/(^("|')|('|")$)/g, "");
+				let filtered = e.replace(/(var|let|const)\s*\w*\s*=\s*/g, "").replace(/;$/, "");
 				this._vars.push({
 					name,
 					value:filtered

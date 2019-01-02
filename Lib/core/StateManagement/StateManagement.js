@@ -83,25 +83,23 @@ class StateManagement {
 	 */
 	setVarsToStatesContent(VarsArray){
 		//Map Vars Array
-		VarsArray.forEach(({name, value})=>{
-			//Map States, Get index, and replace whit the new value
-			this.states.forEach((ev, i)=>{
-				if (typeof ev === "object") {
-					//If match replace the corresponding state
-					if (ev.value === name) {
-						this._states[i].value = this._defineTypeFromString(value);
-					}
-				} else {
-					//If match replace the corresponding state
-					if (ev === name) {
-						this._states[i] = {
-							key:ev,
-							value: this._defineTypeFromString(value)
+		this.states.forEach((state, i)=>{
+			if (typeof state === "object") {
+				//If match replace the corresponding state
+				if (state.value.var && VarsArray.length > 0) {
+					VarsArray.forEach(({name, value})=>{
+						if (state.value.var === name) {
+							this._states[i] = {
+								key:state.key,
+								value:this._defineTypeFromString(value)
+							}
 						}
-					}
+						else new global.MissingVarError(state.key, state.value.var);
+					});
 				}
-			})
-		})
+				else new global.MissingVarError(state.key, state.value.var);
+			}
+		});
 	}
 		/**
 	 * Set States
@@ -595,11 +593,12 @@ class StateManagement {
 	 */
 	_defineTypeFromString(string){
 		var value; //Empty Value
-		let _isString = string.match(/^(\"|\')\w*(\'|\")$/);
+		let _isString = string.match(/^(\"|\')\w*(\s*\w*)(\'|\")$/);
 		let _isDigit = string.match(/^\d*$/);
 		let _isBoolean = string.match(/(true|false)$/g);
 		let _isArray = string.match(/^\[.*\]$/);
 		let _isObject = string.match(/^\{(\r|\n)*((\t*).*(\r|\n*))*\}/g);
+
 		if (_isDigit) {
 			value = parseInt(_isDigit[0]);
 		} else if (_isBoolean){
@@ -608,12 +607,11 @@ class StateManagement {
 			value = this._ArrayAndObjectParser(_isArray[0]);
 		} else if (_isObject){
 			value = this._ArrayAndObjectParser(_isObject[0]);
-		}
-		else if(_isString){
+		} else if(_isString){
 			value = string.replace(/(\"|\')/g, ""); //String Value
 		} else {
 			//is Var
-			value = string;
+			value = {var:string};
 		}
 		return value
 	}
@@ -624,18 +622,10 @@ class StateManagement {
 	 * @returns {Boolean}
 	 */
 	_BooleanParser(string){
-		let retorno;
-		switch (string){
-			case "true":
-				retorno = true;
-				break;
-			case "false":
-				retorno = false;
-				break;
-			default:
-				break;
-		}
-		return retorno
+		if (string === "true")
+			return true;
+		
+		return false;
 	}
 	/**
 	 * Parse Array, Object and Define Type
