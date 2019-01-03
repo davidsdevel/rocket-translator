@@ -1,5 +1,6 @@
 dist
 tmp
+bin
 
 # Testing
 test/

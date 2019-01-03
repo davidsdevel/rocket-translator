@@ -1,5 +1,11 @@
 dist
+Lib
 tmp
+
+.eslintignore
+.eslintrc.js
+.gitignore
+
 
 # Testing
 test/
