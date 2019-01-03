@@ -184,14 +184,19 @@ return(
 
 ### Computed <a name="computed"></a>
 
-A **Computed** propierty is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed propierty, simply we can set the computed propierty name and the type: **computed**.
+A **Computed** propierty is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed propierty, simply we can set the computed propierty name and the type: **computed** and create the function to execute that match with the computed name.
 
 ```html
-<div>{computedName - computed}</div>
+<div>{hello - computed}</div>
 ```
+```js
+function hello() {
+    return "Hello World";
+}
+```
+This will create a computed properties that returns a **Hello World**.
 
-This will create a computed properties that returns a **Hello World**. And to set your own computed propierty, you must add a **script** tag and create a function named like the computed propierty.
-
+Example:
 ```html
 <div>Hi I Am {fullName - computed}!</div>
 <script>
@@ -217,7 +222,6 @@ function hello() {
 }
 </script>
 ```
-
 
 ### Components \(**Partial**\)<a name="components"></a>
 
@@ -300,7 +304,7 @@ class MyComponent extends Component {
         this.setState({
             [name]: value
         })
-    }`
+    }
 }
 ```
 
