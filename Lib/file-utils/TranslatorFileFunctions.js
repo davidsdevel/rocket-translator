@@ -1,17 +1,14 @@
-const {
+import {
 	existsSync,
-	appendFileSync,
 	mkdirSync,
 	readFileSync,
-	writeFileSync,
-	realpathSync
-} = require("fs"),
-{ join } = require("path"),
-{VueCompiler, ReactCompiler} = require("..").core,
-clc = require("cli-color"),
-cliDir = realpathSync(".");
+	writeFileSync
+} from "fs";
+import{ join } from "path";
+import {VueCompiler, ReactCompiler} from "../core";
+import clc from "cli-color";
 
- /**
+/**
   * File Functions to CLI
   * 
   * @class
@@ -62,15 +59,15 @@ class TranslatorFileFunctions {
 	 */
 	getJs(){
 		if (this._js !== undefined){
-			return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e=>{
+			return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e => {
 				if (e) return e.replace(/\t|\s\s\s\s|\s\s/, "");
 			})
-			.filter(e=>{
-				return e
-			})
-			.join("\r\n");
+				.filter(e => {
+					return e;
+				})
+				.join("\r\n");
 		} else {
-			return ""
+			return "";
 		}
 	}
 	/**
@@ -85,7 +82,7 @@ class TranslatorFileFunctions {
 		if (this._css !== undefined){
 			return this._css.join("\r\n").replace(/^(\n|\r|\r\n)\t*/g, "");
 		} else {
-			return ""
+			return "";
 		}
 	}
 	/**
@@ -104,8 +101,8 @@ class TranslatorFileFunctions {
 				mkdirSync(componentsFolder);
 			}
 			for (let i = 0; i <= ComponentsArray.length - 1; i++) {
-				let name = ComponentsArray[i].name;
-				let content = ComponentsArray[i].content;
+				let {name} = ComponentsArray[i];
+				let {content} = ComponentsArray[i];
 				let mime;
 				
 				if (type === "vue") {
@@ -135,14 +132,14 @@ class TranslatorFileFunctions {
 		}
 		let mime;
 		switch (type) {
-			case "vue":
-				mime = "vue"; //Set "vue" extension
-				break;
-			case "react":
-				mime = "jsx"; //Set "jsx" extension
-				break;
-			default:
-				throw new Error("Invalid Type "+type);
+		case "vue":
+			mime = "vue"; //Set "vue" extension
+			break;
+		case "react":
+			mime = "jsx"; //Set "jsx" extension
+			break;
+		default:
+			throw new Error(`Invalid Type ${type}`);
 		}
 
 		//Component Folder Name
@@ -167,13 +164,13 @@ class TranslatorFileFunctions {
 	 */
 	_findFile(pathname){
 		if (!existsSync(pathname)) {
-			console.log(clc.redBright("\nError!!!\n"))
+			console.log(clc.redBright("\nError!!!\n"));
 			console.error(clc.whiteBright("File does not exist."));
 			process.exit(1);
 		} else {
 			//If is not a HTML file
 			if (!pathname.match(/\w*.html$/)){
-				console.log(clc.redBright("\nError!!!\n"))
+				console.log(clc.redBright("\nError!!!\n"));
 				console.error(clc.whiteBright("Please select a html file."));
 				process.exit(1);
 			} else {
@@ -185,9 +182,9 @@ class TranslatorFileFunctions {
 					.replace(/#js .*(\n|\r)/g, "")
 					.replace(/#css .*(\n|\r|\r\n)/g, "")
 					.split(/<script.*>/g)
-					.map((e, i)=>{
+					.map((e, i) => {
 						if (i > 0) return e.replace(/(\n|\r|\r\n)*(.*(\n|\r|\r\n)*)*<\/script>/, "");
-						else return e
+						else return e;
 					})
 					.join("");
 				this._getFileData(data, "js"); //Get Js Route and Data
@@ -198,18 +195,18 @@ class TranslatorFileFunctions {
 		}
 	}
 	_getScriptTags(html) {
-		html.split(/<script.*>/g).forEach((e, i)=>{
+		html.split(/<script.*>/g).forEach((e, i) => {
 			if (i > 0) {
 				this._js.push(e.replace(/<\/script>/g, ""));
 			}
-		})
+		});
 	}
 	_getStyleTags(html){
-		html.split(/<style.*>/g).forEach((e, i)=>{
+		html.split(/<style.*>/g).forEach((e, i) => {
 			if (i > 0) {
 				this._css.push(e.replace(/<\/style>/, ""));
 			}
-		})
+		});
 	}
 	/**
 	 * Get File Data
@@ -224,20 +221,20 @@ class TranslatorFileFunctions {
 			let reg = new RegExp(`#${type} .*`, "g"); //RegExp to get paths
 			let path = null;
 			if (htmlString.match(reg)) {
-				path = htmlString.match(reg).map(e=>{
+				path = htmlString.match(reg).map(e => {
 					return e.replace(`#${type} `, "");
 				});
 			}
 			if (path !== null) {
-				path.forEach(e=>{
-					let buff = readFileSync(join(__dirname,"..","..", e)); //Read File
+				path.forEach(e => {
+					let buff = readFileSync(join(__dirname, "..", "..", e)); //Read File
 					let data = Buffer.from(buff).toString(); //Decode Buffer
 					type === "css" ? this._css.push(data) : this._js.push(data); //Set Data                    
-				})
+				});
 			}
 		} else {
-			throw new Error("Invalid Type "+type);
+			throw new Error(`Invalid Type ${type}`);
 		}
 	}
 }
-module.exports = TranslatorFileFunctions;
+export default TranslatorFileFunctions;

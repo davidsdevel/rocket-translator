@@ -1,9 +1,13 @@
-const {ReactStateManagement, VueStateManagement} = require("./StateManagement"),
-      Parser = require("./JavascriptManagement");
+import { ReactStateManagement, VueStateManagement } from "./StateManagement";
+import Parser from "./JavascriptManagement";
+import setErrorHandler from "./ErrorManagement";
 
+/**
+ * Array of Main Component's Components.
+ */
 var Components = [];
 
-exports.setErrorHandler = require("./ErrorManagement");
+
 /**
  * React Compiler
  * 
@@ -16,50 +20,52 @@ exports.setErrorHandler = require("./ErrorManagement");
  *
  * @return {string}
  */
-exports.ReactCompiler = (name, html, css, js) =>{
+const ReactCompiler = (name, html, css, js) => {
+
+	let RStateManagement = new ReactStateManagement();
 
 	let parse = new Parser(js); //JS Parser
 
 	//Get all data from HTML string
-	ReactStateManagement.getHTMLString(html);
+	RStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	ReactStateManagement.statesFromJS = parse.states;
+	RStateManagement.statesFromJS = parse.states;
 
 	//Get Methods from JS and set to Data
-	ReactStateManagement.getJsData(parse.functions, "r");
+	RStateManagement.getJsData(parse.functions, "r");
 
-	ReactStateManagement.watchers = parse.watchers;
+	RStateManagement.watchers = parse.watchers;
 
-	ReactStateManagement.setVarsToStatesContent(parse.vars);
+	RStateManagement.setVarsToStatesContent(parse.vars);
 
-	Components = ReactStateManagement.componentsContent;
+	Components = RStateManagement.componentsContent;
 
 	//Add new lines and idents to code beauty
-	let pretty = ReactStateManagement
+	let pretty = RStateManagement
 		.setReactFilterHTMLState(html)
 		.split(/\n/)
-		.map(e=>{
-			if (e) return "\t\t\t"+e+"\n";
+		.map(e => {
+			if (e) return `\t\t\t${e}\n`;
 		})
 		.join("");
 		
 	//Template to Set All Data
 	let template =
 `import React, {Component} from "react"
-${ReactStateManagement.setReactComponents()}
+${RStateManagement.setReactComponents()}
 class ${name || "MyComponent"} extends Component {
-	${ReactStateManagement.setReactStateToTemplate()}
+	${RStateManagement.setReactStateToTemplate()}
 	render(){
-		${ReactStateManagement.setPrerenderLogical()}
+		${RStateManagement.setPrerenderLogical()}
 		return(
 ${pretty}\t\t)
 	}
 }
 export default ${name || "MyComponent"};
-`
-	return template
-}
+`;
+	return template;
+};
 
 
 /**
@@ -72,37 +78,36 @@ export default ${name || "MyComponent"};
  * @param {string} js The Javascript String
  * @return {string}
  */
-exports.VueCompiler = (name, html, css, js) =>{
+const VueCompiler = (name, html, css, js) => {
+
+	let VStateManagement = new VueStateManagement();
 
 	let parse = new Parser(js); //JS Parser
 
-	let style; // Declare empty var to asign styles
-
-	//If param 'css' is not empty, set style tags to final render 
-	css !== "" ? style = `<style scoped>\n${css}</style>` : style = "";
+	let style = css !== "" ? `<style scoped>\n${css}</style>` : ""; // Set Styles
 
 	//Get all data from HTML string
-	VueStateManagement.getHTMLString(html);
+	VStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
-	VueStateManagement.statesFromJS = parse.states;
+	VStateManagement.statesFromJS = parse.states;
 
 	//Get Methods from JS and set to Data
-	VueStateManagement.getJsData(parse.functions, "v");
+	VStateManagement.getJsData(parse.functions, "v");
 
-	VueStateManagement.watchers = parse.watchers;
+	VStateManagement.watchers = parse.watchers;
 
-	VueStateManagement.setVarsToStatesContent(parse.vars);
+	VStateManagement.setVarsToStatesContent(parse.vars);
 	
-	Components = VueStateManagement.componentsContent;
+	Components = VStateManagement.componentsContent;
 
 	
 	//Add new lines and idents to code beauty
-	let pretty = VueStateManagement
+	let pretty = VStateManagement
 		.setVueFilterHTMLState(html)
 		.split(/\n/)
-		.map(e=>{
-			if (e) return "\t"+e+"\n";
+		.map(e => {
+			if (e) return `\t${e}\n`;
 		})
 		.join("");
 	
@@ -112,19 +117,15 @@ exports.VueCompiler = (name, html, css, js) =>{
 ${pretty}
 </template>
 <script>
-${VueStateManagement.getVueDataTemplate(name)}
+${VStateManagement.getVueDataTemplate(name)}
 </script>
 ${style}`;
-	return template
-}
+	return template;
+};
 
-/**
- * Components
- *
- * Function that return the Main Component's Components.
- *
- * @return {String}
- */
-exports.Components = () => {
-	return Components;
+export {
+	setErrorHandler,
+	Components,
+	VueCompiler,
+	ReactCompiler
 };

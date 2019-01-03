@@ -1,2 +1,7 @@
-exports.core = require("./core");
-exports.utils = require("./file-utils");
+import core from "./core";
+import utils from "./file-utils";
+
+export {
+	core,
+	utils
+};

@@ -12,7 +12,7 @@
 "use strict";
 
 CodeMirror.defineMode("css", function(config, parserConfig) {
-  var inline = parserConfig.inline
+  var inline = parserConfig.inline;
   if (!parserConfig.propertyKeywords) parserConfig = CodeMirror.resolveMode("text/css");
 
   var indentUnit = config.indentUnit,
@@ -412,7 +412,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     blockCommentEnd: "*/",
     blockCommentContinue: " * ",
     lineComment: lineComment,
-    fold: "brace"
+    fold: "brace",
   };
 });
 
@@ -425,12 +425,12 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
   }
 
   var documentTypes_ = [
-    "domain", "regexp", "url", "url-prefix"
+    "domain", "regexp", "url", "url-prefix",
   ], documentTypes = keySet(documentTypes_);
 
   var mediaTypes_ = [
     "all", "aural", "braille", "handheld", "print", "projection", "screen",
-    "tty", "tv", "embossed"
+    "tty", "tv", "embossed",
   ], mediaTypes = keySet(mediaTypes_);
 
   var mediaFeatures_ = [
@@ -443,12 +443,12 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     "monochrome", "min-monochrome", "max-monochrome", "resolution",
     "min-resolution", "max-resolution", "scan", "grid", "orientation",
     "device-pixel-ratio", "min-device-pixel-ratio", "max-device-pixel-ratio",
-    "pointer", "any-pointer", "hover", "any-hover"
+    "pointer", "any-pointer", "hover", "any-hover",
   ], mediaFeatures = keySet(mediaFeatures_);
 
   var mediaValueKeywords_ = [
     "landscape", "portrait", "none", "coarse", "fine", "on-demand", "hover",
-    "interlace", "progressive"
+    "interlace", "progressive",
   ], mediaValueKeywords = keySet(mediaValueKeywords_);
 
   var propertyKeywords_ = [
@@ -540,7 +540,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin",
     "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-rendering",
     "baseline-shift", "dominant-baseline", "glyph-orientation-horizontal",
-    "glyph-orientation-vertical", "text-anchor", "writing-mode"
+    "glyph-orientation-vertical", "text-anchor", "writing-mode",
   ], propertyKeywords = keySet(propertyKeywords_);
 
   var nonStandardPropertyKeywords_ = [
@@ -548,17 +548,17 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     "scrollbar-face-color", "scrollbar-highlight-color", "scrollbar-shadow-color",
     "scrollbar-3d-light-color", "scrollbar-track-color", "shape-inside",
     "searchfield-cancel-button", "searchfield-decoration", "searchfield-results-button",
-    "searchfield-results-decoration", "zoom"
+    "searchfield-results-decoration", "zoom",
   ], nonStandardPropertyKeywords = keySet(nonStandardPropertyKeywords_);
 
   var fontProperties_ = [
     "font-family", "src", "unicode-range", "font-variant", "font-feature-settings",
-    "font-stretch", "font-weight", "font-style"
+    "font-stretch", "font-weight", "font-style",
   ], fontProperties = keySet(fontProperties_);
 
   var counterDescriptors_ = [
     "additive-symbols", "fallback", "negative", "pad", "prefix", "range",
-    "speak-as", "suffix", "symbols", "system"
+    "speak-as", "suffix", "symbols", "system",
   ], counterDescriptors = keySet(counterDescriptors_);
 
   var colorKeywords_ = [
@@ -587,7 +587,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     "salmon", "sandybrown", "seagreen", "seashell", "sienna", "silver", "skyblue",
     "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan",
     "teal", "thistle", "tomato", "turquoise", "violet", "wheat", "white",
-    "whitesmoke", "yellow", "yellowgreen"
+    "whitesmoke", "yellow", "yellowgreen",
   ], colorKeywords = keySet(colorKeywords_);
 
   var valueKeywords_ = [
@@ -684,7 +684,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
     "var", "vertical", "vertical-text", "visible", "visibleFill", "visiblePainted",
     "visibleStroke", "visual", "w-resize", "wait", "wave", "wider",
     "window", "windowframe", "windowtext", "words", "wrap", "wrap-reverse", "x-large", "x-small", "xor",
-    "xx-large", "xx-small"
+    "xx-large", "xx-small",
   ], valueKeywords = keySet(valueKeywords_);
 
   var allWords = documentTypes_.concat(mediaTypes_).concat(mediaFeatures_).concat(mediaValueKeywords_)
@@ -720,9 +720,9 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
         if (!stream.eat("*")) return false;
         state.tokenize = tokenCComment;
         return tokenCComment(stream, state);
-      }
+      },
     },
-    name: "css"
+    name: "css",
   });
 
   CodeMirror.defineMIME("text/x-scss", {
@@ -750,7 +750,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
       },
       ":": function(stream) {
         if (stream.match(/\s*\{/, false))
-          return [null, null]
+          return [null, null];
         return false;
       },
       "$": function(stream) {
@@ -762,10 +762,10 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
       "#": function(stream) {
         if (!stream.eat("{")) return false;
         return [null, "interpolation"];
-      }
+      },
     },
     name: "css",
-    helperType: "scss"
+    helperType: "scss",
   });
 
   CodeMirror.defineMIME("text/x-less", {
@@ -801,10 +801,10 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
       },
       "&": function() {
         return ["atom", "atom"];
-      }
+      },
     },
     name: "css",
-    helperType: "less"
+    helperType: "less",
   });
 
   CodeMirror.defineMIME("text/x-gss", {
@@ -823,10 +823,10 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
         if (!stream.eat("*")) return false;
         state.tokenize = tokenCComment;
         return tokenCComment(stream, state);
-      }
+      },
     },
     name: "css",
-    helperType: "gss"
+    helperType: "gss",
   });
 
 });

@@ -26,8 +26,7 @@ if (mode === "-h" || !mode){
 
 } else if (
 	mode === "vue" || 
-	mode === "react" ||
-	mode === "angular"
+	mode === "react"
 ) {
 
 	var fileName;

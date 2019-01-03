@@ -16,10 +16,10 @@ class StateManagement {
 		this._cond = new Array();
 		this._loops = new Array();
 
-		this._regExpToMatchState = /^\w*\s\-\sstate$/g; //RegExp to get State With Declaration
-		this._regExpToMatchStateWithValue = /^\w*\s\-\sstate\s\-\s.*$/g; //RegExp to get State With Value
-		this._regExpToMatchComputed = /^\w*\s\-\scomputed/g; //RegExp to get Computed Methods
-		this._regExpToMatchProps = /^\w*\s\-\sprop/g; //RegExp to get Props
+		this._regExpToMatchState = /^\w*\s-\sstate$/g; //RegExp to get State With Declaration
+		this._regExpToMatchStateWithValue = /^\w*\s-\sstate\s-\s.*$/g; //RegExp to get State With Value
+		this._regExpToMatchComputed = /^\w*\s-\scomputed/g; //RegExp to get Computed Methods
+		this._regExpToMatchProps = /^\w*\s-\sprop/g; //RegExp to get Props
 
 		this.componentsContent = new Array();
 	}
@@ -56,16 +56,16 @@ class StateManagement {
 	 */
 	getJsData(JSParsed, type) {
 		if (JSParsed.length > 0) {
-			this._filterJS(JSParsed, type).forEach(e=>{
+			this._filterJS(JSParsed, type).forEach(e => {
 				//Map Methods
-				this.methods.forEach((method, i)=>{ 
+				this.methods.forEach((method, i) => { 
 					if (e.name === method.name) {
 						this._methods[i].content = e.content;
 						this._methods[i].params = e.params;
 					}
 				});
 				//Map Computed
-				this.computed.forEach(({name}, i)=>{
+				this.computed.forEach(({name}, i) => {
 					if (e.name === name) {
 						this._computed[i].content = e.content;
 					}
@@ -74,12 +74,12 @@ class StateManagement {
 			});
 		}
 		/*Error Handle*/
-		this.methods.forEach(({content, name})=>{
+		this.methods.forEach(({content, name}) => {
 			if(!content) new global.UndefinedMethodError(name);
 		});
-		this.computed.forEach(({content, name})=>{
+		this.computed.forEach(({content, name}) => {
 			if(!content) new global.UndefinedComputedError(name);
-		})
+		});
 	}
 	/**
 	 * Set Vars
@@ -91,16 +91,16 @@ class StateManagement {
 	 */
 	setVarsToStatesContent(VarsArray){
 		//Map Vars Array
-		this.states.forEach((state, i)=>{
+		this.states.forEach((state, i) => {
 			if (typeof state === "object") {
 				//If match replace the corresponding state
 				if (state.value.var && VarsArray.length > 0) {
-					VarsArray.forEach(({name, value})=>{
+					VarsArray.forEach(({name, value}) => {
 						if (state.value.var === name) {
 							this._states[i] = {
 								key:state.key,
 								value:this._defineTypeFromString(value)
-							}
+							};
 						}
 						else new global.MissingVarError(state.key, state.value.var);
 					});
@@ -109,7 +109,7 @@ class StateManagement {
 			}
 		});
 	}
-		/**
+	/**
 	 * Set States
 	 * 
 	 * Get States from JS Parsed and set to Component States
@@ -120,7 +120,7 @@ class StateManagement {
 	set statesFromJS(statesArray){
 		if (statesArray) {
 			//Map State Array
-			statesArray.forEach(e=>{
+			statesArray.forEach(e => {
 				if (typeof e === "object"){
 					//If is not an Array or an Object
 					if (!e.value.startsWith("{") && !e.value.startsWith("[")) {
@@ -129,7 +129,7 @@ class StateManagement {
 					e.value = this._defineTypeFromString(e.value); //Get Type
 				}
 				this._states.push(e); //Push To Component States
-			})
+			});
 		}
 	}
 	/**
@@ -142,16 +142,16 @@ class StateManagement {
 	 */
 	set watchers(watchersArray){
 		if (watchersArray) {
-			watchersArray.forEach(({name})=>{
+			watchersArray.forEach(({name}) => {
 				let count = 0;
-				this.states.forEach(state=>{
+				this.states.forEach(state => {
 					let key = typeof state === "object" ? state.key : state;
 					if (key === name) count++;
 				});
 				if (count === 0){
 					new global.UnableToWatchStateError(name);
 				}
-			})
+			});
 			this._watchers = watchersArray;
 		}
 	}
@@ -165,28 +165,28 @@ class StateManagement {
 	* @param {string} html 
 	*/
 	set components(html){
-		let _matchComponents = html.match(/\<([A-Z]\w*).*\/\>/g); //Match Components
+		let _matchComponents = html.match(/<([A-Z]\w*).*\/>/g); //Match Components
 		if (_matchComponents) {
-			_matchComponents.forEach(e=>{
+			_matchComponents.forEach(e => {
 				let name = e.match(/[A-Z]\w*/g)[0]; //Get Component Name
-				let bindData = e.match(/\:\w*\=(\'|\")\w*(\'|\")/g); //Get Bind Prop Data
-				let bindDataHasNameAndValue = e.match(/\:\w*\=(\'|\")\w*\s\-\s('|")\w*('|")(\'|\")/g); //Get Bind Prop Data and Value
+				let bindData = e.match(/:\w*=('|")\w*('|")/g); //Get Bind Prop Data
+				let bindDataHasNameAndValue = e.match(/:\w*=('|")\w*\s-\s('|")\w*('|")('|")/g); //Get Bind Prop Data and Value
 				if (bindData) {
 					this._states.push(bindData[0].replace(/'|"/g, "").slice(1).split("=")[1]); //Push Bind Data to States
 				}
 				if(bindDataHasNameAndValue){
-					let dataArray = bindDataHasNameAndValue[0].split('='); //Get Data Array
-					let keyValue = dataArray[1].split(' - '); //Split Key And Value
+					let dataArray = bindDataHasNameAndValue[0].split("="); //Get Data Array
+					let keyValue = dataArray[1].split(" - "); //Split Key And Value
 					let key = keyValue[0].slice(1); //Set Key Name
 					let value = this._defineTypeFromString(keyValue[1].slice(0, keyValue[1].length - 1)); //Get Type of Value and Set it
 					this._states.push({key, value}); //Push Bind Data With Value to States
 				}
 				this._components.push(name);
-			})
+			});
 		}
 
 		let splitComponentWithContent = html.split("<component ");
-		splitComponentWithContent.forEach((e, i)=>{
+		splitComponentWithContent.forEach((e, i) => {
 			if (i > 0) {
 				let componentName = e.match(/name=('|")\w*/)[0].slice(6);
 				let componentContent = e.replace(/.*>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
@@ -198,16 +198,16 @@ class StateManagement {
 				});
 			}
 		});
-		this.componentsContent.forEach(({name})=>{
+		this.componentsContent.forEach(({name}) => {
 			let duplicates = 0;
-			this.componentsContent.forEach(ev=>{
+			this.componentsContent.forEach(ev => {
 				if (name === ev.name) duplicates++;
 			});
 			if (duplicates > 1) {
 				new global.DuplicateComponentError(name);
 			}
 			
-		})
+		});
 	}
 	get components() {
 		return this._components;
@@ -221,7 +221,7 @@ class StateManagement {
 	set computed(dataArray){
 		let _computedArray=[]; //Declare Empty Array
 		//Map Array to get computed methods
-		dataArray.forEach(e=>{
+		dataArray.forEach(e => {
 			let _computedMatched = e.match(this._regExpToMatchComputed);
 			//If Match push to empty array
 			if (_computedMatched) {
@@ -234,15 +234,15 @@ class StateManagement {
 		if (_computedArray.length > 0) {
 			let computedList = ["1234"];
 
-			_computedArray = _computedArray.filter(e=>{
+			_computedArray = _computedArray.filter(e => {
 				let duplicate = false;
-				computedList.forEach(ev=>{
+				computedList.forEach(ev => {
 					if (e.name === ev) duplicate = true;
 					else computedList.push(e.name);
 				});
 				if (!duplicate) return e;
 			});
-			_computedArray.forEach(e=>{
+			_computedArray.forEach(e => {
 				this._computed.push({
 					name:e.match(/^\w*/g)[0],
 					content:null
@@ -264,7 +264,7 @@ class StateManagement {
 			Capture State Without Value and push to Empty Array
 		*/
 		let _stateArray = []; //Declare Empty Array to State With Declaration: {name - state}
-		dataArray.forEach(e=>{
+		dataArray.forEach(e => {
 			let _matched = e.match(this._regExpToMatchState);
 			if(_matched){
 				_stateArray.push(_matched[0]);
@@ -274,7 +274,7 @@ class StateManagement {
 			Capture State With Value and Instance and push to Empty Array
 		*/       
 		let _stateWithValueArray = []; //Declare Empty Array to State With Value: {name - state - someValue}
-		dataArray.forEach(e=>{
+		dataArray.forEach(e => {
 			let _matched = e.match(this._regExpToMatchStateWithValue); 
 			if (_matched) {
 				_stateWithValueArray.push(_matched[0]);
@@ -282,7 +282,7 @@ class StateManagement {
 		});
 		//If State With Declaration, Map and Push to Component States
 		if (_stateArray.length > 0){
-			_stateArray.forEach(e=>{
+			_stateArray.forEach(e => {
 				let _stateName = e.match(/^\w*/g)[0]; //Get State Name
 				this._states.push(_stateName);
 			});
@@ -290,25 +290,25 @@ class StateManagement {
 
 		//If State With Value, Map and Push to Component States
 		if (_stateWithValueArray) {
-			_stateWithValueArray.forEach(e=>{
+			_stateWithValueArray.forEach(e => {
 				let _getKey = e.match(/^\w*\s/);
-				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|(\'|\")\w*(\'|\"))$/)[0]); //Set Value
+				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|('|")\w*(\s*\w*)*('|"))$/)[0]); //Set Value
 				let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
 				this._states.push({key, value });
 			});
 		}
-		this.states.forEach(e=>{
+		this.states.forEach(e => {
 			let array = [];
 			let eName = typeof e === "object" ? e.key : e;
-				this.states.forEach(ev=>{
-					let name = typeof ev === "object" ? ev.key : ev;
+			this.states.forEach(ev => {
+				let name = typeof ev === "object" ? ev.key : ev;
 
-					if (eName === name) { 
-						array.push(ev);
-					}
-				});
-				if (array.length > 1) new global.DuplicateStateError(array);
-		})
+				if (eName === name) { 
+					array.push(ev);
+				}
+			});
+			if (array.length > 1) new global.DuplicateStateError(array);
+		});
 	}
 	get states() {
 		return this._states;
@@ -322,21 +322,21 @@ class StateManagement {
 	 * @param {string} html HTML String
 	 */
 	set methods(html){
-		let events = html.match(/on\w*=(\"|\')\w*\(.*\)(\"|\')/g); //Match RegExp
+		let events = html.match(/on\w*=("|')\w*\(.*\)("|')/g); //Match RegExp
 		if (events) {
-			events.forEach(e=>{
+			events.forEach(e => {
 				let split = e.split("=");
 				let name = split[1].match(/\w*(?=\()/)[0];
 				this._methods.push({
-					name,/*Get Method Name*/
+					name, /*Get Method Name*/
 					content:null
 				});
 			});
 			let methodsList = ["1234"];
 
-			this._methods = this._methods.filter(e=>{
+			this._methods = this._methods.filter(e => {
 				let duplicate = false;
-				methodsList.forEach(ev=>{
+				methodsList.forEach(ev => {
 					if (e.name === ev) duplicate = true;
 					else methodsList.push(e.name);
 				});
@@ -347,112 +347,112 @@ class StateManagement {
 	get methods() {
 		return this._methods;
 	}
-   /**
+	/**
 	* Get Props From Data Array
 	* 
 	* @private
 	* @param {Array} dataArray 
 	*/
-   set props(dataArray){
-	   //Map Array
-	   dataArray.forEach(e=>{
-		   //If Match Add Prop Name to Props
-		   if (e.match(this._regExpToMatchProps)) {
-			   this._props.push(e.replace(/\s-\s\w*/g, ""));
-		   }
-	   })
-   }
-   get props() {
-	   return this._props;
-   }
-   /**
+	set props(dataArray){
+		//Map Array
+		dataArray.forEach(e => {
+			//If Match Add Prop Name to Props
+			if (e.match(this._regExpToMatchProps)) {
+				this._props.push(e.replace(/\s-\s\w*/g, ""));
+			}
+		});
+	}
+	get props() {
+		return this._props;
+	}
+	/**
 	* Get Input, Textarea and Option Tags from HTML String
 	* 
 	* @private
 	* @param {string} html 
 	*/
-   set inputs(html) {
-	   //Match Tags
-	   let inputs = html.match(/<(input|select|textarea).*(\/\>|\>)/g);
-	   if (inputs) {
-		   //Map Matches Tags
-		   inputs.forEach(e=>{
-			   //If the tag have the attr "name" set an input handler
-			   let name = e.match(/name=('|")\w*('|")/g);
-			   if (name) {
-				   let stateKey = name[0].match(/('|")\w*(?="|')/)[0].slice(1); //Get the name value to declare a state
-				   this._inputs = true;
-				   this._states.push(stateKey); //push to states
-			   }
-		   })
-	   }
-   }
-   get inputs() {
-	   return this._inputs;
-   }
-   /**
+	set inputs(html) {
+		//Match Tags
+		let inputs = html.match(/<(input|select|textarea).*(\/>|>)/g);
+		if (inputs) {
+			//Map Matches Tags
+			inputs.forEach(e => {
+				//If the tag have the attr "name" set an input handler
+				let name = e.match(/name=('|")\w*('|")/g);
+				if (name) {
+					let stateKey = name[0].match(/('|")\w*(?="|')/)[0].slice(1); //Get the name value to declare a state
+					this._inputs = true;
+					this._states.push(stateKey); //push to states
+				}
+			});
+		}
+	}
+	get inputs() {
+		return this._inputs;
+	}
+	/**
 	*/
-   set conditionals(html){
-	   let condArray = html.split("<if ")
-	   .map((e, i)=>{
-		   if (i > 0) {
-			   let cond = e.match(/cond=('|").*('|")(?=.*>)/g);
-			   let contentIf;
-			   let contentElse;
-			   if (e) {
-				   cond = cond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
-				   contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
-				   contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
-				   if (contentElse) {
-					   contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
-				   }
-			   }
-			   return {
-				   cond,
-				   if:contentIf,
-				   else:contentElse
-			   }
-		   } else {
-			   return null;
-		   }
-	   })
-	   .filter(e=>{
-		   return e;
-	   });
-	   this._cond = condArray;
-   }
-   get conditionals() {
-	   return this._cond;
-   }
-   set loops(html){
-	   let loopsArray = html.split(/<for /)
-		   .map((e, i)=>{
-			   let data;
-			   if (i > 0) {
-				   let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
-				   let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
-				   let stateToMap = valueAndState.replace(/^.*in /, "");
-				   let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
-				   data = {
-					   value:valueToSetInTemplate,
-					   state:stateToMap,
-					   content:loopContent
-				   };
-			   } else {
-				   data = null;
-			   }
-			   return data;
-		   })
-		   .filter(e=>{
-			   return e;
-		   });
-	   this._loops = loopsArray;
-   }
-   get loops() {
-	   return this._loops;
-   }
+	set conditionals(html){
+		let condArray = html.split("<if ")
+			.map((e, i) => {
+				if (i > 0) {
+					let cond = e.match(/cond=('|").*('|")(?=.*>)/g);
+					let contentIf;
+					let contentElse;
+					if (e) {
+						cond = cond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
+						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
+						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
+						if (contentElse) {
+							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
+						}
+					}
+					return {
+						cond,
+						if:contentIf,
+						else:contentElse
+					};
+				} else {
+					return null;
+				}
+			})
+			.filter(e => {
+				return e;
+			});
+		this._cond = condArray;
+	}
+	get conditionals() {
+		return this._cond;
+	}
+	set loops(html){
+		let loopsArray = html.split(/<for /)
+			.map((e, i) => {
+				let data;
+				if (i > 0) {
+					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
+					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
+					let stateToMap = valueAndState.replace(/^.*in /, "");
+					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
+					data = {
+						value:valueToSetInTemplate,
+						state:stateToMap,
+						content:loopContent
+					};
+				} else {
+					data = null;
+				}
+				return data;
+			})
+			.filter(e => {
+				return e;
+			});
+		this._loops = loopsArray;
+	}
+	get loops() {
+		return this._loops;
+	}
 
-//------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------
 	/*Internal Methods*/
 	
 	/**
@@ -464,17 +464,17 @@ class StateManagement {
 	 */
 	_JSONPrettify(json){
 		let jsonToString = JSON.stringify(json); //Convert to String
-		let quoteMatch = jsonToString.match(/\"\w*\"(?=\:)/g); //Get Object keys
-		quoteMatch.forEach(e=>{
+		let quoteMatch = jsonToString.match(/"\w*"(?=:)/g); //Get Object keys
+		quoteMatch.forEach(e => {
 			//Add indents and delete quotes in state keys
 			jsonToString = jsonToString.replace(e, `\t\t\t${e.slice(1, e.length-1)}`);
-		})
+		});
 		//Return JSON Prettify
 		return jsonToString.replace(/\{/g, "{\n")
-			.replace(/\,(?=(\t)*\w*:)/g, ",\n")
+			.replace(/,(?=(\t)*\w*:)/g, ",\n")
 			.replace(/}/g, "\n\t\t\t}")
 			.replace(/}$/g, "\n\t\t}")
-			.replace(/:(?=\"|\d|true|false|\{|\[)/g, ": ");
+			.replace(/:(?="|\d|true|false|\{|\[)/g, ": ");
 	}
 	/**
 	 * Get All Data From HTML
@@ -492,9 +492,9 @@ class StateManagement {
 				let tag = splitted[0].split(/\r\n|\n|\r/)[0];
 				return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 			} 
-			else return e
+			else return e;
 		})
-		.join("<");
+			.join("<");
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 
@@ -508,14 +508,14 @@ class StateManagement {
 		/*
 			Get all data that was be declared with "{Name - Type}" format.
 		*/
-		let _getBarsSyntax = html.split("{").map(e=>{
+		let _getBarsSyntax = html.split("{").map(e => {
 			let match = e.match(/.*(?=\})/g); //Get All that continue with "}" 
 
 			if(match) return match[0];
-		}).filter(a=>{
+		}).filter(a => {
 			//Filter the undefined values
-			return a
-		})
+			return a;
+		});
 
 		if (_getBarsSyntax) {
 			this.states = _getBarsSyntax; //Get States
@@ -535,20 +535,20 @@ class StateManagement {
 			let propReplace; //Empty var to set props declaration
 			let tab; //Empty var to set indent to code beauty
 			switch (type) {
-				case "r":
-					stateReplace = "this.state.";
-					propReplace = "this.props."
-					tab = "\t";
-					break;
-				case "v":
-					stateReplace = "this.";
-					propReplace = "this."
-					tab = "\t\t";
-					break;
-				default: throw new Error("The type param must be \"v\" or \"r\"");
+			case "r":
+				stateReplace = "this.state.";
+				propReplace = "this.props.";
+				tab = "\t";
+				break;
+			case "v":
+				stateReplace = "this.";
+				propReplace = "this.";
+				tab = "\t\t";
+				break;
+			default: throw new Error("The type param must be 'v' or 'r'");
 			}
 			//Map JS Content
-			let JsonArray = JsArray.map(({content, funcName, name, params})=>{
+			let JsonArray = JsArray.map(({content, funcName, name, params}) => {
 				var data = content; //Asign content to var data
 				/*
 					Map exist state to asign the state declaration to data
@@ -557,7 +557,7 @@ class StateManagement {
 					On React was be: 'this.state.name' 
 					and on Vue was be: 'this.name'
 				*/
-				this.states.forEach(state=>{
+				this.states.forEach(state => {
 					/*If state is an Object this will be like {key:'foo', value:'var'}
 						"key" is the state name.
 
@@ -568,51 +568,51 @@ class StateManagement {
 
 					data = this._expressionsFilter(data, stateName, stateReplace);
 				});
-				this.props.forEach(prop=>{
-					data = this._expressionsFilter(data, prop, propReplace)
-				})
+				this.props.forEach(prop => {
+					data = this._expressionsFilter(data, prop, propReplace);
+				});
 				return {
 					funcName,
 					name,
 					params,
 					content:data
 						.split("\n")
-						.map((es, i)=>{
-							if (es && i > 0 && es != /^}(\s|\t)*$/) return tab+es+"\n"
-							else if (es == /^}(\s|\t)*$/) return tab+"}"
-							else return es +"\n";
+						.map((es, i) => {
+							if (es && i > 0 && es != /^}(\s|\t)*$/) return `${tab+es}\n`;
+							else if (es == /^}(\s|\t)*$/) return `${tab}}`;
+							else return `${es }\n`;
 						})
 						.join("")
 						.replace(/(\n|\r)$/g, "")
-				}
-			})
+				};
+			});
 			return JsonArray;
 		}
 	}
 	_expressionsFilter(html, name, replace) {
 		return html
-			.replace(new RegExp(`\\t(${replace+name}|${name})(?!\\(|\\s*\\(|\\.)`, "g"), "\t"+replace+name)
-			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), "("+replace+name)
-			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), "["+replace+name)
-			.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+name}|${name})`, "g"), "${"+replace+name)
-			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})`, "g"), "= "+replace+name)
-			.replace(new RegExp(`(>|>\\s*)(${replace+name}|${name})`, "g"), "> "+replace+name)
-			.replace(new RegExp(`(<|<\\s*)(${replace+name}|${name})`, "g"), "< "+replace+name)
-			.replace(new RegExp(`(~|~\\s*)(${replace+name}|${name})`, "g"), "~"+replace+name)
-			.replace(new RegExp(`(\\!|\\!\\s*)(${replace+name}|${name})`, "g"), "\\! "+replace+name)
-			.replace(new RegExp(`(:|:\\s*)(${replace+name}|${name})`, "g"), ": "+replace+name)
-			.replace(new RegExp(`(\\?|\\?\\s*)(${replace+name}|${name})(?=.*:)`, "g"), "? "+replace+name)
-			.replace(new RegExp(`(\\+|\\+\\s*)(${replace+name}|${name})`, "g"), "+ "+replace+name)
-			.replace(new RegExp(`(\\-|\\-\\s*)(${replace+name}|${name})`, "g"), "- "+replace+name)
-			.replace(new RegExp(`(\\*|\\*\\s*)(${replace+name}|${name})`, "g"), "* "+replace+name)
-			.replace(new RegExp(`(\\/|\\/\\s*)(${replace+name}|${name})`, "g"), "/ "+replace+name)
-			.replace(new RegExp(`(\\%|\\%\\s*)(${replace+name}|${name})`, "g"), "% "+replace+name)
-			.replace(new RegExp(`(return|return\\s*)(${replace+name}|${name})`, "g"), "return "+replace+name)
-			.replace(new RegExp(`(typeof|typeof\\s*)(${replace+name}|${name})`, "g"), "typeof "+replace+name)
-			.replace(new RegExp(`(\\&|\\&\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "& "+replace+name)
-			.replace(new RegExp(`(\\||\\|\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "| "+replace+name)
-			.replace(new RegExp(`(in|in\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "in "+replace+name)
-			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(!=.*(\\\`|\\"|\\'))`, "g"), "case "+replace+name);
+			.replace(new RegExp(`\\t(${replace+name}|${name})(?!\\(|\\s*\\(|\\.)`, "g"), `\t${replace}${name}`)
+			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), `(${replace}${name}`)
+			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), `[${replace}${name}`)
+			.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+name}|${name})`, "g"), `\${${replace}${name}`)
+			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})`, "g"), `= ${replace}${name}`)
+			.replace(new RegExp(`(>|>\\s*)(${replace+name}|${name})`, "g"), `> ${replace}${name}`)
+			.replace(new RegExp(`(<|<\\s*)(${replace+name}|${name})`, "g"), `< ${replace}${name}`)
+			.replace(new RegExp(`(~|~\\s*)(${replace+name}|${name})`, "g"), `~${replace}${name}`)
+			.replace(new RegExp(`(\\!|\\!\\s*)(${replace+name}|${name})`, "g"), `\\! ${replace}${name}`)
+			.replace(new RegExp(`(:|:\\s*)(${replace+name}|${name})`, "g"), `: ${replace}${name}`)
+			.replace(new RegExp(`(\\?|\\?\\s*)(${replace+name}|${name})(?=.*:)`, "g"), `? ${replace}${name}`)
+			.replace(new RegExp(`(\\+|\\+\\s*)(${replace+name}|${name})`, "g"), `+ ${replace}${name}`)
+			.replace(new RegExp(`(-|-\\s*)(${replace+name}|${name})`, "g"), `- ${replace}${name}`)
+			.replace(new RegExp(`(\\*|\\*\\s*)(${replace+name}|${name})`, "g"), `* ${replace}${name}`)
+			.replace(new RegExp(`(\\/|\\/\\s*)(${replace+name}|${name})`, "g"), `/ ${replace}${name}`)
+			.replace(new RegExp(`(\\%|\\%\\s*)(${replace+name}|${name})`, "g"), `% ${replace}${name}`)
+			.replace(new RegExp(`(return|return\\s*)(${replace+name}|${name})`, "g"), `return ${replace}${name}`)
+			.replace(new RegExp(`(typeof|typeof\\s*)(${replace+name}|${name})`, "g"), `typeof ${replace}${name}`)
+			.replace(new RegExp(`(\\&|\\&\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `& ${replace}${name}`)
+			.replace(new RegExp(`(\\||\\|\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `| ${replace}${name}`)
+			.replace(new RegExp(`(in|in\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `in ${replace}${name}`)
+			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `case ${replace}${name}`);
 	}
 	/**
 	 * Get String Value and Parse that
@@ -621,12 +621,12 @@ class StateManagement {
 	 */
 	_defineTypeFromString(string){
 		var value; //Empty Value
-		let _isString = string.match(/^(\"|\')\w*(\s*\w*)(\'|\")$/);
+		let _isString = string.match(/^("|').*('|")$/);
 		let _isDigit = string.match(/^\d*$/);
 		let _isBoolean = string.match(/(true|false)$/g);
 		let _isArray = string.match(/^\[.*\]$/);
 		let _isObject = string.match(/^\{(\r|\n)*((\t*).*(\r|\n*))*\}/g);
-
+		
 		if (_isDigit) {
 			value = parseInt(_isDigit[0]);
 		} else if (_isBoolean){
@@ -636,12 +636,12 @@ class StateManagement {
 		} else if (_isObject){
 			value = this._ArrayAndObjectParser(_isObject[0]);
 		} else if(_isString){
-			value = string.replace(/(\"|\')/g, ""); //String Value
+			value = string.replace(/("|')/g, ""); //String Value
 		} else {
 			//is Var
 			value = {var:string};
 		}
-		return value
+		return value;
 	}
 	/**
 	 * Parse Boolean String
@@ -668,11 +668,11 @@ class StateManagement {
 			filtered = filtered
 				.replace(/:/g, "\":")
 				.replace(/(\t|\s\s|\s\s\s\s)(?=.*:)/g, "\t\"")
-				.replace(/(\t|\s\s|\s\s\s\s)\"(?=\t\")/g, "\t")
+				.replace(/(\t|\s\s|\s\s\s\s)"(?=\t")/g, "\t")
 				.replace(/,(?=\n(\t)*})/g, "")
 				.replace(/""/g, "\"");
 		}
 		return JSON.parse(filtered);
 	}
 }
-module.exports = StateManagement;
+export default StateManagement;

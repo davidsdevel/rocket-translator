@@ -16,14 +16,14 @@
       ["lang", /(javascript|babel)/i, "javascript"],
       ["type", /^(?:text|application)\/(?:x-)?(?:java|ecma)script$|^module$|^$/i, "javascript"],
       ["type", /./, "text/plain"],
-      [null, null, "javascript"]
+      [null, null, "javascript"],
     ],
     style:  [
       ["lang", /^css$/i, "css"],
       ["type", /^(text\/)?(x-)?(stylesheet|css)$/i, "css"],
       ["type", /./, "text/plain"],
-      [null, null, "css"]
-    ]
+      [null, null, "css"],
+    ],
   };
 
   function maybeBackup(stream, pat, style) {
@@ -45,8 +45,8 @@
   }
 
   function getAttrValue(text, attr) {
-    var match = text.match(getAttrRegexp(attr))
-    return match ? /^\s*(.*?)\s*$/.exec(match[2])[1] : ""
+    var match = text.match(getAttrRegexp(attr));
+    return match ? /^\s*(.*?)\s*$/.exec(match[2])[1] : "";
   }
 
   function getTagRegexp(tagName, anchored) {
@@ -58,7 +58,7 @@
       var dest = to[tag] || (to[tag] = []);
       var source = from[tag];
       for (var i = source.length - 1; i >= 0; i--)
-        dest.unshift(source[i])
+        dest.unshift(source[i]);
     }
   }
 
@@ -74,7 +74,7 @@
       name: "xml",
       htmlMode: true,
       multilineTagIndentFactor: parserConfig.multilineTagIndentFactor,
-      multilineTagIndentPastTag: parserConfig.multilineTagIndentPastTag
+      multilineTagIndentPastTag: parserConfig.multilineTagIndentPastTag,
     });
 
     var tags = {};
@@ -82,19 +82,19 @@
     addTags(defaultTags, tags);
     if (configTags) addTags(configTags, tags);
     if (configScript) for (var i = configScript.length - 1; i >= 0; i--)
-      tags.script.unshift(["type", configScript[i].matches, configScript[i].mode])
+      tags.script.unshift(["type", configScript[i].matches, configScript[i].mode]);
 
     function html(stream, state) {
-      var style = htmlMode.token(stream, state.htmlState), tag = /\btag\b/.test(style), tagName
+      var style = htmlMode.token(stream, state.htmlState), tag = /\btag\b/.test(style), tagName;
       if (tag && !/[<>\s\/]/.test(stream.current()) &&
           (tagName = state.htmlState.tagName && state.htmlState.tagName.toLowerCase()) &&
           tags.hasOwnProperty(tagName)) {
-        state.inTag = tagName + " "
+        state.inTag = tagName + " ";
       } else if (state.inTag && tag && />$/.test(stream.current())) {
-        var inTag = /^([\S]+) (.*)/.exec(state.inTag)
-        state.inTag = null
-        var modeSpec = stream.current() == ">" && findMatchingMode(tags[inTag[1]], inTag[2])
-        var mode = CodeMirror.getMode(config, modeSpec)
+        var inTag = /^([\S]+) (.*)/.exec(state.inTag);
+        state.inTag = null;
+        var modeSpec = stream.current() == ">" && findMatchingMode(tags[inTag[1]], inTag[2]);
+        var mode = CodeMirror.getMode(config, modeSpec);
         var endTagA = getTagRegexp(inTag[1], true), endTag = getTagRegexp(inTag[1], false);
         state.token = function (stream, state) {
           if (stream.match(endTagA, false)) {
@@ -107,11 +107,11 @@
         state.localMode = mode;
         state.localState = CodeMirror.startState(mode, htmlMode.indent(state.htmlState, ""));
       } else if (state.inTag) {
-        state.inTag += stream.current()
-        if (stream.eol()) state.inTag += " "
+        state.inTag += stream.current();
+        if (stream.eol()) state.inTag += " ";
       }
       return style;
-    };
+    }
 
     return {
       startState: function () {
@@ -144,7 +144,7 @@
 
       innerMode: function (state) {
         return {state: state.localState || state.htmlState, mode: state.localMode || htmlMode};
-      }
+      },
     };
   }, "xml", "javascript", "css");
 
