@@ -1,6 +1,6 @@
 {
 	"name": "rocket-translator",
-	"version": "1.3.2",
+	"version": "1.3.3",
 	"description": "Translate your HTML files to React.js and Vue.js",
 	"keywords": [
 		"vue",
@@ -13,7 +13,7 @@
 	},
 	"directories": {
 		"bin": "bin",
-		"Lib":"Lib"
+		"Lib": "Lib"
 	},
 	"main": "./Lib/core/index.js",
 	"repository": {
@@ -35,7 +35,7 @@
 	"bin": {
 		"rocket": "Lib/cli.js"
 	},
-	"dependencies":{
+	"dependencies": {
 		"accepts": "^1.3.5",
 		"archiver": "^3.0.0",
 		"archiver-utils": "^2.0.0",
