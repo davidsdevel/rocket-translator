@@ -1,7 +1,5 @@
-import ServerFileFunctions from "./ServerFileFunctions";
-import TranslatorFileFunctions from "./TranslatorFileFunctions";
+const ServerFileFunctions = require("./ServerFileFunctions");
+const TranslatorFileFunctions = require("./TranslatorFileFunctions");
 
-export {
-	ServerFileFunctions,
-	TranslatorFileFunctions
-};
+exports.ServerFileFunctions = ServerFileFunctions;
+exports.TranslatorFileFunctions = TranslatorFileFunctions;

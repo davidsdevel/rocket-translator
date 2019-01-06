@@ -1,9 +1,10 @@
-import { ReactStateManagement, VueStateManagement } from "./StateManagement";
-import Parser from "./JavascriptManagement";
-import setErrorHandler from "./ErrorManagement";
+const { ReactStateManagement, VueStateManagement, AngularStateManagement } = require("./StateManagement");
+const Parser = require("./JavascriptManagement");
+const setErrorHandler = require("./ErrorManagement");
 
 /**
  * Array of Main Component's Components.
+ *
  */
 var Components = [];
 
@@ -43,7 +44,7 @@ const ReactCompiler = (name, html, css, js) => {
 
 	//Add new lines and idents to code beauty
 	let pretty = RStateManagement
-		.setReactFilterHTMLState(html)
+		.filterHTML(html)
 		.split(/\n/)
 		.map(e => {
 			if (e) return `\t\t\t${e}\n`;
@@ -53,11 +54,11 @@ const ReactCompiler = (name, html, css, js) => {
 	//Template to Set All Data
 	let template =
 `import React, {Component} from "react"
-${RStateManagement.setReactComponents()}
+${RStateManagement.importComponents}
 class ${name || "MyComponent"} extends Component {
-	${RStateManagement.setReactStateToTemplate()}
+	${RStateManagement.componentData}
 	render(){
-		${RStateManagement.setPrerenderLogical()}
+		${RStateManagement.prerenderLogical}
 		return(
 ${pretty}\t\t)
 	}
@@ -84,7 +85,8 @@ const VueCompiler = (name, html, css, js) => {
 
 	let parse = new Parser(js); //JS Parser
 
-	let style = css !== "" ? `<style scoped>\n${css}</style>` : ""; // Set Styles
+	// Set Styles
+	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
 
 	//Get all data from HTML string
 	VStateManagement.getHTMLString(html);
@@ -104,7 +106,7 @@ const VueCompiler = (name, html, css, js) => {
 	
 	//Add new lines and idents to code beauty
 	let pretty = VStateManagement
-		.setVueFilterHTMLState(html)
+		.filterHTML(html)
 		.split(/\n/)
 		.map(e => {
 			if (e) return `\t${e}\n`;
@@ -112,20 +114,66 @@ const VueCompiler = (name, html, css, js) => {
 		.join("");
 	
 	//Template to Set All Data
-	let template = 
+	let component = 
 `<template>
 ${pretty}
 </template>
-<script>
-${VStateManagement.getVueDataTemplate(name)}
-</script>
+${VStateManagement.componentData(name)}
 ${style}`;
-	return template;
+
+	return component;
 };
 
-export {
-	setErrorHandler,
-	Components,
-	VueCompiler,
-	ReactCompiler
+const AngularCompiler = (name, html, css, js) => {
+
+	let AStateManagement = new AngularStateManagement();
+
+	let parse = new Parser(js); //JS Parser
+
+	let style; // Declare empty var to asign styles
+
+	//If param 'css' is not empty, set style tags to final render 
+	css !== "" ? style = `<style scoped>\n${css}</style>` : style = "";
+
+	//Get all data from HTML string
+	AStateManagement.getHTMLString(html);
+
+	//Get states declarations from JS and set to Data
+	AStateManagement.statesFromJS = parse.states;
+
+	//Get Methods from JS and set to Data
+	AStateManagement.getJsData(parse.functions, "v");
+
+	AStateManagement.watchers = parse.watchers;
+
+	AStateManagement.setVarsToStatesContent(parse.vars);
+	
+	Components = AStateManagement.componentsContent;
+	/*
+Component Template
+
+
+import { Component } from '@angular/core';
+ 
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>{{title}}</h1>
+    <h2>My favorite hero is: {{myHero}}</h2>
+    `
+})
+export class AppComponent {
+  title = 'Tour of Heroes';
+  myHero = 'Windstorm';
+}
+
+*/
+	console.log(AStateManagement.componentData);
+	process.exit(1);
 };
+
+exports.setErrorHandler = setErrorHandler;
+exports.Components = Components;
+exports.VueCompiler = VueCompiler;
+exports.AngularCompiler = AngularCompiler;
+exports.ReactCompiler = ReactCompiler;

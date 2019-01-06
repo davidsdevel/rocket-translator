@@ -1,9 +1,9 @@
-import express from "express";
-import bodyParser from "body-parser";
-import {join} from "path";
-import {exec} from "child_process";
-import {write, remove} from "../file-utils/ServerFileFunctions";
-import {VueCompiler, ReactCompiler} from "../core";
+const express = require("express");
+const bodyParser = require("body-parser");
+const {join} = require("path");
+const {exec} = require("child_process");
+const {write, remove} = require("../file-utils/ServerFileFunctions");
+const {VueCompiler, ReactCompiler} = require("../core");
 
 const server = express();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
@@ -79,6 +79,4 @@ const startServer = port => {
 	});
 };
 
-export {
-	startServer
-};
+exports.startServer = startServer;

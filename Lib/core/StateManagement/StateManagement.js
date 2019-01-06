@@ -12,14 +12,14 @@ class StateManagement {
 		this._components = new Array();
 		this._watchers = new Array();
 		this._props = new Array();
-		this._inputs = false;
+		this._handleInputs = false;
 		this._cond = new Array();
 		this._loops = new Array();
 
-		this._regExpToMatchState = /^\w*\s-\sstate$/g; //RegExp to get State With Declaration
-		this._regExpToMatchStateWithValue = /^\w*\s-\sstate\s-\s.*$/g; //RegExp to get State With Value
-		this._regExpToMatchComputed = /^\w*\s-\scomputed/g; //RegExp to get Computed Methods
-		this._regExpToMatchProps = /^\w*\s-\sprop/g; //RegExp to get Props
+		this._regExpToMatchState = /^\w*\s*-\s*state$/g; //RegExp to get State With Declaration
+		this._regExpToMatchStateWithValue = /^\w*\s*-\s*state\s*-\s*.*$/g; //RegExp to get State With Value
+		this._regExpToMatchComputed = /^\w*\s*-\s*computed/g; //RegExp to get Computed Methods
+		this._regExpToMatchProps = /^\w*\s*-\s*prop/g; //RegExp to get Props
 
 		this.componentsContent = new Array();
 	}
@@ -105,7 +105,8 @@ class StateManagement {
 						else new global.MissingVarError(state.key, state.value.var);
 					});
 				}
-				else new global.MissingVarError(state.key, state.value.var);
+				else if (state.value.var && VarsArray.length === 0) 
+					new global.MissingVarError(state.key, state.value.var);
 			}
 		});
 	}
@@ -149,7 +150,7 @@ class StateManagement {
 					if (key === name) count++;
 				});
 				if (count === 0){
-					new global.UnableToWatchStateError(name);
+					new global.UndefinedStateError({type:"watcher", name});
 				}
 			});
 			this._watchers = watchersArray;
@@ -291,24 +292,12 @@ class StateManagement {
 		//If State With Value, Map and Push to Component States
 		if (_stateWithValueArray) {
 			_stateWithValueArray.forEach(e => {
-				let _getKey = e.match(/^\w*\s/);
+				let _getKey = e.match(/^\w*/);
 				let value = this._defineTypeFromString(e.match(/(\w*|\{.*\}|\[.*\]|('|")\w*(\s*\w*)*('|"))$/)[0]); //Set Value
-				let key = _getKey[0].slice(0, _getKey[0].length-1); //Set Key
+				let key = _getKey[0]; //Set Key
 				this._states.push({key, value });
 			});
 		}
-		this.states.forEach(e => {
-			let array = [];
-			let eName = typeof e === "object" ? e.key : e;
-			this.states.forEach(ev => {
-				let name = typeof ev === "object" ? ev.key : ev;
-
-				if (eName === name) { 
-					array.push(ev);
-				}
-			});
-			if (array.length > 1) new global.DuplicateStateError(array);
-		});
 	}
 	get states() {
 		return this._states;
@@ -332,15 +321,21 @@ class StateManagement {
 					content:null
 				});
 			});
-			let methodsList = ["1234"];
 
-			this._methods = this._methods.filter(e => {
+			//Array to push each method if don't is duplicate 
+			let duplicateList = ["1234"];
+
+			//Methods Errors Handle
+			this._methods = this._methods.filter(method => {
 				let duplicate = false;
-				methodsList.forEach(ev => {
-					if (e.name === ev) duplicate = true;
-					else methodsList.push(e.name);
+				duplicateList.forEach(methodNameToCompare => {
+					if (method.name === methodNameToCompare)
+						duplicate = true;
+
+					else
+						duplicateList.push(method.name);
 				});
-				if (!duplicate) return e;
+				if (!duplicate) return method;
 			});
 		}
 	}
@@ -381,19 +376,24 @@ class StateManagement {
 				let name = e.match(/name=('|")\w*('|")/g);
 				if (name) {
 					let stateKey = name[0].match(/('|")\w*(?="|')/)[0].slice(1); //Get the name value to declare a state
-					this._inputs = true;
+					if (!stateKey)
+						new global.UndefinedInputNameError(e.split(/\r\n|\n|\r/)[0]);
+					this._handleInputs = true;
 					this._states.push(stateKey); //push to states
 				}
+				else
+					new global.ExpectedAttributeError(e.split(/\r\n|\n|\r/)[0], "name");
 			});
 		}
 	}
-	get inputs() {
-		return this._inputs;
+	get handleInputs() {
+		return this._handleInputs;
 	}
 	/**
 	*/
 	set conditionals(html){
-		let condArray = html.split("<if ")
+		let condTagsArray = html.split("<if ");
+		let condData = condTagsArray
 			.map((e, i) => {
 				if (i > 0) {
 					let cond = e.match(/cond=('|").*('|")(?=.*>)/g);
@@ -407,46 +407,61 @@ class StateManagement {
 							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
 						}
 					}
+					let matchState = false;
+					this.states.forEach(e => {
+						if(e === cond)
+							matchState = true;
+					});
+					if (!matchState)
+						new global.UndefinedStateError({type:"conditional", name:cond.match(/^\w*/)[0]});
+					
 					return {
 						cond,
 						if:contentIf,
 						else:contentElse
 					};
-				} else {
-					return null;
 				}
-			})
-			.filter(e => {
-				return e;
+				return null;
 			});
-		this._cond = condArray;
+		this._cond = condData.filter(e => {
+			return e;
+		});
 	}
 	get conditionals() {
 		return this._cond;
 	}
 	set loops(html){
-		let loopsArray = html.split(/<for /)
+		let loopsTagsArray = html.split(/<for /);
+
+		let loopsData = loopsTagsArray
 			.map((e, i) => {
-				let data;
 				if (i > 0) {
 					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
 					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
 					let stateToMap = valueAndState.replace(/^.*in /, "");
 					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
-					data = {
+					
+					let matchState = false;
+					this.states.forEach(e => {
+						if(e === stateToMap)
+							matchState = true;
+					});
+					console.log(stateToMap);
+					if (!matchState)
+						new global.UndefinedStateError({type:"loop", name:stateToMap});
+
+					return {
 						value:valueToSetInTemplate,
 						state:stateToMap,
 						content:loopContent
 					};
-				} else {
-					data = null;
 				}
-				return data;
-			})
-			.filter(e => {
-				return e;
+				return null;
 			});
-		this._loops = loopsArray;
+			
+		this._loops = loopsData.filter(e => {
+			return e;
+		});
 	}
 	get loops() {
 		return this._loops;
@@ -485,16 +500,47 @@ class StateManagement {
 	_setDataFromHTML(html){
 
 		this.components = html; //Get Components
-		html = html.split("<component ").map((e, i) => {
-			if (i > 0) {
-				let name = e.match(/name=('|")\w*/)[0].slice(6);
-				let splitted = e.split("</component>");
-				let tag = splitted[0].split(/\r\n|\n|\r/)[0];
-				return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
-			} 
-			else return e;
-		})
+		html = html
+			.split("<component ")
+			.map((e, i) => {
+				if (i > 0) {
+					let name = e.match(/name=('|")\w*/)[0].slice(6);
+					let splitted = e.split("</component>");
+					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+				} 
+				else return e;
+			})
 			.join("<");
+		/*
+		 *	Get all data that was be declared with "{Name - Type}" format.
+		 */
+		let _getBarsSyntax = html
+			.split("{")
+			.map((e, i) => {
+				if (i > 0) {
+					let match = e.match(/.*(?=\})/g); //Get All that continue with "}" 
+					if(match) {
+						return match[0];
+					}
+					new global.ExpectedTokenError(e);
+				}
+			}).filter(a => {
+				//Filter the undefined values
+				return a;
+			});
+			//Handle Error
+		_getBarsSyntax.forEach(e => {
+			let match = e.match(/(state|prop|computed)$/);
+			
+			if (!match) new global.UndefinedTypeError(e);
+		});
+
+		if (_getBarsSyntax) {
+			this.states = _getBarsSyntax; //Get States
+			this.computed = _getBarsSyntax; //Get Computed Methods 
+			this.props = _getBarsSyntax; //Get Props
+		}
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 
@@ -503,25 +549,6 @@ class StateManagement {
 		this.loops = html; //Get Loops Data
 
 		this.methods = html; //Call Method to Get Data from HTML String
-
-
-		/*
-			Get all data that was be declared with "{Name - Type}" format.
-		*/
-		let _getBarsSyntax = html.split("{").map(e => {
-			let match = e.match(/.*(?=\})/g); //Get All that continue with "}" 
-
-			if(match) return match[0];
-		}).filter(a => {
-			//Filter the undefined values
-			return a;
-		});
-
-		if (_getBarsSyntax) {
-			this.states = _getBarsSyntax; //Get States
-			this.computed = _getBarsSyntax; //Get Computed Methods 
-			this.props = _getBarsSyntax; //Get Props
-		}   
 	}
 	/**
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
@@ -675,4 +702,4 @@ class StateManagement {
 		return JSON.parse(filtered);
 	}
 }
-export default StateManagement;
+module.exports = StateManagement;

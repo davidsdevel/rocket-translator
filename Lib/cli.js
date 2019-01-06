@@ -1,11 +1,17 @@
 process.title = "RocketJS"; //Process Title
 
 //Const
-import {VueCompiler, ReactCompiler, Components, setErrorHandler} from "./Lib/core";
-import FF from "./Lib/file-utils/TranslatorFileFunctions";
-import {join} from "path";
-import {realpathSync} from "fs";
-import clc from "cli-color";
+const { 
+	VueCompiler,
+	ReactCompiler,
+	Components,
+	AngularCompiler,
+	setErrorHandler
+} = require("./core");
+const FF = require("./file-utils/TranslatorFileFunctions");
+const {join} = require("path");
+const {realpathSync} = require("fs");
+const clc = require("cli-color");
 
 const cliDir = realpathSync(".");
 const mode = process.argv[2]; //Get the mode to compile
@@ -18,7 +24,8 @@ if (mode === "-h" || !mode){
     Commands:
         Translate to React:		react
         Translate to Vue:		vue
-        
+        Translate to Angular:		angular
+
         Help:				--help | -h
         Version:			--version | -v`
 	);
@@ -26,7 +33,8 @@ if (mode === "-h" || !mode){
 
 } else if (
 	mode === "vue" || 
-	mode === "react"
+	mode === "react" ||
+	mode === "angular"
 ) {
 
 	var fileName;
@@ -70,6 +78,12 @@ if (mode === "-h" || !mode){
 		compiled = {
 			name,
 			content: ReactCompiler(name, file, css, js),
+			type: "react"
+		};
+	} else if (mode === "angular"){
+		compiled = {
+			name,
+			content: AngularCompiler(name, file, css, js),
 			type: "react"
 		};
 	} else {

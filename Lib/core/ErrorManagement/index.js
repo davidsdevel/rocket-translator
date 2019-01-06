@@ -1,5 +1,5 @@
-import {readFileSync} from"fs";
-import clc from "cli-color";
+const {readFileSync} = require("fs");
+const clc = require("cli-color");
 
 class ErrorManagement {
 	constructor() {
@@ -7,146 +7,143 @@ class ErrorManagement {
 		this.lines = file.split(/\r\n|\n|\r/);
 		console.log(clc.redBright("\nError!!!\n"));
 	}
-	duplicateState(array) {
-		let linesArray = [];
-		this.lines.forEach((line, i) => {
-			array.forEach(state => {
-				if(typeof state === "object") {
-					let matched = line.match(new RegExp(`\\{${state.key} - state - .*${state.value}.*\\}`));
-					if(matched){
-						linesArray.push({
-							name:state.key,
-							line:i+1
-						});
-					}
-				} else {
-					let matched = line.match(new RegExp(`\\{${state} - state\\}`));
-					if(matched){
-						linesArray.push({
-							name:state,
-							line:i+1
-						});
-					}
-				}
-			});
-		});
-		console.log(clc.whiteBright("Duplicate State:\n"));
+	throwError(data, type) {
+		let stringToMatch;
+		let name;
+		switch(type) {
+		case "Missing Var":
+			stringToMatch = `{${data.stateName}\\s*-\\s*state\\s*-\\s*${data.varName}}`;
+			name = data.stateName;
+			break;
+		case "Duplicate Component":
+			stringToMatch = `<component name=('|")${data}('|")`;
+			name = data;
+			break;
+		case "Undefined Method":
+			stringToMatch = `on.*=('|")${data}\\(.*\\)('|")`;
+			name = data;
+			break;
 
-		linesArray.forEach(({name, line}) => {
-			console.log(`-> ${clc.whiteBright(name)} on line: ${clc.whiteBright(line)}\n`);
-			console.log(clc.redBright(`${line-1}|`)+clc.red(` ${this.lines[line-2]}`));
-			console.log(clc.redBright(`${line}| ${this.lines[line-1]}`));
-			console.log(clc.redBright(`${line+1}|`)+clc.red(` ${this.lines[line]}`));
-		});
-		process.exit(1);
-	}
-	missingVar(stateName, varName) {
+		case "Undefined Computed":
+			stringToMatch = `{${data}\\s*-\\s*computed}`;
+			name = data;
+			break;
+
+		case "Undefined State":
+			stringToMatch = data.string;
+			name = data.name;
+			break;
+		case "Expected Token":
+			stringToMatch = data.split(/\r\n|\n|\r/)[0];
+			name = "}";
+			break;
+		case "Undefined Type":
+			stringToMatch = data;
+			name = data
+				.split("-")[1]
+				.replace(/^\s*/, "")
+				.replace(/\s*$/, "");
+			break;
+		case "Expected Attribute":
+			stringToMatch = data.line;
+			name = data.name;
+			break;
+		case "Undefined Input Name":
+			stringToMatch = data;
+			name = "";
+			break;
+		default: break;
+		}
+		console.log(clc.whiteBright(`${type}:\n`));
 		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(`{${stateName}\\s*-\\s*state\\s*-\\s*${varName}}`));
+			let matched = line.match(new RegExp(stringToMatch));
 			if (matched) {
-				console.log(`Missing Var: ${clc.whiteBright(varName)} on line: ${clc.whiteBright(i+1)}\n`);
-				console.log(clc.redBright(`${i}|`)+clc.red(` ${this.lines[i-1]}`));
-				console.log(clc.redBright(`${i+1}| ${this.lines[i]}`));
-				console.log(clc.redBright(`${i+2}|`)+clc.red(` ${this.lines[i+1]}`));
-				process.exit(1);
-			}
-		});
-	}
-	duplicateComponent(componentName) {
-		let lines = [];
-		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(`<component name=('|")${componentName}('|")`));
-			if (matched) lines.push(i+1);
-		});
-		console.log(clc.whiteBright("Duplicate Component:"));
-		lines.forEach(line => {
-			console.log(`\n-> ${clc.whiteBright(componentName)} on line: ${clc.whiteBright(line+1)}\n`);
-			console.log(clc.redBright(`${line}|`)+clc.red(`${this.lines[line-2]}`));
-			console.log(clc.redBright(`${line+1}|${this.lines[line-1]}`));
-			console.log(clc.redBright(`${line+2}|`)+clc.red(`${this.lines[line]}`));		
-		});
-		process.exit(1);
-	}
-	undefinedMethodError(methodName) {
-		console.log(clc.whiteBright("Undefined Method:\n"));
-		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(`on.*=('|")${methodName}\\(.*\\)('|")`));
-			if (matched) {
-				console.log(`-> ${clc.whiteBright(methodName)} on line: ${i+1}`);
+				console.log(`-> ${clc.whiteBright(name)} on line: ${i+1}`);
 				console.log(clc.redBright(`${i}|`)+clc.red(`${this.lines[i-1]}`));
 				console.log(clc.redBright(`${i+1}|${this.lines[i]}`));
 				console.log(clc.redBright(`${i+2}|`)+clc.red(`${this.lines[i+1]}`));
 			}
 		});
 		process.exit(1);
-	}
-	undefinedComputedError(computedName){
-		console.log(clc.whiteBright("Undefined Computed:\n"));
-		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(`{${computedName}\\s*-\\s*computed}`));
-			if (matched) {
-				console.log(`-> ${clc.whiteBright(computedName)} on line: ${i+1}`);
-				console.log(clc.redBright(`${i}|`)+clc.red(`${this.lines[i-1]}`));
-				console.log(clc.redBright(`${i+1}|${this.lines[i]}`));
-				console.log(clc.redBright(`${i+2}|`)+clc.red(`${this.lines[i+1]}`));
-			}
-		});
-		process.exit(1);
-	}
-	unableToWatchState(watcherName) {
-		console.log(clc.whiteBright("Unable to Watch State:\n"));
-		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(`watch\\s*${watcherName}\\s*=`));
-			if (matched) {
-				console.log(`-> ${clc.whiteBright(watcherName)} on line: ${i+1}`);
-				process.exit(1);
-			}
-		});
-	}
-}
-
-class DuplicateStateError extends ErrorManagement {
-	constructor(states) {
-		super();
-		this.duplicateState(states);
 	}
 }
 
 class MissingVarError extends ErrorManagement {
 	constructor(stateName, varName) {
 		super();
-		this.missingVar(stateName, varName);
+		this.throwError({stateName, varName}, "Missing Var");
 	}
 }
 class DuplicateComponentError extends ErrorManagement {
 	constructor(componentName) {
 		super();
-		this.duplicateComponent(componentName);
+		this.throwError(componentName, "Duplicate Component");
 	}
 }
 class UndefinedMethodError extends ErrorManagement {
 	constructor(methodName) {
 		super();
-		this.undefinedMethodError(methodName);
+		this.throwError(methodName, "Undefined Method");
 	}
 }
 class UndefinedComputedError extends ErrorManagement {
 	constructor(computedName) {
 		super();
-		this.undefinedComputedError(computedName);
+		this.throwError(computedName, "Undefined Computed");
 	}
 }
-class UnableToWatchStateError extends ErrorManagement {
-	constructor(watcherName) {
+class ExpectedTokenError extends ErrorManagement {
+	constructor(data) {
 		super();
-		this.unableToWatchState(watcherName);
+		this.throwError(data, "Expected Token");
 	}
 }
-export default () => {
-	global.DuplicateStateError = DuplicateStateError;
+class UndefinedTypeError extends ErrorManagement {
+	constructor(data) {
+		super();
+		this.throwError(data, "Undefined Type");
+	}
+}
+class UndefinedStateError extends ErrorManagement {
+	constructor(data) {
+		super();
+		let {type, name} = data;
+		let stringToMatch;
+		switch(type) {
+		case "conditional":
+			stringToMatch = `<if\\s*cond=('|")${name}`;
+			break;
+		case "loop":
+			stringToMatch = `<for\\s*val=('|")\\w*\\s*in\\s*${name}('|")`;
+			break;
+		case "watcher":
+			stringToMatch = `watch\\s*${name}\\s*=`;
+			break;
+		default: break;
+		}
+		this.throwError({name, string:stringToMatch}, "Undefined State");
+	}
+}
+class ExpectedAttributeError extends ErrorManagement {
+	constructor(line, name) {
+		super();
+		this.throwError({line, name}, "Expected Attribute");
+	}
+}
+class UndefinedInputNameError extends ErrorManagement {
+	constructor(line) {
+		super();
+		this.throwError(line, "Undefined Input Name");
+	}
+}
+module.exports = () => {
+	global.UndefinedTypeError = UndefinedTypeError;
+	global.ExpectedTokenError = ExpectedTokenError;
 	global.MissingVarError = MissingVarError;
 	global.DuplicateComponentError = DuplicateComponentError;
 	global.UndefinedComputedError = UndefinedComputedError;
 	global.UndefinedMethodError = UndefinedMethodError;
-	global.UnableToWatchStateError = UnableToWatchStateError;
+	global.UndefinedStateError = UndefinedStateError;
+	global.ExpectedAttributeError = ExpectedAttributeError;
+	global.UndefinedInputNameError = UndefinedInputNameError;
 };

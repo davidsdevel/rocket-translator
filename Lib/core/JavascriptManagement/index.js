@@ -117,4 +117,4 @@ class JavascriptManagement {
 		return this._vars;
 	}
 }
-export default JavascriptManagement;
+module.exports = JavascriptManagement;

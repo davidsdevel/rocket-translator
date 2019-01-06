@@ -1,7 +1,5 @@
-import core from "./core";
-import utils from "./file-utils";
+const core = require("./core");
+const utils = require("./file-utils");
 
-export {
-	core,
-	utils
-};
+exports.core = core;
+exports.utils = utils;

@@ -1,12 +1,12 @@
-import {
+const {
 	existsSync,
 	mkdirSync,
 	readFileSync,
 	writeFileSync
-} from "fs";
-import{ join } from "path";
-import {VueCompiler, ReactCompiler} from "../core";
-import clc from "cli-color";
+} = require("fs");
+const{ join } = require("path");
+const {VueCompiler, ReactCompiler} = require("../core");
+const clc = require("cli-color");
 
 /**
   * File Functions to CLI
@@ -237,4 +237,4 @@ class TranslatorFileFunctions {
 		}
 	}
 }
-export default TranslatorFileFunctions;
+module.exports = TranslatorFileFunctions;

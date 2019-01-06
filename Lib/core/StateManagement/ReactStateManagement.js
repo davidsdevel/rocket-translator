@@ -1,5 +1,5 @@
-import StateManagement from "./StateManagement";
-import JavaScriptEvents from "../../const/Events.json";
+const StateManagement = require("./StateManagement");
+const JavaScriptEvents = require("../../const/Events.json");
 
 /**
  * Class React State Management
@@ -10,18 +10,20 @@ class ReactStateManagement extends StateManagement {
 		super();
 		this.condStates = new Array();
 		this.loopsState = new Array();
+
+		//Arroy to map on prerender logical
 		this.prerenderComputed = new Array();
-		this.condMapped = false;
-		this.loopsMapped = false;
+		this.condWasMapped = false;
+		this.loopsWasMapped = false;
 	}
 	/**
-	 * Set React Components
+	 * Get Components To Import (getter)
 	 * 
 	 * @description Set Components Imports to String Template
 	 * @public
 	 * @return {string}
 	 */
-	setReactComponents(){
+	get importComponents(){
 		let components = "";
 		if (this.components.length > 0) {
 			this.components.forEach(e => {
@@ -31,12 +33,12 @@ class ReactStateManagement extends StateManagement {
 		return components;
 	}
 	/**
-	 * Set React States Into Template
+	 * Get Component Data (getter)
 	 * 
 	 * @public
 	 * @return {string}
 	 */
-	setReactStateToTemplate(){
+	get componentData(){
 		//Empty vars to append into template
 		let states = "";
 		let computed = "";
@@ -48,17 +50,18 @@ class ReactStateManagement extends StateManagement {
 
 		//Map States
 		if (this.states.length > 0) {
-			var _mappedStates = {}; //Empty Object to set States
-			this.states.forEach(e => {
-				if (typeof e === "object") {
-					_mappedStates[e.key] = e.value;
-				} else if (typeof e === "string"){
-					_mappedStates[e.replace(/("|')/g, "")/*Delete String Quotes*/] = "";
-				}
+			var mappedStates = {}; //Empty Object to set States
+			this.states.forEach(state => {
+				let isObject = typeof state === "object";
+
+				let stateName =  isObject ? state.key : state.replace(/("|')/g, "");
+				
+				mappedStates[stateName] = isObject ? state.value : "";
 			});
-			states = `\n\t\tthis.state = ${this._JSONPrettify(_mappedStates)};`; //Set States
+			states = `\n\t\tthis.state = ${this._JSONPrettify(mappedStates)};`; //Set States
 		}
-		//Map Computeds
+
+		//Map Computed Properties
 		if (this.computed.length > 0) {
 			let mappedComputed = this.computed.map(({name, content}) => {
 				this.prerenderComputed.push(`var ${name} = this.${name}();\n\t\t`);
@@ -66,12 +69,14 @@ class ReactStateManagement extends StateManagement {
 			});
 			computed = `\n\t${mappedComputed.join("\n\t")}`;
 
-			let mappedBindComputeds = this.computed.map(({name}) => {
+			//Add to bind methods
+			let mappedBindComputed = this.computed.map(({name}) => {
 				let sliced = name.replace("()", "");
 				return `this.${sliced} = this.${sliced}.bind(this);`;
 			});
-			bindComputeds = `\n\t\t${mappedBindComputeds.join("\n\t\t")}`;
+			bindComputeds = `\n\t\t${mappedBindComputed.join("\n\t\t")}`;
 		}
+
 		//Methods
 		if(this.methods.length > 0){
 			let mappedMethods = this.methods.map(({name, content, params}) => {
@@ -79,145 +84,205 @@ class ReactStateManagement extends StateManagement {
 			});
 			methods = `\n\t${mappedMethods.join("\n\t")}`;
 
+			//Add to bind methods
 			let mappedBindMethods = this.methods.map(({name}) => {
 				let sliced = name.replace("()", "");
 				return `this.${sliced} = this.${sliced}.bind(this);`;
 			});
 			bindMethods = `\n\t\t${mappedBindMethods.join("\n\t\t")}`;
 		}
-		if (this.watchers.length > 0) {
-			let mappedWatchers = this._filterJS(this.watchers, "r").map(({name, content, params}, i) => {
-				let isState = false;
-				let isProp = false;
 
-				this.states.forEach(state => {
-					if (name === state || name === state.key) {
-						isState = true;
-					}
-				});
-				if (!isState) {
-					this.props.forEach(prop => {
-						if (prop === name) {
-							isProp = true;
+		//Map State Watchers
+		if (this.watchers.length > 0) {
+
+			//Filter Content And Map Watchers
+			let mappedWatchers = this._filterJS(this.watchers, "r")
+				.map(({name, content, params}, i) => {
+					let isState = false;
+					let isProp = false;
+
+					//Watch if is a state
+					this.states.forEach(state => {
+						if (name === state || name === state.key) {
+							isState = true;
 						}
 					});
-				}
 
-				let bifurcacion = "";
-				if (i === 0) {
-					bifurcacion = "if";
-				} else {
-					bifurcacion = "else if";
-				}
-				let stateOrProp = "";
-				if (isState) {
-					stateOrProp = "state.";
-				} else if (isProp) {
-					stateOrProp = "prop.";
-				}
-				let final = `${bifurcacion} (${stateOrProp + name}) ${content.split(/\n/).join("\n\t").replace(/^{/, `{\n\t\t\tlet ${  params  } = ${  stateOrProp  }${name  };`).replace(/}$/, "}")}`;
-				return final;
-			});
+					if (!isState) {
+					//Watch if is a prop
+						this.props.forEach(prop => {
+							if (prop === name) {
+								isProp = true;
+							}
+						});
+					}
+
+					let conditional = i === 0 ? "if" : "else if";
+
+					let stateOrProp = "";
+					if (isState) {
+						stateOrProp = "state.";
+					} else if (isProp) {
+						stateOrProp = "prop.";
+					}
+					return`${conditional} (${stateOrProp + name}) ${content.split(/\n/).join("\n\t").replace(/^{/, `{\n\t\t\tlet ${params} = ${stateOrProp + name};`).replace(/}$/, "}")}`;
+				});
 			watchers = `\n\tcomponentDidUpdate(prop, state){\n\t\t${mappedWatchers.join(" ")}\n\t}`;
 		}
-		if (this.inputs) {
-			inputHandler = `
-	inputHandler({target}){
-		const value = target.type === 'checkbox' ? target.checked : target.value;
-		const name = target.name;
-		this.setState({
-			[name]: value
-		})
-	}`;
+
+		//Map Input Handler
+		if (this.handleInputs) {
+			inputHandler = "\n\tinputHandler({target}){\n\t\tlet {name, type} = target;\n\t\tlet value = type === 'checkbox' ? target.checked : target.value;\n\t\tthis.setState({\n\t\t\t[name]: value\n\t\t})\n\t}";
+		}
+		//If don't have data return empty
+		if (
+			!states &&
+			!computed &&
+			!methods &&
+			!watchers &&
+			this.props.length === 0
+		) {
+			return "";
 		}
 
-		let mainTemplate = 	
-	`constructor(${this.props.length > 0 ? "props": ""}) {
-		super(${this.props.length > 0 ? "props": ""});${states}${bindMethods}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}
-	}${computed}${methods}${inputHandler}${watchers}`;
-		if (!states && !computed && !methods && !watchers && this.props.length === 0) {
-			mainTemplate = "";
-		}
-		return mainTemplate;
+		return `constructor() {\n\t\tsuper();${states}${bindMethods}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}\n\t}${computed}${methods}${inputHandler}${watchers}`;
 	}
-	mapConditionals(htmlIn) {
-		let splittedCond = htmlIn.split(/<(?=if\s*cond)/);
+	/**
+	 * Map Conditionals
+	 *
+	 * @private
+	 * @param {string} html
+	 * @return {string}
+	 *
+	 */
+	_mapConditionals(html) {
+		let splittedCond = html.split(/<(?=if\s*cond)/);
 		
-		this.conditionals.forEach((e, ind) => {
-			let id = "";
+		this.conditionals.forEach((conditionalData, i) => {
+			let id = ""; //Empty String to set a conditional ID
+
+			/*
+			 * Generate ID
+			 */
 			for (let a = 0; a <= 3; a++) {
 				id += new String(Math.floor(Math.random()*10));
 			}
+
 			if(splittedCond.length > 1) {
-				let replaced = splittedCond[ind+1].split("</else>");
+
+				//Get Conditional HTML Content
+				let condTag = conditionalData.else ? "</else>" : "</if>";
+				let replaced = splittedCond[i+1].split(condTag);
+
+				//We replace that content with the conditional ID
 				replaced[0] = `{cond_${id}}`;
-				splittedCond[ind+1] = replaced.join("");
 
-				let filterIf = e.if
+				//And replace the content in the main Array
+				splittedCond[i+1] = replaced.join("");
+
+				/*-----------Data for If --------------*/
+				let filterIf = conditionalData.if
+					/*Filter Firts Tabs*/
 					.replace(/\t|\s\s/g, "")
-					.replace(/(\n|\r\n|\r)/g, "")
-					.split(/<(?=img|br|input)/)
-					.map((ev, i) => {
-						if (i > 0) return ev.replace(/>|\/>/, "/>");
-						else return ev;
+					/*Filter NewLine*/
+					.replace(/(\r\n|\n|\r)/g, "")
+					.split(/<(?=img|br|input|hr|wbr|area|track|param|source|col|progress)/)
+					.map((content, i) => {
+						if (i > 0) { 
+							//Add enclosing tag
+							return content.replace(/>|\/>/, "/>");
+						}
+						return content;
 					}).join("<");
 
+				//If have a loop
 				if(filterIf.match(/<for\s*val/))
-					filterIf = this.mapLoops(filterIf);
+					filterIf = this._mapLoops(filterIf);
 
-				let filterElse = e.else
-					.replace(/\t|\s\s/g, "")
-					.replace(/(\n|\r\n|\r)/g, "")
-					.split(/<(?=img|br|input)/)
-					.map((ev, i) => {
-						if (i > 0) return ev.replace(/>|\/>/, "/>");
-						else return ev;
-					}).join("<");
-
-				if(filterElse.match(/<for\s*val/))
-					filterElse = this.mapLoops(filterElse);
+				/*-----------Data for Else --------------*/
+				let filterElse;
+				if (conditionalData.else) {
+					filterElse = conditionalData.else
+						/*Filter Firts Tabs*/
+						.replace(/\t|\s\s/g, "")
+						/*Filter NewLine*/
+						.replace(/(\r\n|\n|\r)/g, "")
+						.split(/<(?=img|br|input|hr|wbr|area|track|param|source|col|progress)/)
+						.map((content, i) => {
+							if (i > 0) {
+								return content.replace(/>|\/>/, "/>");
+							}
+							return content;
+						}).join("<");
+					//If have loop
+					if(filterElse.match(/<for\s*val/))
+						filterElse = this._mapLoops(filterElse);
+				}
 
 				this.condStates.push({
 					id,
-					cond:e.cond,
+					cond:conditionalData.cond,
 					if:filterIf,
 					else:filterElse
 				});
 			}
 		});
-		this.condMapped = true;
+		this.condWasMapped = true;
 		return splittedCond.join("");
 	}
-	mapLoops(htmlIn) {
-		let splittedLoops = htmlIn.split(/<(?=for\s*val)/);
-		this.loops.forEach((e, ind) => {
-			let id = "";
-			for (var i = 0; i <= 3; i++) {
+	/**
+	 * Map Loops
+	 *
+	 * @private
+	 * @param {string} html
+	 * @return {string}
+	 *
+	 */
+	_mapLoops(html) {
+		let splittedLoops = html.split(/<(?=for\s*val)/);
+		this.loops.forEach((loopData, i) => {
+			let id = ""; //Empty String to set a Loop ID
+
+			/*
+			 * Generate ID
+			 */
+			for (let a = 0; a <= 3; a++) {
 				id += new String(Math.floor(Math.random()*10));
 			}
+
 			if(splittedLoops.length > 1) {
-				let replaced = splittedLoops[ind+1].split("</for>");
+				//Replace Content with Loop ID
+				let replaced = splittedLoops[i+1].split("</for>");
 				replaced[0] = `{loop_${id}}`;
-				splittedLoops[ind+1] = replaced.join("");
+				splittedLoops[i+1] = replaced.join("");
 
 				
 				this.loopsState.push({
 					id,
-					state:e.state,
-					value:e.value,
-					content:e.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
+					state:loopData.state,
+					value:loopData.value,
+					content:loopData.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
 				});
 			}
 		});
-		this.loopsMapped = true;
+		this.loopsWasMapped = true;
 		return splittedLoops.join("");
 	}
-	setReactFilterHTMLState(html){
-		if (!this.condMapped) {
-			html = this.mapConditionals(html);	
+	/**
+	 * Filter HTML
+	 *
+	 * @public
+	 * @param {string} html
+	 *
+	 * @return {string}
+	 *
+	 */
+	filterHTML(html){
+		if (!this.condWasMapped) {
+			html = this._mapConditionals(html);	
 		}
-		if (!this.loopsMapped){
-			html = this.mapLoops(html);
+		if (!this.loopsWasMapped){
+			html = this._mapLoops(html);
 		}
 		html = html
 			.replace(/"/g, "'")
@@ -228,11 +293,11 @@ class ReactStateManagement extends StateManagement {
 					if (i === 0) {
 						str = e;
 					} else if (e.match(/prop/)) { 
-						str = `{this.props.${e.replace(/(\s-.*\})/g, "}")}`;
+						str = `{this.props.${e.replace(/(\s*-.*\})/g, "}")}`;
 					}else if (e.match(/computed/)) {
 						str = `{${e.replace(/(\s-.*\})/g, "}")}`;
 					} else if (e.match(/state/)){
-						str = `{this.state.${e.replace(/(\s-.*\})/g, "}")}`;
+						str = `{this.state.${e.replace(/(\s*-.*\})/g, "}")}`;
 					} else {
 						str = `{${e}`;
 					}
@@ -544,14 +609,23 @@ class ReactStateManagement extends StateManagement {
 
 		return html;
 	}
-	setPrerenderLogical(){
-		this.loopsMapped = false;
+	
+	/**
+	 * Prerender Logical (getter)
+	 *
+	 * Set logical to execute while render the component
+	 *
+	 * @return {string}
+	 *
+	 */
+	get prerenderLogical(){
+		this.loopsWasMapped = false;
 		let loops = this.loopsState.map(e => {
-			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.setReactFilterHTMLState(e.content)})\n\t\t);\n\t\t`;
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.filterHTML(e.content)})\n\t\t);\n\t\t`;
 		});
-		this.condMapped = false;
+		this.condWasMapped = false;
 		let cond = this.condStates.map(e => {
-			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.setReactFilterHTMLState(e.else)}\n\t\t}\n\t\t`:""}`;
+			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.else)}\n\t\t}\n\t\t`:""}`;
 		});
 		this.condStates = [];
 		this.loopsState = [];
@@ -559,4 +633,4 @@ class ReactStateManagement extends StateManagement {
 	}
 }
 
-export default ReactStateManagement;
+module.exports = ReactStateManagement;

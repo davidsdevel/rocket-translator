@@ -1,4 +1,4 @@
-import {
+const {
 	createWriteStream,
 	existsSync,
 	writeFileSync,
@@ -7,9 +7,9 @@ import {
 	rmdirSync,
 	readdirSync,
 	lstatSync
-} from "fs";
-import {join} from "path";
-import archiver from "archiver"; 
+} = require("fs");
+const {join} = require("path");
+const archiver = require("archiver");
 
 const tmpPath = join(__dirname, "../server", "tmp");
 
@@ -73,7 +73,5 @@ function compress(filename) {
 	archive.finalize();
 }
 
-export {
-	write,
-	remove
-};
+exports.write = write;
+exports.remove = remove;
