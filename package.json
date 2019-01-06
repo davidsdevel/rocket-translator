@@ -12,7 +12,8 @@
 		"node": ">= 0.1"
 	},
 	"directories": {
-		"bin": "bin"
+		"bin": "bin",
+		"Lib":"Lib"
 	},
 	"main": "./Lib/core/index.js",
 	"repository": {
@@ -20,11 +21,7 @@
 		"url": "git+https://github.com/Davids-Devel/RocketJS.git"
 	},
 	"scripts": {
-		"prepublishOnly": "npm run build",
 		"test": "jest",
-		"build": "webpack",
-		"watch": "webpack --watch",
-		"dev": "webpack",
 		"lint": "eslint -c .eslintrc.js ./Lib",
 		"lint-fix": "eslint -c .eslintrc.js --fix ./Lib",
 		"lint-watch": "esw --watch -c .eslintrc.js ./Lib"
