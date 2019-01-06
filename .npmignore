@@ -1,11 +1,10 @@
 dist
 Lib
-tmp
 
 .eslintignore
 .eslintrc.js
 .gitignore
-
+webpack.config.js
 
 # Testing
 test/
