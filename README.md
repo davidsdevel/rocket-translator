@@ -502,6 +502,4 @@ We add this tag to declare a **custom** component inside the **Main Component**
 
 ## Contributing
 
-To contribute you can Join to our [Slack](https://rocketjs.slack.com) channel for more info. \(**Info in Spanish**\)
-
-Coming soon we add an english thread.
+To contribute you can open a **pull request** with the changes to improve in the code, or open a new **issue**.
