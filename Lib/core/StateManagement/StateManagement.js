@@ -531,8 +531,7 @@ class StateManagement {
 			});
 			//Handle Error
 		_getBarsSyntax.forEach(e => {
-			let match = e.match(/(state|prop|computed)$/);
-			
+			let match = e.match(/(state|prop|computed)(\s*-|\s*})/);
 			if (!match) new global.UndefinedTypeError(e);
 		});
 
