@@ -18,7 +18,7 @@
 	"main": "./Lib/core/index.js",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Davids-Devel/RocketJS.git"
+		"url": "git+https://github.com/Davids-Devel/rocket-translator.git"
 	},
 	"scripts": {
 		"test": "jest",
@@ -27,9 +27,9 @@
 		"lint-watch": "esw --watch -c .eslintrc.js ./Lib"
 	},
 	"bugs": {
-		"url": "https://github.com/Davids-Devel/RocketJS/issues"
+		"url": "https://github.com/Davids-Devel/rocket-translator/issues"
 	},
-	"homepage": "https://github.com/Davids-Devel/RocketJS#readme",
+	"homepage": "https://github.com/Davids-Devel/rocket-translator#readme",
 	"author": "David González <djgm1206@gmail.com>",
 	"license": "ISC",
 	"bin": {
@@ -139,8 +139,6 @@
 		"eslint-plugin-import": "^2.14.0",
 		"eslint-plugin-react": "^7.12.2",
 		"eslint-watch": "^4.0.2",
-		"jest": "^23.6.0",
-		"webpack": "^4.28.3",
-		"webpack-cli": "^3.1.2"
+		"jest": "^23.6.0"
 	}
 }
