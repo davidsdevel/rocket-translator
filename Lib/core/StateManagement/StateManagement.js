@@ -392,16 +392,29 @@ class StateManagement {
 	/**
 	*/
 	set conditionals(html){
+		//Function to get tag condition
+		let getCond = data => {
+			let dataCond = data.match(/cond=('|").*('|")(?=.*>)/g);
+			return dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
+		}
 		let condTagsArray = html.split("<if ");
 		let condData = condTagsArray
 			.map((e, i) => {
 				if (i > 0) {
-					let cond = e.match(/cond=('|").*('|")(?=.*>)/g);
+					let cond = getCond(e);
+					let elseIf = [];
 					let contentIf;
 					let contentElse;
 					if (e) {
-						cond = cond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
 						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
+						if(e.match(/<else-if/)) {
+							e.split("<else-if").forEach(ev=>{
+								elseIf.push({
+									cond:getCond(ev),
+									content:e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
+								});
+							});
+						}
 						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
 						if (contentElse) {
 							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
@@ -418,6 +431,7 @@ class StateManagement {
 					return {
 						cond,
 						if:contentIf,
+						elseIf,
 						else:contentElse
 					};
 				}
