@@ -1,20 +1,46 @@
-let StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
+const StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
 
-let state = "<h1>Hello {name - state}!</h1>";
-let managerState = new StateManagement();
-
-managerState.getHTMLString(state);
-
-test("test get state from template", ()=>{
-    expect(managerState.states).toContain("name");
+var state;
+var stateManager;
+beforeEach(() => {
+    stateManager = new StateManagement();
 });
 
-let stateWithValue = "<h1>Hello {name - state - 'world'}!</h1>";
+afterEach(() => {
+    stateManager = undefined;
+});
 
-let manager = new StateManagement();
+/**
+ * Test Without Value 
+ */
+state = "<h1>Hello {name - state}!</h1>";
+stateManager.getHTMLString(state);
 
-manager.getHTMLString(stateWithValue);
+test("test get state without value from template", ()=>{
+    expect(stateManager.states).toContain("name");
+});
 
-test("test get state and value from value", ()=>{
-    expect(manager.states).toEqual([{key:"name",value:"world"}]);
+/**
+ * Test With String Value
+ */
+state = "<h1>Hello {name - state - 'world'}!</h1>";
+stateManager.getHTMLString(state);
+
+test("test get state and string value from template", ()=>{
+    expect(stateManager.states).toEqual([{key:"name",value:"world"}]);
+});
+
+state = "<h1>Hello {years - state - 19}!</h1>";
+stateManager.getHTMLString(state);
+
+test("test get state and Number value from template", ()=>{
+    expect(stateManager.states).toEqual([{key:"years",value:19}]);
+});
+
+
+state = "<h1>{Alone - state - true}!</h1>";
+stateManager.getHTMLString(state);
+
+test("test get state and string boolean from template", ()=>{
+    expect(stateManager.states).toEqual([{key:"Alone",value:true}]);
 });

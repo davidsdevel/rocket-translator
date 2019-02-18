@@ -5,7 +5,7 @@ let component = `<div>
 </div>`;
 let componentManager = new StateManagement();
 
-managerState.getHTMLString(component);
+componentManager.getHTMLString(component);
 
 test("test get state from template", ()=>{
     expect(componentManager.components).toContain("MyComponent");
