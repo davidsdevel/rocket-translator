@@ -3,13 +3,13 @@ dist
 .eslintignore
 .eslintrc.js
 .gitignore
-webpack.config.js
 
 # Testing
 test/
 test.*
 public/*
 Lib/server
+Lib/file-utils/ServerFileFunctions.js
 testing/
 
 # Logs
