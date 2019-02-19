@@ -560,7 +560,7 @@ We add this tag to declare a **custom** component inside the **Main Component**
 - [x] Loops
 - [ ] Nested Loops
 - [ ] Inner HTML 
-- [ ] Lifecycles
+- [x] Lifecycles
 - [ ] React without JSX
 - [ ] React without ES6
 - [ ] Vue Standalone
