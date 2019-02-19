@@ -1,46 +1,43 @@
 const StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
 
 var state;
-var stateManager;
-beforeEach(() => {
-    stateManager = new StateManagement();
-});
-
-afterEach(() => {
-    stateManager = undefined;
-});
 
 /**
  * Test Without Value 
  */
+
+const stateWithoutValue = new StateManagement();
 state = "<h1>Hello {name - state}!</h1>";
-stateManager.getHTMLString(state);
+stateWithoutValue.getHTMLString(state);
 
 test("test get state without value from template", ()=>{
-    expect(stateManager.states).toContain("name");
+    expect(stateWithoutValue.states).toContain("name");
 });
 
 /**
  * Test With String Value
  */
+const stateStringManager = new StateManagement();
 state = "<h1>Hello {name - state - 'world'}!</h1>";
-stateManager.getHTMLString(state);
+stateStringManager.getHTMLString(state);
 
 test("test get state and string value from template", ()=>{
-    expect(stateManager.states).toEqual([{key:"name",value:"world"}]);
+    expect(stateStringManager.states).toEqual([{key:"name",value:"world"}]);
 });
 
-state = "<h1>Hello {years - state - 19}!</h1>";
-stateManager.getHTMLString(state);
+const stateNumberManager = new StateManagement();
+state = "<h1>Hello I have {yearlsOld - state - 19}!</h1>";
+stateNumberManager.getHTMLString(state);
 
 test("test get state and Number value from template", ()=>{
-    expect(stateManager.states).toEqual([{key:"years",value:19}]);
+    expect(stateNumberManager.states).toEqual([{key:"clicks",value:19}]);
 });
 
 
+const stateBooleanManager = new StateManagement();
 state = "<h1>{Alone - state - true}!</h1>";
-stateManager.getHTMLString(state);
+stateBooleanManager.getHTMLString(state);
 
 test("test get state and string boolean from template", ()=>{
-    expect(stateManager.states).toEqual([{key:"Alone",value:true}]);
+    expect(stateBooleanManager.states).toEqual([{key:"Alone",value:true}]);
 });
