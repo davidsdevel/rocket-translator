@@ -1,3 +1,5 @@
+require("../ErrorManagement")(); //Define Error Management Globals
+
 /**
  * State Management Base Class
  * 
@@ -15,34 +17,27 @@ class StateManagement {
 		this._handleInputs = false;
 		this._cond = new Array();
 		this._loops = new Array();
-
+		this._lifecycle = new Array();
+		
 		this._regExpToMatchState = /^\w*\s*-\s*state$/g; //RegExp to get State With Declaration
 		this._regExpToMatchStateWithValue = /^\w*\s*-\s*state\s*-\s*.*$/g; //RegExp to get State With Value
 		this._regExpToMatchComputed = /^\w*\s*-\s*computed/g; //RegExp to get Computed Methods
 		this._regExpToMatchProps = /^\w*\s*-\s*prop/g; //RegExp to get Props
-
+		
 		this.componentsContent = new Array();
 	}
 
 	//--------------- Public Methods -----------------
 
 	/**
-	 * Get States, Computed, Methods and Components
+	 * Get HTML String
+	 * 
+	 * Get Get All Data From HTML
 	 * 
 	 * @public
 	 * @param {string} html
 	 */
 	getHTMLString(html){
-		//Reset Data Arrays
-		this._states = [];
-		this._computed = []; 
-		this._methods = []; 
-		this._components = [];
-		this._watchers = [];
-		this._props = [];
-		this._cond = [];
-		this._loops = [];
-		this.componentsContent = [];
 		this._setDataFromHTML(html); //Call Method to Get Data from HTML String
 	}
 	/**
@@ -58,10 +53,9 @@ class StateManagement {
 		if (JSParsed.length > 0) {
 			this._filterJS(JSParsed, type).forEach(e => {
 				//Map Methods
-				this.methods.forEach((method, i) => { 
+				this.methods.forEach((method, i) => {
 					if (e.name === method.name) {
 						this._methods[i].content = e.content;
-						this._methods[i].params = e.params;
 					}
 				});
 				//Map Computed
@@ -93,20 +87,24 @@ class StateManagement {
 		//Map Vars Array
 		this.states.forEach((state, i) => {
 			if (typeof state === "object") {
+				const {value:val} = state;
 				//If match replace the corresponding state
-				if (state.value.var && VarsArray.length > 0) {
+				if (VarsArray.length > 0) {
 					VarsArray.forEach(({name, value}) => {
-						if (state.value.var === name) {
-							this._states[i] = {
-								key:state.key,
-								value:this._defineTypeFromString(value)
-							};
+						if (val.var) {
+							if (state.value.var === name) {
+								this._states[i] = {
+									key:state.key,
+									value:value
+								};
+							}
+							else new global.MissingVarError(state.key, val.var);
 						}
-						else new global.MissingVarError(state.key, state.value.var);
 					});
+				} else {
+					if (typeof val === "object" && val.var)
+						new global.MissingVarError(state.key, val.var);
 				}
-				else if (state.value.var && VarsArray.length === 0) 
-					new global.MissingVarError(state.key, state.value.var);
 			}
 		});
 	}
@@ -119,18 +117,19 @@ class StateManagement {
 	 * @param {Array} statesArray Array with all states from JS Parser
 	 */
 	set statesFromJS(statesArray){
+		this._states = new Array();
+		this._computed = new Array();
+		this._methods = new Array();
+		this._components = new Array();
+		this._watchers = new Array();
+		this._props = new Array();
+		this._handleInputs = false;
+		this._cond = new Array();
+		this._loops = new Array();
+		this._lifecycle = new Array();
+
 		if (statesArray) {
-			//Map State Array
-			statesArray.forEach(e => {
-				if (typeof e === "object"){
-					//If is not an Array or an Object
-					if (!e.value.startsWith("{") && !e.value.startsWith("[")) {
-						e.value = e.value.replace(/"/g, "'").replace(/'/g, ""); //Delete quotes to get Type
-					}
-					e.value = this._defineTypeFromString(e.value); //Get Type
-				}
-				this._states.push(e); //Push To Component States
-			});
+			this._states = statesArray;
 		}
 	}
 	/**
@@ -158,6 +157,60 @@ class StateManagement {
 	}
 	get watchers(){
 		return this._watchers;
+	}
+
+	/**
+	 * Lifecycle Setter
+	 * 
+	 * @public
+	 * @param {Array} lifecycles
+	 */
+	setLifecycle(lifecycles, type) {
+		if (lifecycles.length > 0) {
+			const jsFiltered = this._filterJS(lifecycles, type);
+
+			this._lifecycle = jsFiltered.map(({name, content}) => {
+	
+				if (type === "r") {
+					switch(name) {
+					case "beforeMount":
+						name = "componentWillMount";
+						break;
+					case "mounted":
+						name = "componentDidMount";
+						break;
+					case "beforeUpdate":
+						name = "componentWillUpdate";
+						break;
+					case "updated":
+						name = "componentDidUpdate";
+						break;
+					case "beforeUnmount":
+					case "unmounted":
+						name = "componentWillUnmount";
+						break;
+					default: break;
+					}
+				} else if (type === "v") {
+					switch(name) {
+					case "beforeUnmount":
+						name = "beforeDestroy";
+						break;
+					case "unmounted":
+						name = "destroyed";
+						break;
+					default: break;
+					}
+				}
+				return {
+					name,
+					content
+				};
+			});
+		}
+	}
+	get lifecycle() {
+		return this._lifecycle;
 	}
 	/**
 	* Get Component Name And Data
@@ -189,7 +242,7 @@ class StateManagement {
 		let splitComponentWithContent = html.split("<component ");
 		splitComponentWithContent.forEach((e, i) => {
 			if (i > 0) {
-				let componentName = e.match(/name=('|")\w*/)[0].slice(6);
+				let componentName = e.match(/component-name\s*=\s*('|")\w*/)[0].replace(/component-name\s*=\s*("|')/);
 				let componentContent = e.replace(/.*>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
 				this._components.push(componentName);
 				
@@ -396,7 +449,7 @@ class StateManagement {
 		let getCond = data => {
 			let dataCond = data.match(/cond=('|").*('|")(?=.*>)/g);
 			return dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
-		}
+		};
 		let condTagsArray = html.split("<if ");
 		let condData = condTagsArray
 			.map((e, i) => {
@@ -407,12 +460,13 @@ class StateManagement {
 					let contentElse;
 					if (e) {
 						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
-						if(e.match(/<else-if/)) {
-							e.split("<else-if").forEach(ev=>{
-								elseIf.push({
-									cond:getCond(ev),
-									content:e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
-								});
+						if(/<else-if/.test(e)) {
+							e.split("<else-if").forEach((ev, i) => {
+								if (i > 0)
+									elseIf.push({
+										cond:getCond(ev),
+										content:ev.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
+									});
 							});
 						}
 						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
@@ -421,12 +475,16 @@ class StateManagement {
 						}
 					}
 					let matchState = false;
+					let condDefined;
 					this.states.forEach(e => {
-						if(e === cond)
+
+						let name = typeof e === "object" ? e.key : e;
+						condDefined = cond.match(/^\w*/)[0];
+						if(name === condDefined)
 							matchState = true;
 					});
 					if (!matchState)
-						new global.UndefinedStateError({type:"conditional", name:cond.match(/^\w*/)[0]});
+						new global.UndefinedStateError({type:"conditional", name:condDefined});
 					
 					return {
 						cond,
@@ -460,7 +518,6 @@ class StateManagement {
 						if(e === stateToMap)
 							matchState = true;
 					});
-					console.log(stateToMap);
 					if (!matchState)
 						new global.UndefinedStateError({type:"loop", name:stateToMap});
 
@@ -498,11 +555,15 @@ class StateManagement {
 			//Add indents and delete quotes in state keys
 			jsonToString = jsonToString.replace(e, `\t\t\t${e.slice(1, e.length-1)}`);
 		});
+		//Filter Globals
+		this._globals.forEach(glob => {
+			jsonToString = jsonToString.replace(new RegExp(`('|")${glob}('|")`), glob);
+		});
 		//Return JSON Prettify
 		return jsonToString.replace(/\{/g, "{\n")
 			.replace(/,(?=(\t)*\w*:)/g, ",\n")
 			.replace(/}/g, "\n\t\t\t}")
-			.replace(/}$/g, "\n\t\t}")
+			.replace(/\t\t}$/g, "\t}")
 			.replace(/:(?="|\d|true|false|\{|\[)/g, ": ");
 	}
 	/**
@@ -522,8 +583,8 @@ class StateManagement {
 					let splitted = e.split("</component>");
 					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
 					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
-				} 
-				else return e;
+				}
+				return e;
 			})
 			.join("<");
 		/*
@@ -545,8 +606,8 @@ class StateManagement {
 			});
 			//Handle Error
 		_getBarsSyntax.forEach(e => {
-			let match = e.match(/(state|prop|computed)(\s*-|\s*})/);
-			if (!match) new global.UndefinedTypeError(e);
+			if (/\w*\s*-\s*(state|prop|computed)/.test(e) === false)
+				new global.UndefinedTypeError(e);
 		});
 
 		if (_getBarsSyntax) {
@@ -564,9 +625,14 @@ class StateManagement {
 		this.methods = html; //Call Method to Get Data from HTML String
 	}
 	/**
+	 * Filter Javascript
+	 *
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
+	 *
 	 * @param {Array} JsArray 
 	 * @param {String} type 
+	 * 
+	 * @return {Array}
 	 */
 	_filterJS(JsArray, type){
 		//Watch if have Content
@@ -588,7 +654,10 @@ class StateManagement {
 			default: throw new Error("The type param must be 'v' or 'r'");
 			}
 			//Map JS Content
-			let JsonArray = JsArray.map(({content, funcName, name, params}) => {
+			let JsonArray = JsArray.map(({content, name}) => {
+				let params = content.match(/\(.*\)|\w*/)[0];
+				content = content.replace(/.*(?={)/, "");
+
 				var data = content; //Asign content to var data
 				/*
 					Map exist state to asign the state declaration to data
@@ -605,17 +674,17 @@ class StateManagement {
 						this is the state name without value
 					*/
 					let stateName = typeof state === "object" ? state.key : state;
-
 					data = this._expressionsFilter(data, stateName, stateReplace);
 				});
 				this.props.forEach(prop => {
 					data = this._expressionsFilter(data, prop, propReplace);
 				});
+				if (type === "r")
+					data = this._setStateFilter(data);
+
 				return {
-					funcName,
 					name,
-					params,
-					content:data
+					content:params + data
 						.split("\n")
 						.map((es, i) => {
 							if (es && i > 0 && es != /^}(\s|\t)*$/) return `${tab+es}\n`;
@@ -629,8 +698,44 @@ class StateManagement {
 			return JsonArray;
 		}
 	}
+	/**
+	 * Set State Filter
+	 * 
+	 * Filter the state value assignament and change: 'this.state.name = "Value";'
+	 * with: 'this.setState({name: "Value"});'
+	 * 
+	 * Executes only when translate React
+	 * 
+	 * @private
+	 * @param {String} data 
+	 * 
+	 * @return {String}
+	 */
+	_setStateFilter(data) {
+		const statesToChange = data.match(/this\.state\.\w*\s*=.*/g);
+
+		if(statesToChange === null)
+			return data;
+		
+		statesToChange.forEach(states => {
+			const value = states.match(/=.*$/)[0].replace(/=\s*/, "").replace(/;/, "");
+			const state = states.replace(/this\.state\./, "").replace(/\s*=.*/, "");
+	
+			const setStateString = `this.setState({${state}: ${value}});`;
+			data = data.replace(states, setStateString);
+		});
+
+		return data;
+	}
+
+	/**
+	 * 
+	 * @param {String} html 
+	 * @param {String} name 
+	 * @param {String} replace 
+	 */
 	_expressionsFilter(html, name, replace) {
-		return html
+		var filtered = html
 			.replace(new RegExp(`\\t(${replace+name}|${name})(?!\\(|\\s*\\(|\\.)`, "g"), `\t${replace}${name}`)
 			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), `(${replace}${name}`)
 			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), `[${replace}${name}`)
@@ -652,7 +757,45 @@ class StateManagement {
 			.replace(new RegExp(`(\\&|\\&\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `& ${replace}${name}`)
 			.replace(new RegExp(`(\\||\\|\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `| ${replace}${name}`)
 			.replace(new RegExp(`(in|in\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `in ${replace}${name}`)
-			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `case ${replace}${name}`);
+			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(!=.*(\\\`|"|'))`, "g"), `case ${replace}${name}`)
+			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\.)`, "g"), `\t${replace}${name}`)
+			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\+\\+)`, "g"), `\t${replace}${name}`)
+			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\s*=)`, "g"), `\t${replace}${name}`)
+			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=--)`, "g"), `\t${replace}${name}`);
+
+		//To Replace Filtered No States
+		const toUnfilter = new RegExp(`(${replace+name}|${name})\\w*`).exec(filtered);
+
+		if (toUnfilter) {
+			var isState = false;
+			for(let i = 0; i < this.states.length; i++) {
+				const state = typeof this.states[i] === "object" ? this.states[i].key : this.states[i];
+
+				if(toUnfilter[0] === `${replace}${state}`) {
+					isState = true;
+					break;
+				}
+			}
+			if (isState)
+				return filtered;
+			
+			return filtered.replace(toUnfilter[0], toUnfilter[0].replace(replace, ""));
+		}
+	}
+	/**
+	 * Globals
+	 * 
+	 * Getter that return the global list
+	 * 
+	 * @private
+	 * @return {Array}
+	 */
+	get _globals () {
+		
+		const globalList = require("../../const/Globals.json");
+		const {defineGlobals} = require(global.defineGlobals);
+
+		return globalList.concat(defineGlobals !== undefined ? defineGlobals() : []);
 	}
 	/**
 	 * Get String Value and Parse that
@@ -660,28 +803,45 @@ class StateManagement {
 	 * @returns {any}
 	 */
 	_defineTypeFromString(string){
-		var value; //Empty Value
-		let _isString = string.match(/^("|').*('|")$/);
-		let _isDigit = string.match(/^\d*$/);
-		let _isBoolean = string.match(/(true|false)$/g);
-		let _isArray = string.match(/^\[.*\]$/);
-		let _isObject = string.match(/^\{(\r|\n)*((\t*).*(\r|\n*))*\}/g);
+		let _isString = /^("|').*('|")$/.test(string);
+		let _isDigit = /^\d*$/.test(string);
+		let _isBoolean = /(true|false)$/g.test(string);
+		let _isArray = /^\[.*\]$/.test(string);
+		let _isObject = /^\{(\r|\n)*((\t*).*(\r|\n*))*\}/g.test(string);
+		let _isNull = /null$/g.test(string);
+		let _isUndefined = /undefined$/g.test(string);
+		let _isNaN = /NaN$/g.test(string);
+		let _isInfinity = /Infinity$/g.test(string);
+
+		if (_isDigit)
+			return parseFloat(string);
+
+		if (_isNull)
+			return null;
+
+		if (_isNaN)
+			return NaN;
+
+		if (_isInfinity)
+			return Infinity;
+
+		if (_isUndefined)
+			return undefined;
+
+		if (_isBoolean)
+			return this._BooleanParser(string);
 		
-		if (_isDigit) {
-			value = parseInt(_isDigit[0]);
-		} else if (_isBoolean){
-			value = this._BooleanParser(_isBoolean[0]);
-		} else if(_isArray){
-			value = this._ArrayAndObjectParser(_isArray[0]);
-		} else if (_isObject){
-			value = this._ArrayAndObjectParser(_isObject[0]);
-		} else if(_isString){
-			value = string.replace(/("|')/g, ""); //String Value
-		} else {
-			//is Var
-			value = {var:string};
-		}
-		return value;
+		if(_isArray)
+			return this._ArrayAndObjectParser(_isArray[0]);
+		
+		if (_isObject)
+			return this._ArrayAndObjectParser(_isObject[0]);
+		
+		if(_isString)
+			return string.replace(/("|')/g, ""); //String Value
+		
+		/*is Var*/
+		return {var:string};
 	}
 	/**
 	 * Parse Boolean String

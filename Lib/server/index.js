@@ -1,5 +1,5 @@
 const express = require("express");
-const bodyParser = require("body-parser");
+
 const {join} = require("path");
 const {exec} = require("child_process");
 const {write, remove} = require("../file-utils/ServerFileFunctions");
@@ -8,6 +8,8 @@ const {VueCompiler, ReactCompiler} = require("../core");
 const server = express();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const publicFolder = join(__dirname, "public");
+
+server.use(express.json());
 
 server
 	.get("/", (req, res) => {

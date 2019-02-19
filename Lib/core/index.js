@@ -1,37 +1,35 @@
 const { ReactStateManagement, VueStateManagement, AngularStateManagement } = require("./StateManagement");
 const Parser = require("./JavascriptManagement");
-const setErrorHandler = require("./ErrorManagement");
 
 /**
  * Array of Main Component's Components.
- *
  */
 var Components = [];
-
 
 /**
  * React Compiler
  * 
- * Function that take the HTML string and traslate that to Vue
+ * Function that take the HTML string and translate to React
  * 
- * @param {string} name The Component Name
- * @param {string} html The HTML String
- * @param {string} css The CSS String
- * @param {string} js The Javascript String
+ * @param {string} name Component Name
+ * @param {string} html HTML String
+ * @param {string} css CSS String
  *
  * @return {string}
  */
-const ReactCompiler = (name, html, css, js) => {
+const ReactCompiler = (name, html, css) => {
 
 	let RStateManagement = new ReactStateManagement();
 
-	let parse = new Parser(js); //JS Parser
+	let parse = new Parser(); //JS Parser
 
 	//Get all data from HTML string
-	RStateManagement.getHTMLString(html);
-
-	//Get states declarations from JS and set to Data
 	RStateManagement.statesFromJS = parse.states;
+
+	//Parse Lifecycles
+	RStateManagement.setLifecycle(parse.lifecycles, "r");
+
+	RStateManagement.getHTMLString(html);	
 
 	//Get Methods from JS and set to Data
 	RStateManagement.getJsData(parse.functions, "r");
@@ -68,41 +66,43 @@ export default ${name || "MyComponent"};
 	return template;
 };
 
-
 /**
  * Vue Translator
  * 
- * Function that take the HTML string and traslate that to Vue
+ * Function that take the HTML string and translate to Vue
  *
- * @param {string} html The HTML String 
- * @param {string} css The CSS String
- * @param {string} js The Javascript String
+ * @param {String} name Component Name
+ * @param {string} html HTML String 
+ * @param {string} css CSS String
+ * 
  * @return {string}
  */
-const VueCompiler = (name, html, css, js) => {
+const VueCompiler = (name, html, css) => {
 
 	let VStateManagement = new VueStateManagement();
 
-	let parse = new Parser(js); //JS Parser
+	let parse = new Parser(); //JS Parser
 
 	// Set Styles
 	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
 
-	//Get all data from HTML string
-	VStateManagement.getHTMLString(html);
-
 	//Get states declarations from JS and set to Data
 	VStateManagement.statesFromJS = parse.states;
 
+	//Parse Lifecycles
+	VStateManagement.setLifecycle(parse.lifecycles, "v");
+
+	//Get all data from HTML string
+	VStateManagement.getHTMLString(html);
+
 	//Get Methods from JS and set to Data
 	VStateManagement.getJsData(parse.functions, "v");
-
+	
 	VStateManagement.watchers = parse.watchers;
-
+	
 	VStateManagement.setVarsToStatesContent(parse.vars);
 	
 	Components = VStateManagement.componentsContent;
-
 	
 	//Add new lines and idents to code beauty
 	let pretty = VStateManagement
@@ -115,25 +115,31 @@ const VueCompiler = (name, html, css, js) => {
 	
 	//Template to Set All Data
 	let component = 
-`<template>
-${pretty}
-</template>
+`<template>\n${pretty}</template>
 ${VStateManagement.componentData(name)}
 ${style}`;
 
 	return component;
 };
 
+/**
+ * Angular Translator
+ * 
+ * Function that take the HTML string and translate to Angular
+ *
+ * @param {String} name Component Name
+ * @param {string} html HTML String 
+ * @param {string} css CSS String
+ * 
+ * @return {string}
+ */
 const AngularCompiler = (name, html, css, js) => {
 
 	let AStateManagement = new AngularStateManagement();
 
 	let parse = new Parser(js); //JS Parser
 
-	let style; // Declare empty var to asign styles
-
-	//If param 'css' is not empty, set style tags to final render 
-	css !== "" ? style = `<style scoped>\n${css}</style>` : style = "";
+	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
 
 	//Get all data from HTML string
 	AStateManagement.getHTMLString(html);
@@ -172,7 +178,6 @@ export class AppComponent {
 	process.exit(1);
 };
 
-exports.setErrorHandler = setErrorHandler;
 exports.Components = Components;
 exports.VueCompiler = VueCompiler;
 exports.AngularCompiler = AngularCompiler;

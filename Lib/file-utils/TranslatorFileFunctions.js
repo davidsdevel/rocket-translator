@@ -1,12 +1,13 @@
 const {
 	existsSync,
 	mkdirSync,
-	readFileSync,
 	writeFileSync
 } = require("fs");
 const{ join } = require("path");
+const {readFileAsString} = require("../commons/file");
 const {VueCompiler, ReactCompiler} = require("../core");
 const clc = require("cli-color");
+const lifecycle = require("../const/Lifecycle.json");
 
 /**
   * File Functions to CLI
@@ -69,6 +70,59 @@ class TranslatorFileFunctions {
 		} else {
 			return "";
 		}
+	}
+	filterJavascriptDataFile(js) {
+		let newData = js;
+		let data = js.match(new RegExp(lifecycle.join("|"), "g")) || [];
+
+		data.forEach(e => {
+			newData = newData.replace(new RegExp(`(const|var|let)\\s*(?=${e})`), "exports.");
+		});
+		let splittedData = newData.split(/(\n|\r\n|\r)(?=var|let|const|function)/);
+		newData = splittedData
+			.map(e => {
+				if(e.startsWith("function")) {
+					return e
+						.replace(/^function\s*/, "exports.")
+						.replace(/\(/, "= (")
+						.replace(/\)/, ") =>");
+				}
+				return e.replace(/^(var|let|const)\s*/, "exports.");
+			})
+			.join("\n");
+
+		const defineGlobalsFile = newData
+			.split(/(\n|\r\n|\r)(?=exports.\w*)/)
+			.filter(e => e.startsWith("exports.defineGlobals"))
+			.join("");
+		
+		if (!existsSync(this._out))
+			mkdirSync(this._out);
+			
+		const tempDataFilePath = join(this._out, "rockettemp_data.js");
+		const tempDefineGlobals = join(this._out, "rockettemp_defineglobals.js");
+
+		writeFileSync(tempDataFilePath, newData);
+		writeFileSync(tempDefineGlobals, defineGlobalsFile || "exports.defineGlobals = () => []");
+
+		global.tempDataFile = tempDataFilePath;
+		global.defineGlobals = tempDefineGlobals;
+
+		this._filterGlobals();
+	}
+	_filterGlobals() {
+		const globalList = require("../const/Globals");
+		const {defineGlobals} = require(global.defineGlobals);
+		const globals = Object.assign([], globalList, defineGlobals !== undefined ? defineGlobals() : []);
+
+		let fileData = readFileAsString(global.tempDataFile);
+
+		globals.forEach(glob => {
+			fileData = fileData.replace(new RegExp(`:${glob}`), `:"${glob}"`);
+		});
+
+		writeFileSync(global.tempDataFile, fileData);
+
 	}
 	/**
 	 * Get CSS
@@ -174,8 +228,7 @@ class TranslatorFileFunctions {
 				console.error(clc.whiteBright("Please select a html file."));
 				process.exit(1);
 			} else {
-				let fileBuffer = readFileSync(pathname); //Read file
-				let data = Buffer.from(fileBuffer).toString(); //Decode Buffer
+				const data = readFileAsString(pathname);
 
 				//Remove external files routes
 				this._file = data
@@ -227,8 +280,8 @@ class TranslatorFileFunctions {
 			}
 			if (path !== null) {
 				path.forEach(e => {
-					let buff = readFileSync(join(__dirname, "..", "..", e)); //Read File
-					let data = Buffer.from(buff).toString(); //Decode Buffer
+					const data = readFileAsString(join(__dirname, "..", "..", e));
+
 					type === "css" ? this._css.push(data) : this._js.push(data); //Set Data                    
 				});
 			}

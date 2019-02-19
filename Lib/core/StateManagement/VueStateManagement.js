@@ -44,13 +44,9 @@ class VueStateManagement extends StateManagement {
 				if (content) return content.replace(/(\s*-.*\}|\})/g, "}}");
 			})
 			.join("{{");
-
-		//Parsing the data on braces
-		let replaceTypeValueData = addOpenBraces
-			.replace(/\s*-\s*(\w*|(")*\w*(")*)(?=\s*|\/|>)/g, "\"");
 		
 		//Parsing Event Tags "on"
-		let addEventToVue = replaceTypeValueData
+		let addEventToVue = addOpenBraces
 			.replace(/on(?=\w*="\w*\(.*\)")/g, "@");
 
 		/*----------Parsing Inputs Tags----------*/
@@ -101,28 +97,9 @@ class VueStateManagement extends StateManagement {
 			})
 			.join("<select");
 
-		//Parsing the bind attr with the v-bind directive
-		let bindDirectivesReplaced = selectTag
-			.split(/:(?=\w*=)/)
-			.map((content, i) => {
-				if (i > 0) {
-
-					//if have Attribute whit data
-					if (content.match(/^\w*="\w*"/)) {
-						return content;
-					}
-
-					//else
-					return content.replace(/""/, "\"'").replace("\"", "'");
-				}
-
-				//return content of index 0
-				return content;
-			})
-			.join(":");
-
+			
 		//Parsing conditionals tags
-		let condParsed  = bindDirectivesReplaced
+		let condParsed  = selectTag
 			/*Replace closing if and else tags with the template tag*/
 			.replace(/(\/if|\/else)(?=>)/g, "/template")
 			
@@ -135,9 +112,37 @@ class VueStateManagement extends StateManagement {
 			/*Replace unused spaces and duplicates quotes*/
 			.replace(/'(?=\s*.*>)/g, "\"")
 			.replace(/''(?=.*>)/g, "'\"");
+			
+		//Parsing the bind attr with the v-bind directive
+		let bindDirectivesReplaced = condParsed
+			.split(/:(?=\w*=)/)
+			.map((content, i) => {
+				if (i > 0) {
 
+					//if have Attribute whit data
+					if (/^\w*="\w*"/.test(content))
+						return content;
+
+					//else
+					if (/^\w*="\w*\s*==/.test(content))
+						return content
+							.replace(/""/, "\"'")
+							.replace(/'"/, "\"'")
+							.replace(/"/, "'");
+
+					return content
+						.replace(/""/, "\"'")
+						.replace("\"", "'")
+						.replace(/"""/, "''\"");
+				}
+
+				//return content of index 0
+				return content;
+			})
+			.join(":");
+			
 		//Parsing for tags
-		let loopParse = condParsed
+		let loopParse = bindDirectivesReplaced
 			.replace(/for val=(?=.*>)/g, "template v-for=")
 			.replace(/\/for(?=>)/g, "/template");
 			
@@ -172,17 +177,64 @@ class VueStateManagement extends StateManagement {
 	 *
 	 */
 	_mapComponentData(componentName){
+		const haveComponents = this.components.length > 0;
+		const haveProps = this.props.length > 0;
+		const haveStates = this.states.length > 0;
+		const haveLifecycles = this.lifecycle.length > 0;
+		const haveComputed = this.computed.length > 0;
+		const haveMethods = this.methods.length > 0;
+		const haveWatchers = this.watchers.length > 0;
+
 		//Strings to data content
+		let importComponents = "";
+		let components = "";
+		let props = "";
 		let states = "";
+		let lifecycle = "";
 		let computed = "";
 		let methods = "";
-		let components = "";
-		let importComponents = "";
 		let watchers = "";
-		let props = "";
 
+		//Components
+		if (haveComponents) {
+			const comma = 
+				haveProps ||
+				haveStates ||
+				haveLifecycles ||
+				haveComputed ||
+				haveMethods ||
+				haveWatchers ? "," : "";
+				
+			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t}${comma}`;
+
+			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`);
+		}
+
+		//Props
+		if (haveProps) {
+			const comma = 
+				haveStates ||
+				haveLifecycles ||
+				haveComputed ||
+				haveMethods ||
+				haveWatchers ? "," : "";
+
+			let lastIndex = this.props.length - 1;
+			let mappedProps = this.props.map((e, i) => {
+
+				let comma = i === lastIndex ? "" : ",";
+				return `\n\t\t${e}:{\n\t\t\ttype:String,\n\t\t\trequired:true,\n\t\t\tdefault:"Hola Mundo"\n\t\t}${comma}`;
+			});
+			props = `\n\tprops:{${mappedProps.join("")}\n\t}${comma}`;
+		}
 		//Map States
-		if (this.states.length > 0) {
+		if (haveStates) {
+			const comma = 
+				haveLifecycles ||
+				haveComputed ||
+				haveMethods ||
+				haveWatchers ? "," : "";
+
 			var mappedStates = {};
 
 			this.states.forEach(state => {
@@ -191,72 +243,68 @@ class VueStateManagement extends StateManagement {
 
 				mappedStates[stateName] = isObject ? state.value : "";
 			});
-			states = `\n\tdata(){\n\t\treturn ${this._JSONPrettify(mappedStates)}\n\t},`;
+			states = `\n\tdata(){\n\t\treturn ${this._JSONPrettify(mappedStates)}\n\t}${comma}`;
 		}
 
-		//Components
-		if (this.components.length > 0) {
-			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t},`;
-			this.components.forEach(e => {
-				importComponents += `import ${e} from "~/components/${e}"\n`;
+		//Lifecycles
+		if(haveLifecycles) {
+			const comma = 
+				haveComputed ||
+				haveMethods ||
+				haveWatchers ? "," : "";
+
+			const mappedLifecycles = this.lifecycle.map(({name, content}) => {
+				content = content
+					.split(/\n|\r\n|\r/)
+					.map(e => e.replace("\t", ""))
+					.join("\r\n");
+
+				return `${name}${content}`;
 			});
+
+			lifecycle = `\n\t${mappedLifecycles.join(",\n\t")}${comma}`;
 		}
 
 		//Computed Properties
-		if (this.computed.length > 0) {
-			let lastIndex = this.computed.length -1;
-			let mappedComputed = this.computed.map(({content, name}, i) => {
-				let comma = i ===  lastIndex ? "\n":",\n\t\t";
+		if (haveComputed) {
+			const comma = 
+				haveMethods ||
+				haveWatchers ? "," : "";
 
-				//Computed with content
-				return `${name}() ${content}${comma}`;
-			});
-			computed = `\n\tcomputed:{\n\t\t${mappedComputed.join("")}\t},`;
+			let mappedComputed = this.computed.map(({name, content}) => `${name}${content}`);
+
+			computed = `\n\tcomputed:{\n\t\t${mappedComputed.join(",\n\t\t")}\n\t}${comma}`;
 		}
 
 		//Methods
-		if (this.methods.length > 0){
-			let lastIndex = this.computed.length -1;
-			let mappedMethods = this.methods.map(({content, name, params}, i) => {
-				let comma = i === lastIndex ? "\n":",\n";
+		if (haveMethods){
+			const comma = haveWatchers ? "," : "";
 
-				//Method with content
-				return `${name}(${params}) ${content}${comma}`;
-			});
-			methods = `\n\tmethods:{\n\t\t${mappedMethods.join("\t\t")}\t},`;
+			let mappedMethods = this.methods.map(({content, name}) => `${name}${content}`);
+
+			methods = `\n\tmethods:{\n\t\t${mappedMethods.join(",\n\t\t")}\n\t}${comma}`;
 		}
 
 		//Watchers
-		if (this.watchers.length > 0) {
-			let mappedWatchers = this._filterJS(this.watchers, "v")
-				.map(({content, funcName}) => {
-					return `${funcName} ${content}`;
-				});
+		if (haveWatchers) {
+			let mappedWatchers = this._filterJS(this.watchers, "v").map(({content, name}) => `${name}${content}`);
 
-			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join("\n\t\t")}\n\t}`;
-		}
-		//Props
-		if (this.props.length > 0) {
-			let lastIndex = this.props.length - 1;
-			let mappedProps = this.props.map((e, i) => {
-
-				let comma = i === lastIndex ? "" : ",";
-				return `\n\t\t${e}:{\n\t\t\ttype:String,\n\t\t\trequired:true,\n\t\t\tdefault:"Hola Mundo"\n\t\t}${comma}`;
-			});
-			props = `\n\tprops:{${mappedProps.join("")}\n\t},`;
+			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join(",\n\t\t")}\n\t}`;
 		}
 
-		let mainTemplate = 	`${importComponents}\nexport default {\n\tname:${componentName || "MyComponent"},${components}${props}${states}${computed}${methods}${watchers}\n}`;
-		if (componentName ||
-			states ||
-			computed ||
-			methods ||
-			components ||
-			watchers ||
-			props
-		) {
+		const haveData = 
+			haveComponents ||
+			haveProps ||
+			haveStates ||
+			haveLifecycles ||
+			haveComputed ||
+			haveMethods ||
+			haveWatchers;
+
+		let mainTemplate = 	`${importComponents}export default {\n\tname:${componentName || "MyComponent"}${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}\n}`;
+		
+		if (haveData)
 			return `<script>\n${mainTemplate}\n</script>`;
-		}
 		
 		return "";
 	}

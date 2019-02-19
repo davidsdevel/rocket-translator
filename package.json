@@ -1,6 +1,6 @@
 {
 	"name": "rocket-translator",
-	"version": "1.3.5",
+	"version": "2.0.0",
 	"description": "Translate your HTML files to React.js and Vue.js",
 	"keywords": [
 		"vue",
@@ -21,6 +21,7 @@
 		"url": "git+https://github.com/Davids-Devel/rocket-translator.git"
 	},
 	"scripts": {
+		"postinstall":"node bin/changelog.js",
 		"test": "jest",
 		"lint": "eslint -c .eslintrc.js ./Lib",
 		"lint-fix": "eslint -c .eslintrc.js --fix ./Lib",

@@ -1,9 +1,9 @@
-const {readFileSync} = require("fs");
+const {readFileAsString} = require("../../commons/file");
 const clc = require("cli-color");
 
 class ErrorManagement {
 	constructor() {
-		let file = Buffer.from(readFileSync(global.translatorFilePath)).toString();
+		let file = readFileAsString(global.translatorFilePath);
 		this.lines = file.split(/\r\n|\n|\r/);
 		console.log(clc.redBright("\nError!!!\n"));
 	}
@@ -31,6 +31,7 @@ class ErrorManagement {
 
 		case "Undefined State":
 			stringToMatch = data.string;
+			// eslint-disable-next-line prefer-destructuring
 			name = data.name;
 			break;
 		case "Expected Token":
@@ -46,6 +47,7 @@ class ErrorManagement {
 			break;
 		case "Expected Attribute":
 			stringToMatch = data.line;
+			// eslint-disable-next-line prefer-destructuring
 			name = data.name;
 			break;
 		case "Undefined Input Name":

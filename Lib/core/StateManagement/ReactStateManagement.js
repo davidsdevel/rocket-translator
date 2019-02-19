@@ -39,17 +39,27 @@ class ReactStateManagement extends StateManagement {
 	 * @return {string}
 	 */
 	get componentData(){
+		const haveStates = this.states.length > 0;
+		const haveLifecycles = this.lifecycle.length > 0;
+		const haveComputed = this.computed.length > 0;
+		const haveMethods = this.methods.length > 0;
+		const haveWatchers = this.watchers.length > 0;
+		
+		var componentDidUpdateContent = "";
+
 		//Empty vars to append into template
 		let states = "";
+		let lifecycle = "";
 		let computed = "";
 		let methods = "";
 		let bindMethods = "";
 		let bindComputeds = "";
+		let bindLifecycles = "";
 		let watchers = "";
 		let inputHandler = "";
 
 		//Map States
-		if (this.states.length > 0) {
+		if (haveStates) {
 			var mappedStates = {}; //Empty Object to set States
 			this.states.forEach(state => {
 				let isObject = typeof state === "object";
@@ -60,14 +70,33 @@ class ReactStateManagement extends StateManagement {
 			});
 			states = `\n\t\tthis.state = ${this._JSONPrettify(mappedStates)};`; //Set States
 		}
+		if (haveLifecycles) {
+			var mappedBindLifecycles = [];
+			const mappedLifecycle = this.lifecycle.map(({name, content}) => {
+				if (haveWatchers && name === "componentDidUpdate") {
+					componentDidUpdateContent = content
+						.replace(/(.*)\s*{/, "")
+						.replace(/}$/, "");
+
+					return "";
+				}
+				mappedBindLifecycles.push(`this.${name} = this.${name}.bind(this);`);
+
+				return `${name}${content}\n\t`;
+			});
+
+			lifecycle = `${mappedLifecycle.join("\n\t")}\n\t`;
+			
+			bindLifecycles = `\n\t\t${mappedBindLifecycles.join("\n\t\t")}`;
+		}
 
 		//Map Computed Properties
-		if (this.computed.length > 0) {
+		if (haveComputed) {
 			let mappedComputed = this.computed.map(({name, content}) => {
 				this.prerenderComputed.push(`var ${name} = this.${name}();\n\t\t`);
-				return `${name}()${content}`;
+				return `${name}${content}`;
 			});
-			computed = `\n\t${mappedComputed.join("\n\t")}`;
+			computed = `${mappedComputed.join("\n\t")}\n\t`;
 
 			//Add to bind methods
 			let mappedBindComputed = this.computed.map(({name}) => {
@@ -78,11 +107,11 @@ class ReactStateManagement extends StateManagement {
 		}
 
 		//Methods
-		if(this.methods.length > 0){
-			let mappedMethods = this.methods.map(({name, content, params}) => {
-				return `${name}(${params}) ${content}`;
+		if(haveMethods){
+			let mappedMethods = this.methods.map(({name, content}) => {
+				return `${name}${content}`;
 			});
-			methods = `\n\t${mappedMethods.join("\n\t")}`;
+			methods = `${mappedMethods.join("\n\t")}\n\t`;
 
 			//Add to bind methods
 			let mappedBindMethods = this.methods.map(({name}) => {
@@ -93,46 +122,51 @@ class ReactStateManagement extends StateManagement {
 		}
 
 		//Map State Watchers
-		if (this.watchers.length > 0) {
-
+		if (haveWatchers) {
+			const filteredJs = this._filterJS(this.watchers, "r");
+			const watchToMap = filteredJs.concat([{name: "rocketComponentDidUpdate", content:componentDidUpdateContent}]);
 			//Filter Content And Map Watchers
-			let mappedWatchers = this._filterJS(this.watchers, "r")
-				.map(({name, content, params}, i) => {
-					let isState = false;
-					let isProp = false;
+			let mappedWatchers = watchToMap
+				.map(({name, content}, i) => {
+					
+					if (name === "rocketComponentDidUpdate")
+						return content;
+					
+					const param = content.match(/\w*(?=\s*(\)|=>))/)[0];
+					content = content.replace(/.*(?={)/, "");
+					let stateOrProp = "";
 
 					//Watch if is a state
-					this.states.forEach(state => {
-						if (name === state || name === state.key) {
-							isState = true;
-						}
-					});
+					for (let i = 0; i < this.states.length; i++) {
+						if (stateOrProp === "state.")
+							break;
 
-					if (!isState) {
+						const stateName = typeof this.states[i] === "object" ? this.states[i].key : this.states[i];
+						if (name === stateName)
+							stateOrProp = "state.";
+					}
+
+					if (!stateOrProp) {
 					//Watch if is a prop
-						this.props.forEach(prop => {
-							if (prop === name) {
-								isProp = true;
-							}
-						});
+						for (let i = 0; i < this.states.length; i++) {
+							if (stateOrProp === "prop.")
+								break;
+
+							const stateName = typeof this.states[i] === "object" ? this.states[i].key : this.states[i];
+							if (name === stateName)
+								stateOrProp = "prop.";
+						}
 					}
 
 					let conditional = i === 0 ? "if" : "else if";
-
-					let stateOrProp = "";
-					if (isState) {
-						stateOrProp = "state.";
-					} else if (isProp) {
-						stateOrProp = "prop.";
-					}
-					return`${conditional} (${stateOrProp + name}) ${content.split(/\n/).join("\n\t").replace(/^{/, `{\n\t\t\tlet ${params} = ${stateOrProp + name};`).replace(/}$/, "}")}`;
+					return `${conditional} (${stateOrProp + name}) ${content.split(/\n/).join("\n\t").replace(/^{/, `{\n\t\t\tlet ${param} = ${stateOrProp + name};`)}`;
 				});
-			watchers = `\n\tcomponentDidUpdate(prop, state){\n\t\t${mappedWatchers.join(" ")}\n\t}`;
+			watchers = `componentDidUpdate(prop, state){\n\t\t${mappedWatchers.join(" ")}\n\t}`;
 		}
 
 		//Map Input Handler
 		if (this.handleInputs) {
-			inputHandler = "\n\tinputHandler({target}){\n\t\tlet {name, type} = target;\n\t\tlet value = type === 'checkbox' ? target.checked : target.value;\n\t\tthis.setState({\n\t\t\t[name]: value\n\t\t})\n\t}";
+			inputHandler = "inputHandler({target}){\n\t\tlet {name, type} = target;\n\t\tlet value = type === 'checkbox' ? target.checked : target.value;\n\t\tthis.setState({\n\t\t\t[name]: value\n\t\t});\n\t}\n\t";
 		}
 		//If don't have data return empty
 		if (
@@ -145,7 +179,7 @@ class ReactStateManagement extends StateManagement {
 			return "";
 		}
 
-		return `constructor() {\n\t\tsuper();${states}${bindMethods}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}\n\t}${computed}${methods}${inputHandler}${watchers}`;
+		return `constructor() {\n\t\tsuper();${states}${bindMethods}${bindLifecycles}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}\n\t}\n\t${lifecycle}${computed}${methods}${inputHandler}${watchers}`;
 	}
 	/**
 	 * Map Conditionals
@@ -171,57 +205,42 @@ class ReactStateManagement extends StateManagement {
 			if(splittedCond.length > 1) {
 
 				//Get Conditional HTML Content
-				let condTag = conditionalData.else ? "</else>" : "</if>";
+				let condTag;
+				if (conditionalData.else)
+					condTag = "</else>";
+				else if (conditionalData.elseIf)
+					condTag = "</else-if>";
+				else
+					condTag = "</if>";
+
 				let replaced = splittedCond[i+1].split(condTag);
-
+				let latestIndexOfReplaced = replaced[replaced.length - 1];
 				//We replace that content with the conditional ID
-				replaced[0] = `{cond_${id}}`;
-
 				//And replace the content in the main Array
-				splittedCond[i+1] = replaced.join("");
+				splittedCond[i+1] = `{cond_${id}}${latestIndexOfReplaced}`;
 
 				/*-----------Data for If --------------*/
-				let filterIf = conditionalData.if
-					/*Filter Firts Tabs*/
-					.replace(/\t|\s\s/g, "")
-					/*Filter NewLine*/
-					.replace(/(\r\n|\n|\r)/g, "")
-					.split(/<(?=img|br|input|hr|wbr|area|track|param|source|col|progress)/)
-					.map((content, i) => {
-						if (i > 0) { 
-							//Add enclosing tag
-							return content.replace(/>|\/>/, "/>");
-						}
-						return content;
-					}).join("<");
+				let filterIf = this._filterConditionalHTML(conditionalData.if);
 
-				//If have a loop
-				if(filterIf.match(/<for\s*val/))
-					filterIf = this._mapLoops(filterIf);
-
+				/*-----------Data for Else If --------------*/
+				let filterElseIf;
+				if (conditionalData.elseIf)
+					filterElseIf = conditionalData.elseIf.map(con => {
+						return {
+							cond:con.cond,
+							content:this._filterConditionalHTML(con.content)
+						};
+					});
 				/*-----------Data for Else --------------*/
 				let filterElse;
-				if (conditionalData.else) {
-					filterElse = conditionalData.else
-						/*Filter Firts Tabs*/
-						.replace(/\t|\s\s/g, "")
-						/*Filter NewLine*/
-						.replace(/(\r\n|\n|\r)/g, "")
-						.split(/<(?=img|br|input|hr|wbr|area|track|param|source|col|progress)/)
-						.map((content, i) => {
-							if (i > 0) {
-								return content.replace(/>|\/>/, "/>");
-							}
-							return content;
-						}).join("<");
-					//If have loop
-					if(filterElse.match(/<for\s*val/))
-						filterElse = this._mapLoops(filterElse);
-				}
+				if (conditionalData.else)
+					filterElse = this._filterConditionalHTML(conditionalData.else);
+				
 
 				this.condStates.push({
 					id,
 					cond:conditionalData.cond,
+					elseIf:filterElseIf,
 					if:filterIf,
 					else:filterElse
 				});
@@ -229,6 +248,27 @@ class ReactStateManagement extends StateManagement {
 		});
 		this.condWasMapped = true;
 		return splittedCond.join("");
+	}
+	_filterConditionalHTML(html) {
+		let finalHTML = html
+			/*Filter Firts Tabs*/
+			.replace(/\t|\s\s/g, "")
+			/*Filter NewLine*/
+			.replace(/(\r\n|\n|\r)/g, "")
+			.split(/<(?=img|br|input|hr|wbr|area|track|param|source|col|progress)/)
+			.map((content, i) => {
+				if (i > 0) { 
+					//Add enclosing tag
+					return content.replace(/>|\/>/, "/>");
+				}
+				return content;
+			}).join("<");
+
+		//If have a loop
+		if(finalHTML.match(/<for\s*val/))
+			finalHTML = this._mapLoops(finalHTML);
+
+		return finalHTML;
 	}
 	/**
 	 * Map Loops
@@ -609,6 +649,32 @@ class ReactStateManagement extends StateManagement {
 
 		return html;
 	}
+	/**
+	 * Get Typeof Data
+	 * 
+	 * Take a conditional state and get if is a State or a Prop
+	 * 
+	 * @private
+	 * @param {String} data
+	 * 
+	 * @return {String}
+	 */
+	_setTypeofData(data) {
+		const name = data.match(/^\w*/)[0];
+		//Map States
+		for (let i = 0; i < this.states.length; i++) {
+
+			const state = typeof this.states[i] === "object" ? this.states[i].key : this.states[i];
+			if (state === name)
+				return `this.state.${data}`;
+		}
+
+		//Map Props
+		for (let i = 0; i < this.props.length; i++) {
+			if (this.props[i] === name)
+				return `this.props.${data}`;
+		}
+	}
 	
 	/**
 	 * Prerender Logical (getter)
@@ -625,7 +691,7 @@ class ReactStateManagement extends StateManagement {
 		});
 		this.condWasMapped = false;
 		let cond = this.condStates.map(e => {
-			return `var cond_${e.id};\n\t\tif(this.state.${e.cond}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.if)}\n\t\t} ${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.else)}\n\t\t}\n\t\t`:""}`;
+			return `var cond_${e.id};\n\t\tif(${this._setTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.if)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => `else if (${this._setTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(con.content)}\n\t\t}\n\t\t`).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.else)}\n\t\t}\n\t\t`:""}`;
 		});
 		this.condStates = [];
 		this.loopsState = [];
