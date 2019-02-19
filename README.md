@@ -236,10 +236,10 @@ And to add a attr with a state value add `:` on the attr front.
 <MyComponent :my-bind-attr="stateName" />
 ```
 
-To write the component content, add a `component` tag with the component content. And a attr `name` with the component name. And others attrs can be passed to the component.
+To write the component content, add a `component` tag with the component content. And an attr `component-name` with the component name. And others attrs can be passed to the component.
 
 ```html
-<component name="HelloWorldComponent" name="World">
+<component component-name="HelloWorldComponent" name="World">
     <div>
         <h1>Hello {name - prop}!</h1>
     </div>
@@ -248,15 +248,28 @@ To write the component content, add a `component` tag with the component content
 
 ### State Watchers <a name="watchers"></a>
 
-To declare a **State Watcher** you must add the keyword `watch` followed by the state name to watch equal to function to execute when the state changes.
+To define a **State Watcher** you must create the function `setStateWatchers` this function must return all the states watchers.
 
 ```js
-watch stateName = function(e) {
-    //Handle State
+function setStateWatchers() {
+    return {
+        state(e) {
+            //Handle State
+        },
+        anotherState: function(e) {
+            //Handle Another State
+        }
+    }
 }
-//Or with ES6
-watch stateName = e => {
-    //Handle State
+```
+
+Also you can define as a `var`, `let` or `const`.
+
+```js
+const setStateWatchers = () => {
+    return {
+        //Watchers
+    }
 }
 ```
 
@@ -329,7 +342,16 @@ And you can set it with an `else` tag.
     <span>Password is very strong</span>
 </else>
 ```
+Since version **2.0.0** we add the `else-if` tag. Like the `if` tag, this take the attr `cond` with the condition.
 
+```html
+<if cond="age < 18">
+    <span>Too Young</span>
+</if>
+<else-if cond="age > 30">
+    <span>Too Old</span>
+</else-if>
+```
 ### List Render <a name="loops"></a>
 Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val` attr.
 
@@ -358,28 +380,68 @@ To the JavaScript Management, we add a few of keywords to help with the code imp
 
 To include JavaScript on the template, add a `script` tag with the JavaScript code to translate. Or you can add the line `#js path/to/js.js` to import a external file.
 
-#### Keywords
+#### Lifecycles
+Since version `2.0.0` we add supports for framework **lifecycle**; and like methods and computed, all lifecycles will be filtered.
 
-##### State
+We add 8 lifecycles to define the final component.
 
-The keyword `state` is used to declare a state from JavaScript. Using the next format: `state stateName = stateValue`.
+* **setInitialState**
+* **setStateWatchers**
+* **beforeMount**
+* **mounted**
+* **beforeUpdate**
+* **updated**
+* **beforeUnmount**
+* **unmounted**
 
-The **State Value** can be type: `String`, `Number`, `Boolean`, `Array` or `Object`.
+##### Set Initial States
 
-##### Watch
+`setInitialState` have the same function that the `state` keyword in previous versions, this define **states** that will not be rendered on template.
 
-The keyword `watch` is used to assign a **Watcher** to a state or prop. Assigning as value the function to execute with the param that the function get.
+Example:
 
-```js
-watch stateOrProp = function(e) {
-    console.log(e);
-}
+```html
+<div>
+    <span>Hi I Am: {fullName - computed}</span>
+</div>
+<script>
+    function setInitialState() {
+        return {
+            name: "Foo",
+            lastName: "Bar"
+        }
+    }
+    function fullName() {
+        return `${name} ${lastName}`;
+    }
+</script>
+```
 
-// Or use ES6
+##### Set State Watchers
 
-watch stateOrProp = e => {
-    console.log(e);
-}
+`setStateWatchers` have the same function that the `watch` keyword in previous versions, this define all the states **watchers**.
+
+Example:
+
+```html
+<div>
+    <span>You have do {clicks - state - 0} clicks</span>
+    <button onclick="countClick()">Do Click</button>
+</div>
+<script>
+    function setStateWatchers() {
+        return {
+            clicks(clicksNumber) {
+                if (clicksNumber > 10) {
+                    alert("You do more than 10 clicks");
+                }
+            }
+        }
+    }
+    function countClick() {
+        clicks++;
+    }
+</script>
 ```
 
 #### Functions
@@ -407,8 +469,12 @@ The **Functions** are to change the method and computed properties execution. If
 The **JavaScript Filter** is structured to filter the states and props. If into the code we have a function that contain a var with the state or prop name, this will be replaced automaticaly. Is not necesary declare like a state.
 
 ```js
-state name = "Hello";
-state lastName = "World";
+function setInitialState() {
+    return {
+        name: "Hello",
+        lastName: "World"
+    }
+}
 
 function sayHello() {
     alert(name + " " + lastName);
@@ -428,12 +494,12 @@ Like on JavaScript, on HTML we have a specific **syntax**, that we must follow t
 
 The most used is the **bars declaration** `{}`, this is used to assign a state, prop, computed or the out framework syntax.
 
-Framework Declarative Syntax: `{ unsignedValue }`
+Framework Declarative Syntax: `{ name }`
 
 State without value: `{stateName - state}`
 
 State With Value: `{stateName - state - value}`
-The `value` can be type: `String`, `Number`, `Boolean`, `Array` and `Object`.
+The `value` can be type: `String`, `Number`, `Boolean`, `Array`, `Object`, `null`, `undefined`, `NaN` or `Infinity`.
 
 Prop: `{propName - prop}`
 
@@ -451,12 +517,15 @@ To execute JavaScript syntax or assign a state or prop value on an HTML attribut
 
 #### Conditionals And Loops Tags
 
-We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` and `for`.
+We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else-if`, `else` and `for`.
 
 ```html
 <if cond="condToEvaluate">
     <span>If Content</span>
 </if>
+<else-if cond="condToEvaluate">
+    <span>Else If Content</span>
+</else-if>
 <else>
     <span>Else Content</span>
 </else>
@@ -469,7 +538,7 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else` an
 We add this tag to declare a **custom** component inside the **Main Component**
 
 ```html
-<component name="ComponentName">
+<component component-name="ComponentName">
     <span>Component Content</span>
 </component>
 ```
