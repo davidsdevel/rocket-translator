@@ -1,0 +1,11 @@
+[
+    "setInitialState",
+    "setStateWatchers",
+    "defineGlobals",
+    "beforeMount",
+    "mounted",
+    "beforeUpdate",
+    "updated",
+    "beforeUnmount",
+    "unmounted"
+]
