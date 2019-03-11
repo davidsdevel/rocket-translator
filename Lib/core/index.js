@@ -135,26 +135,39 @@ ${style}`;
  */
 const AngularCompiler = (name, html, css, js) => {
 
-	let AStateManagement = new AngularStateManagement();
+	const AStateManagement = new AngularStateManagement();
 
-	let parse = new Parser(js); //JS Parser
+	const parse = new Parser(); //JS Parser
 
+	// Set Styles
 	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
-
-	//Get all data from HTML string
-	AStateManagement.getHTMLString(html);
 
 	//Get states declarations from JS and set to Data
 	AStateManagement.statesFromJS = parse.states;
 
+	//Parse Lifecycles
+	AStateManagement.setLifecycle(parse.lifecycles, "a");
+
+	//Get all data from HTML string
+	AStateManagement.getHTMLString(html);
+
 	//Get Methods from JS and set to Data
-	AStateManagement.getJsData(parse.functions, "v");
-
+	AStateManagement.getJsData(parse.functions, "a");
+	
 	AStateManagement.watchers = parse.watchers;
-
+	
 	AStateManagement.setVarsToStatesContent(parse.vars);
 	
 	Components = AStateManagement.componentsContent;
+	
+	//Add new lines and idents to code beauty
+	let pretty = AStateManagement
+		.filterHTML(html)
+		.split(/\n/)
+		.map(e => {
+			if (e) return `\t${e}\n`;
+		})
+		.join("");
 	/*
 Component Template
 
@@ -174,8 +187,20 @@ export class AppComponent {
 }
 
 */
-	console.log(AStateManagement.componentData);
-	process.exit(1);
+
+	const component = `import { Component ${AStateManagement.props.length > 0 ? ", Input" : ""}} from '@angular/core';
+
+${AStateManagement.components.map(e => `import { ${e} } from "./components/${e}";`)}
+
+@Component({
+	selector: '${AStateManagement.generateComponentName(name)}-root',
+	template:\`${pretty}\`
+})
+
+export class ${name} {
+	${AStateManagement.componentData}
+}`;
+	return component;
 };
 
 exports.Components = Components;

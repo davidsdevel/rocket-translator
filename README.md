@@ -559,13 +559,14 @@ We add this tag to declare a **custom** component inside the **Main Component**
 - [ ] Nested Conditionals 
 - [x] Loops
 - [ ] Nested Loops
-- [ ] Inner HTML 
+- [ ] Inner HTML
 - [x] Lifecycles
 - [ ] React without JSX
 - [ ] React without ES6
 - [ ] Vue Standalone
 - [ ] Next Framework
-- [ ] Angular Support
+- [x] Angular 7 Support
+- [ ] Previous Angular Versions
 
 **Note:** If you see that some feature is missing, you can open a pull request or write an issue, and tell what feature is missing.
 

@@ -118,22 +118,15 @@ class VueStateManagement extends StateManagement {
 			.split(/:(?=\w*=)/)
 			.map((content, i) => {
 				if (i > 0) {
+					const attr = content.match(/^\w*/)[0];
+					const bindAttr = content.match(/^\w*=".*"(?=\s*\/>|\s*>|(\s*\w*=('|")))/)[0];
 
-					//if have Attribute whit data
-					if (/^\w*="\w*"/.test(content))
-						return content;
+					const replacedQuotes = bindAttr
+						.replace(/"/g, "'")
+						.replace("'", "\"")
+						.replace(/'$/, "\"");
 
-					//else
-					if (/^\w*="\w*\s*==/.test(content))
-						return content
-							.replace(/""/, "\"'")
-							.replace(/'"/, "\"'")
-							.replace(/"/, "'");
-
-					return content
-						.replace(/""/, "\"'")
-						.replace("\"", "'")
-						.replace(/"""/, "''\"");
+					return content.replace(bindAttr, replacedQuotes);
 				}
 
 				//return content of index 0

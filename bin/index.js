@@ -18,7 +18,7 @@ else if (mode === "-v" || mode === "--version")
 	CLI.showVersion();
 
 else {
-	if (mode !== "vue" && mode !== "react")
+	if (mode !== "vue" && mode !== "react" && mode !== "angular")
 		CLI.invalidMode(mode);
 
 	let filePath = process.argv[3] ? join(cliDir, process.argv[3]) : "not-file"; //Get the file path

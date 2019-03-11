@@ -5,7 +5,7 @@ const {
 } = require("fs");
 const{ join } = require("path");
 const {readFileAsString} = require("../commons/file");
-const {VueCompiler, ReactCompiler} = require("../core");
+const {VueCompiler, ReactCompiler, AngularCompiler} = require("../core");
 const clc = require("cli-color");
 const lifecycle = require("../const/Lifecycle.json");
 
@@ -159,15 +159,23 @@ class TranslatorFileFunctions {
 				let {content} = ComponentsArray[i];
 				let mime;
 				
-				if (type === "vue") {
-					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
-					mime = "vue";
-				} else if (type === "react") {
-					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
-					mime = "jsx";
+				switch(type) {
+					case "vue":
+						content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+						mime = "vue";
+						break;
+					case "react":
+						content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+						mime = "jsx";
+						break;
+					case "angular":
+						content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+						mime = "component.ts";
+						break;
+					default: 
+						console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
+						process.exit(1);
 				}
-				else console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
-
 				writeFileSync(join(componentsFolder, `${name}.${mime}`), content);
 			}
 		}
@@ -191,6 +199,9 @@ class TranslatorFileFunctions {
 			break;
 		case "react":
 			mime = "jsx"; //Set "jsx" extension
+			break;
+		case "angular":
+			mime = "component.ts";
 			break;
 		default:
 			throw new Error(`Invalid Type ${type}`);

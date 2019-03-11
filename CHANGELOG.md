@@ -1,4 +1,7 @@
 # Version 2
+## Added Angular Support!!!
+
+This was be the most awaited feature in the project. We start with Angular 7, and in future versions we will add previous angular versions. Remember help with issues and pull request.
 
 ## 2.0.0
 

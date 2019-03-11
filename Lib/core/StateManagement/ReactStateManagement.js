@@ -329,19 +329,19 @@ class ReactStateManagement extends StateManagement {
 			.split(/\{(?=\w*)/g)
 			.map((e, i) => {
 				if (e) {
-					let str;
-					if (i === 0) {
-						str = e;
-					} else if (e.match(/prop/)) { 
-						str = `{this.props.${e.replace(/(\s*-.*\})/g, "}")}`;
-					}else if (e.match(/computed/)) {
-						str = `{${e.replace(/(\s-.*\})/g, "}")}`;
-					} else if (e.match(/state/)){
-						str = `{this.state.${e.replace(/(\s*-.*\})/g, "}")}`;
-					} else {
-						str = `{${e}`;
-					}
-					return str;
+					if (i === 0)
+						return e;
+					
+					if (/prop/.test(e))
+						return `{this.props.${e.replace(/(\s*-.*\})/g, "}")}`;
+					
+					if (/computed/.test(e))
+						return `{${e.replace(/(\s-.*\})/g, "}")}`;
+					
+					if (/state/.test(e))
+						return `{this.state.${e.replace(/(\s*-.*\})/g, "}")}`;
+				
+					return `{${e}`;
 				}
 			})
 			.join("")
@@ -349,41 +349,41 @@ class ReactStateManagement extends StateManagement {
 			.map((e, i) => {
 				let valueToReturn;
 				if (i !== 0) {
-					if(e.match(/^\w*='\w*'/)){
+					if(/^\w*='\w*'/.test(e)){
 						let isState = false;
 						let toCompare = e.match(/='\w*(?=')/)[0];
 						this.states.forEach(state => {
 							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
+							if (new RegExp(state).test(toCompare)) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
-					} else if (e.match(/^\w*='\w*\s*-\s*\w*'/)) {
+						return e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
+					}
+					if (/^\w*='\w*\s*-\s*\w*'/.test(e)) {
 						let isState = false;
 						let toCompare = e.match(/^\w*='\w*/g)[0];
 						this.states.forEach(state => {
 							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
+							if (new RegExp(state).test(toCompare)) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
-					} else if (e.match(/^\w*='(\w*|\w*(\.\w*)*)\s*(<|>|==|===|\?)/)) {
+						return e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
+					}
+					if (/^\w*='(\w*|\w*(\.\w*)*)\s*(<|>|==|===|\?)/.test(e)) {
 						let isState = false;
 						let toCompare = e.match(/(\w*|\w*(\.\w*)*)(?=\s*(<|>|==|===|\?))/)[0];
 						this.states.forEach(state => {
 							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
+							if (new RegExp(state).test(toCompare)) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/'''/, "\"\"}").replace(/''/, "'}").replace(/='}/, "=''").replace(/}'/, "}}");
+						return e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/'''/, "\"\"}").replace(/''/, "'}").replace(/='}/, "=''").replace(/}'/, "}}");
 					}
-				} else {
-					valueToReturn = e;
 				}
-				return valueToReturn;
+				return e;
 			})
 			.join(" ")
 			.replace(/\s-\s.*'/g, "}")
@@ -566,75 +566,85 @@ class ReactStateManagement extends StateManagement {
 						eventName = eventName[0].toUpperCase() + eventName.slice(1);
 						break;
 					}
-					if(e.match(/='\w*\(\)/)) {
+
+					if(/='\w*\(\)/.test(e))
 						return e.replace(/\w*/, eventName)
 							.replace(/'(?=\w*)/, "{this.")
 							.replace(/\(\)'(?=\s|\/|>)/, "}");
 
-					} else if(e.match(/='\w*\(.*\)/)) {
+					if(/='\w*\(.*\)/.test(e))
 						return e.replace(/\w*/, eventName)
 							.replace(/'(?=\w*)/, "{()=>this.")
 							.replace(/\)'(?=\s|\/|>)/, ")}");
-					} else {
-						return e.replace(/\w*/, eventName)
-							.replace("'", "{")
-							.replace("'", "}");
-					}
+
+
+					return e.replace(/\w*/, eventName)
+						.replace("'", "{")
+						.replace("'", "}");
 				} 
 			})
 			.join("on")
 			.split(/<input/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
 					if (name) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<input ")
 			.split(/<textarea/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
 					if (name) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<textarea ")
 			.split(/<select/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
 					if (name) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<select ")
 			.replace(/class(?=='|={)/g, "className")
 			.replace(/for(?=='|={)/g, "htmlFor")
 			.split(/<br/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<br")
 			.split(/<img/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<img")
 			.split(/<input/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<input")
 			.split("<component ").map((e, i) => {
 				if (i > 0) {
@@ -643,7 +653,7 @@ class ReactStateManagement extends StateManagement {
 					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
 					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 				} 
-				else return e;
+				return e;
 			})
 			.join("<");
 

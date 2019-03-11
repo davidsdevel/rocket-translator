@@ -34,12 +34,9 @@ class CLI {
 			case "react":
 				this.compile("react");
 				break;
-			/*
-			TODO: Implement Angular Mode
 			case "angular":
 				this.compile("angular");
 				break;
-			*/
 			default:
 				this.invalidMode();
 				break;

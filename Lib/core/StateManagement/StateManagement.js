@@ -646,12 +646,17 @@ class StateManagement {
 				propReplace = "this.props.";
 				tab = "\t";
 				break;
+			case "a":
+				stateReplace = "this.";
+				propReplace = "this.";
+				tab = "\t";
+				break;
 			case "v":
 				stateReplace = "this.";
 				propReplace = "this.";
 				tab = "\t\t";
 				break;
-			default: throw new Error("The type param must be 'v' or 'r'");
+			default: throw new Error("The type param must be 'v', 'r' or 'a'");
 			}
 			//Map JS Content
 			let JsonArray = JsArray.map(({content, name}) => {
@@ -679,6 +684,7 @@ class StateManagement {
 				this.props.forEach(prop => {
 					data = this._expressionsFilter(data, prop, propReplace);
 				});
+
 				if (type === "r")
 					data = this._setStateFilter(data);
 
@@ -781,6 +787,7 @@ class StateManagement {
 			
 			return filtered.replace(toUnfilter[0], toUnfilter[0].replace(replace, ""));
 		}
+		return filtered;
 	}
 	/**
 	 * Globals
