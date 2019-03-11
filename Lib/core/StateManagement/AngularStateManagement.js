@@ -123,7 +123,6 @@ class AngularStateManagement extends StateManagement {
 						.replace("'", "\"")
 						.replace(/'$/, "\"");
 
-					console.log(replacedQuotes);
 					return content
 						.replace(bindAttr, replacedQuotes)
 						.replace(/^\w*/, `[${attr}]`);
