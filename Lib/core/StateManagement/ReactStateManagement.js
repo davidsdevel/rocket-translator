@@ -291,6 +291,14 @@ class ReactStateManagement extends StateManagement {
 			}
 
 			if(splittedLoops.length > 1) {
+				var tag = null;
+				const tagRegExp = /\s*tag=('|")\w*(-\w*)*('|")/;
+
+				if (tagRegExp.test(splittedLoops[1]))
+					tag = splittedLoops[1].match(tagRegExp)[0]
+						.replace(/\s*tag=/, "")
+						.replace(/'|"/g, "");
+				
 				//Replace Content with Loop ID
 				let replaced = splittedLoops[i+1].split("</for>");
 				replaced[0] = `{loop_${id}}`;
@@ -299,6 +307,7 @@ class ReactStateManagement extends StateManagement {
 				
 				this.loopsState.push({
 					id,
+					tag,
 					state:loopData.state,
 					value:loopData.value,
 					content:loopData.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
@@ -347,7 +356,6 @@ class ReactStateManagement extends StateManagement {
 			.join("")
 			.split(/:(?=\w*='\w*)/g)
 			.map((e, i) => {
-				let valueToReturn;
 				if (i !== 0) {
 					if(/^\w*='\w*'/.test(e)){
 						let isState = false;
@@ -589,7 +597,7 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
@@ -602,7 +610,7 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
@@ -615,7 +623,7 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
@@ -697,7 +705,14 @@ class ReactStateManagement extends StateManagement {
 	get prerenderLogical(){
 		this.loopsWasMapped = false;
 		let loops = this.loopsState.map(e => {
-			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.filterHTML(e.content)})\n\t\t);\n\t\t`;
+			var content;
+
+			if (e.tag !== null)
+				content = `<${e.tag}>${this.filterHTML(e.content)}</${e.tag}>`;
+			else
+				content = this.filterHTML(e.content);
+
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${content})\n\t\t);\n\t\t`;
 		});
 		this.condWasMapped = false;
 		let cond = this.condStates.map(e => {

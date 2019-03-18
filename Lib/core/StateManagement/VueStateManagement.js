@@ -118,7 +118,6 @@ class VueStateManagement extends StateManagement {
 			.split(/:(?=\w*=)/)
 			.map((content, i) => {
 				if (i > 0) {
-					const attr = content.match(/^\w*/)[0];
 					const bindAttr = content.match(/^\w*=".*"(?=\s*\/>|\s*>|(\s*\w*=('|")))/)[0];
 
 					const replacedQuotes = bindAttr
@@ -136,8 +135,24 @@ class VueStateManagement extends StateManagement {
 			
 		//Parsing for tags
 		let loopParse = bindDirectivesReplaced
-			.replace(/for val=(?=.*>)/g, "template v-for=")
-			.replace(/\/for(?=>)/g, "/template");
+			.split(/<(?=for val=)/)
+			.map((e, i) => {
+				if (i > 0) {
+					const tagRegExp = /\s*tag=('|")\w*(-\w*)*('|")/;
+					var tagName = "template";
+					if (tagRegExp.test(e)) 
+						tagName = e.match(tagRegExp)[0]
+							.replace(/\s*tag=/, "")
+							.replace(/'|"/g, "");
+
+					return e.replace(/for val=(?=.*>)/g, `${tagName} v-for=`)
+						.replace(/\/for(?=>)/g, `/${tagName}`)
+						.replace(tagRegExp, "");
+				}
+				return e;
+			})
+			.join("<");
+			
 			
 		let componentParsed = loopParse
 			.split("<component ")
