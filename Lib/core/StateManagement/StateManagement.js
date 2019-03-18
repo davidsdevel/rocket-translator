@@ -510,12 +510,13 @@ class StateManagement {
 				if (i > 0) {
 					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
 					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
-					let stateToMap = valueAndState.replace(/^.*in /, "");
+					let stateToMap = valueAndState.replace(/^.*in /, "").replace(/('|").*/, "");
 					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
 					
 					let matchState = false;
 					this.states.forEach(e => {
-						if(e === stateToMap)
+
+						if(stateToMap === (typeof e === "object" ? e.key : e))
 							matchState = true;
 					});
 					if (!matchState)
@@ -606,6 +607,9 @@ class StateManagement {
 			});
 			//Handle Error
 		_getBarsSyntax.forEach(e => {
+			if (/^\w*$/.test(e))
+				return;
+			
 			if (/\w*\s*-\s*(state|prop|computed)/.test(e) === false)
 				new global.UndefinedTypeError(e);
 		});
