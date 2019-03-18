@@ -24,7 +24,7 @@ Example:
     </for>
 </ul>
 ```
-The `for` tag now will be a `ul` tag.
+The `for` tag now will be a `li` tag.
 
 ```html
 <ul>
