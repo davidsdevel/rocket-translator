@@ -361,6 +361,37 @@ Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val
 </for>
 ```
 
+And since the version `2.0.0` you can add the `tag` attribute to define the tag to put the loop content.
+
+Example: 
+```html
+<ul>
+    <for val="item in buyList" tag="li">
+        I must buy {item}
+    </for>
+</ul>
+```
+The `for` tag now will be a `li` tag.
+
+```html
+<ul>
+    <li v-for="item in buyList">
+        I must buy {{item}}
+    </li>
+</ul>
+``` 
+On **React** put the content inside the **tag**.
+
+```jsx
+var loop_0000 = this.state.buyList.map(item => 
+        (<li>{item}</li>)
+    );
+```
+
+The default tag on **Vue** is the `template` tag.
+On **React** don't have default tag. Put the content without tag.
+And on **Angular** the default tag is the `div` tag.
+
 ### Bind Attributes <a name="binds"></a>
 A **Bind Attribute** is a form to set a state value on a tag attribute. And the syntax is like on Vue.
 
