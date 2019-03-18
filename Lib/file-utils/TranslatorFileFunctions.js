@@ -160,21 +160,21 @@ class TranslatorFileFunctions {
 				let mime;
 				
 				switch(type) {
-					case "vue":
-						content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
-						mime = "vue";
-						break;
-					case "react":
-						content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
-						mime = "jsx";
-						break;
-					case "angular":
-						content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
-						mime = "component.ts";
-						break;
-					default: 
-						console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
-						process.exit(1);
+				case "vue":
+					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					mime = "vue";
+					break;
+				case "react":
+					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					mime = "jsx";
+					break;
+				case "angular":
+					content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					mime = "component.ts";
+					break;
+				default: 
+					console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
+					process.exit(1);
 				}
 				writeFileSync(join(componentsFolder, `${name}.${mime}`), content);
 			}
