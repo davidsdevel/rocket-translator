@@ -13,6 +13,8 @@ Fixed Quotes on Vue Filter.
 
 Fixed the "Missing Var" Error.
 
+Fixed the bind attribute value assignament.
+
 ### Added the "tag" attribute for the "for" tag
 Now you can add the `tag` attribute to set the tag to put the loop content.
 
