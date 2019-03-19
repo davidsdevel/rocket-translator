@@ -242,8 +242,9 @@ class StateManagement {
 		let splitComponentWithContent = html.split("<component ");
 		splitComponentWithContent.forEach((e, i) => {
 			if (i > 0) {
-				let componentName = e.match(/component-name\s*=\s*('|")\w*/)[0].replace(/component-name\s*=\s*("|')/);
+				let componentName = e.match(/component-name\s*=\s*('|")\w*/)[0].replace(/component-name\s*=\s*("|')/, "");
 				let componentContent = e.replace(/.*>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
+
 				this._components.push(componentName);
 				
 				this.componentsContent.push({
@@ -307,13 +308,29 @@ class StateManagement {
 	get computed() {
 		return this._computed;
 	}
+	set statesInBindAttributes(html) {
+		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
+			if (i > 0) {
+				const withTypeRegExp = /^\w*=("|')\w*\s*-\s*\w*("|')/;
+
+				if (withTypeRegExp.test(bindAttr)) {
+					const attrib = bindAttr.match(withTypeRegExp)[0];
+
+					if (/state/.test(attrib)) {
+						const stateName = attrib.replace(/'/g, "\"").split(/="/)[1].replace(/\s*-.*$/, "");
+						this._states.push(stateName);
+					}
+				}
+			}
+		});
+	}
 	/**
 	 * Get State From Data Array
 	 * 
 	 * @private
 	 * @param {array} dataArray 
 	 */
-	set states(dataArray){
+	set statesInBars(dataArray){
 		/* 
 			Capture State Without Value and push to Empty Array
 		*/
@@ -395,13 +412,28 @@ class StateManagement {
 	get methods() {
 		return this._methods;
 	}
+	set propsInBindAttributes(html) {
+		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
+			if (i > 0) {
+				const regExpToMatch = /^\w*="(\w*(\s*-\s*\w*)*)"/;
+				if (regExpToMatch.test(bindAttr)) {
+					const attrib = bindAttr.match(regExpToMatch)[0];
+
+					if (/prop/.test(attrib)) {
+						const propName = attrib.replace(/'/g, "\"").split(/="/)[1].replace(/\s*-.*$/, "");
+						this._props.push(propName);
+					}
+				}
+			}
+		});
+	}
 	/**
 	* Get Props From Data Array
 	* 
 	* @private
-	* @param {Array} dataArray 
+	* @param {Array} dataArray
 	*/
-	set props(dataArray){
+	set propsInBars(dataArray) {
 		//Map Array
 		dataArray.forEach(e => {
 			//If Match Add Prop Name to Props
@@ -615,10 +647,13 @@ class StateManagement {
 		});
 
 		if (_getBarsSyntax) {
-			this.states = _getBarsSyntax; //Get States
+			this.statesInBars = _getBarsSyntax; //Get States
 			this.computed = _getBarsSyntax; //Get Computed Methods 
-			this.props = _getBarsSyntax; //Get Props
+			this.propsInBars = _getBarsSyntax; //Get Props
 		}
+		this.statesInBindAttributes = html;
+
+		this.propsInBindAttributes = html;
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 

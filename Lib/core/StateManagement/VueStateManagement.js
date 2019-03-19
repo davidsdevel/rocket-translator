@@ -118,14 +118,26 @@ class VueStateManagement extends StateManagement {
 			.split(/:(?=\w*=)/)
 			.map((content, i) => {
 				if (i > 0) {
-					const bindAttr = content.match(/^\w*=".*"(?=\s*\/>|\s*>|(\s*\w*=('|")))/)[0];
+					const bindSimpleOrWithTypeRegExp = /^\w*="(\w*(\s*-\s*\w*)*)"/;
+					const bindWithConditional = /^\w*="\s*\w*\s*(\?).*('|"|}|])\s*"/;
 
-					const replacedQuotes = bindAttr
-						.replace(/"/g, "'")
-						.replace("'", "\"")
-						.replace(/'$/, "\"");
+					if (bindSimpleOrWithTypeRegExp.test(content)) {
+						const bindAttr = content.match(bindSimpleOrWithTypeRegExp)[0];
 
-					return content.replace(bindAttr, replacedQuotes);
+						if (/prop/.test(bindAttr) || /state/.test(bindAttr))
+							return content.replace(bindAttr, bindAttr.replace(/\s*-.*$/, "\""));
+						
+						return content;
+					}
+					else if (bindWithConditional.test(content)) {
+						const expression = content.match(bindWithConditional)[0];
+						const replacedQuotes = expression
+							.replace(/"/g, "'")
+							.replace("'", "\"")
+							.replace(/'$/, "\"");
+						
+						return content.replace(expression, replacedQuotes);
+					}
 				}
 
 				//return content of index 0
@@ -158,13 +170,14 @@ class VueStateManagement extends StateManagement {
 			.split("<component ")
 			.map((content, i) => {
 				if (i > 0) {
+					console.log(content);
 					let componentName = content.match(/name=('|")\w*/)[0].slice(6);
 					let splitted = content.split("</component>");
 					let componentTag = splitted[0].split(/\r\n|\n|\r/)[0];
 
 					return componentTag
 						/*Deleted component name attr*/
-						.replace(/name=('|")\w*('|")/, componentName)
+						.replace(/component-name=('|")\w*('|")/, componentName)
 
 						/*If not have add enclosing tag*/
 						.replace(">", "/>") + splitted[1];

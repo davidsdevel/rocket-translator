@@ -369,15 +369,13 @@ class ReactStateManagement extends StateManagement {
 						return e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
 					}
 					if (/^\w*='\w*\s*-\s*\w*'/.test(e)) {
-						let isState = false;
-						let toCompare = e.match(/^\w*='\w*/g)[0];
-						this.states.forEach(state => {
-							state = typeof state === "object" ? state.key : state;
-							if (new RegExp(state).test(toCompare)) {
-								isState = true;
-							}
-						});
-						return e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
+						var type = "";
+						if (/^\w*='\w*\s*-\s*prop'/.test(e))
+							type = "this.props.";
+						else if(/^\w*='\w*\s*-\s*state'/.test(e))
+							type = "this.state.";
+
+						return e.replace(/'(?=\w*)/, `{${type}`).replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
 					}
 					if (/^\w*='(\w*|\w*(\.\w*)*)\s*(<|>|==|===|\?)/.test(e)) {
 						let isState = false;
@@ -656,10 +654,10 @@ class ReactStateManagement extends StateManagement {
 			}).join("<input")
 			.split("<component ").map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=('|")\w*/)[0].slice(6);
+					let name = e.match(/component-name=('|")\w*/)[0].replace(/component-name=('|")/, "");
 					let splitted = e.split("</component>");
 					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
-					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+					return tag.replace(/component-name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 				} 
 				return e;
 			})
