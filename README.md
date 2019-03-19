@@ -151,6 +151,30 @@ this.state = {
 
 To know more about states, and JavaScript Management. You can see [JavaScript Management](#js-management) section. 
 
+Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `propName - state`;
+
+Example: 
+```html
+<div>
+    <span :class="className - state">Hello World!!!</span>
+</div>
+<script>
+    function setInitialState() {
+        return {
+            className: "foo"
+        }
+    }
+</script>
+```
+
+Or you can add the value next the `state` word.
+
+```html
+<div>
+    <span :class="className - state - 'foo'">Hello World!!!</span>
+</div>
+```
+
 ### Props <a name="props"></a>
 
 The **props** in a component, are data that a parent \(**container**\) component pass to a child component.
@@ -180,6 +204,13 @@ And in React, auto declares the prop.
 return(
     <div>{this.props.parentData}</div>
 )
+```
+
+Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `propName - prop`;
+
+Example: 
+```html
+<span :class="externalState - prop">Hello World</span>
 ```
 
 ### Computed <a name="computed"></a>
@@ -393,18 +424,21 @@ On **React** don't have default tag. Put the content without tag.
 And on **Angular** the default tag is the `div` tag.
 
 ### Bind Attributes <a name="binds"></a>
+
 A **Bind Attribute** is a form to set a state value on a tag attribute. And the syntax is like on Vue.
 
-```html
-<span :style="stateName">Hello World</span>
-```
-
-If you want add a default value you must add a `-` followed of the value.
+If you want add a default value you must add a `-` followed of the type.
 
 ```html
-<button :class="classButton - 'value'"></button>
+<button :class="classButton - state">Do Click</button>
 ```
+The type can be `state` or `prop`.
 
+And with the type `state` you can add the `String` value next `state` word.
+
+```html
+<button :class="classButton - state - 'bar'">Do Click</button>
+```
 ### JavaScript Management <a name="js-management"></a>
 
 To the JavaScript Management, we add a few of keywords to help with the code imports. We must follow some rules to the correctly function of the translator.
