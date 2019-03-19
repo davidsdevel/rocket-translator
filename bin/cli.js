@@ -2,7 +2,6 @@
 const { 
 	VueCompiler,
 	ReactCompiler,
-	Components,
 	AngularCompiler
 } = require("../Lib/core");
 const {unlinkSync} = require("fs");
@@ -61,12 +60,13 @@ class CLI {
 				break;
 			default: break;
 		}
+		const {main, components} = compiler(name, html, css);
 		functions.writeFile({
 			name,
-			content:compiler(name, html, css),
+			content:main,
 			type:mode
 		});
-		functions.writeComponents(name, mode, Components);
+		functions.writeComponents(name, mode, components);
 		this.sayThanks();
 	}
 	static showHelp() {
@@ -77,11 +77,11 @@ class CLI {
     	Commands:
         Translate to React:		react
         Translate to Vue:		vue
+        Translate to Angular:		angular 
 
         Help:				--help | -h
         Version:			--version | -v`
 		);
-		process.exit(1); //Stop execution
 	}
 	static showVersion() {
 		let {version} = require("../package.json");
@@ -90,7 +90,6 @@ class CLI {
 	static invalidMode(mode) {
 		console.log(clc.redBright("\nError!!!\n"));
 		console.log(clc.redBright("Invalid Mode "+clc.whiteBright(`"${mode}"`)));
-		process.exit(1);
 	}
 	get fileContent() {
 		let componentName = this.entry.match(/((\w*-)*\w*|\w*)(?=.html$)/); //Get the name from the file

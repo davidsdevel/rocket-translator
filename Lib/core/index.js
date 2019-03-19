@@ -2,11 +2,6 @@ const { ReactStateManagement, VueStateManagement, AngularStateManagement } = req
 const Parser = require("./JavascriptManagement");
 
 /**
- * Array of Main Component's Components.
- */
-var Components = [];
-
-/**
  * React Compiler
  * 
  * Function that take the HTML string and translate to React
@@ -38,8 +33,6 @@ const ReactCompiler = (name, html, css) => {
 
 	RStateManagement.setVarsToStatesContent(parse.vars);
 
-	Components = RStateManagement.componentsContent;
-
 	//Add new lines and idents to code beauty
 	let pretty = RStateManagement
 		.filterHTML(html)
@@ -63,7 +56,10 @@ ${pretty}\t\t)
 }
 export default ${name || "MyComponent"};
 `;
-	return template;
+	return {
+		main:template,
+		components:RStateManagement.componentsContent
+	};
 };
 
 /**
@@ -102,8 +98,6 @@ const VueCompiler = (name, html, css) => {
 	
 	VStateManagement.setVarsToStatesContent(parse.vars);
 	
-	Components = VStateManagement.componentsContent;
-	
 	//Add new lines and idents to code beauty
 	let pretty = VStateManagement
 		.filterHTML(html)
@@ -119,7 +113,10 @@ const VueCompiler = (name, html, css) => {
 ${VStateManagement.componentData(name)}
 ${style}`;
 
-	return component;
+	return {
+		main:component,
+		components:VStateManagement.componentsContent
+	};
 };
 
 /**
@@ -133,7 +130,7 @@ ${style}`;
  * 
  * @return {string}
  */
-const AngularCompiler = (name, html, css, js) => {
+const AngularCompiler = (name, html, css) => {
 
 	const AStateManagement = new AngularStateManagement();
 
@@ -157,8 +154,6 @@ const AngularCompiler = (name, html, css, js) => {
 	AStateManagement.watchers = parse.watchers;
 	
 	AStateManagement.setVarsToStatesContent(parse.vars);
-	
-	Components = AStateManagement.componentsContent;
 	
 	//Add new lines and idents to code beauty
 	let pretty = AStateManagement
@@ -189,8 +184,7 @@ export class AppComponent {
 */
 
 	const component = `import { Component ${AStateManagement.props.length > 0 ? ", Input" : ""}} from '@angular/core';
-
-${AStateManagement.components.map(e => `import { ${e} } from "./components/${e}";`)}
+${AStateManagement.components.map(e => `\nimport { ${e} } from "./components/${e}";`)}
 
 @Component({
 	selector: '${AStateManagement.generateComponentName(name)}-root',
@@ -200,10 +194,12 @@ ${AStateManagement.components.map(e => `import { ${e} } from "./components/${e}"
 export class ${name} {
 	${AStateManagement.componentData}
 }`;
-	return component;
+	return {
+		main:component,
+		components:AStateManagement.componentsContent
+	};
 };
 
-exports.Components = Components;
 exports.VueCompiler = VueCompiler;
 exports.AngularCompiler = AngularCompiler;
 exports.ReactCompiler = ReactCompiler;
