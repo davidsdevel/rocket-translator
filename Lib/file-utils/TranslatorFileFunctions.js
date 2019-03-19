@@ -155,21 +155,20 @@ class TranslatorFileFunctions {
 				mkdirSync(componentsFolder);
 			}
 			for (let i = 0; i <= ComponentsArray.length - 1; i++) {
-				let {name} = ComponentsArray[i];
-				let {content} = ComponentsArray[i];
+				let {name, content} = ComponentsArray[i];
 				let mime;
 				
 				switch(type) {
 				case "vue":
-					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
 					mime = "vue";
 					break;
 				case "react":
-					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
 					mime = "jsx";
 					break;
 				case "angular":
-					content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
 					mime = "component.ts";
 					break;
 				default: 
