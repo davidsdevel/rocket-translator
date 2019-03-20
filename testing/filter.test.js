@@ -1,24 +1,13 @@
-const {VueCompiler} = require("../Lib/core");
+let VueManagement = require("../Lib/core/StateManagement/VueStateManagement");
+
+const VueFilter = new VueManagement().filterHTML;
 
 var testHTML = `<div>
     <span>Hello {Name - state - "World"}!!!</span>
 </div>`;
 
 test("test filter simple state", () => {
-    expect(VueCompiler("Test", testHTML, "")).toBe(`<template>
-	<div>
-	    <span>Hello {{Name}}!!!</span>
-	</div>
-</template>
-<script>
-export default {
-	name:Test,
-	data(){
-		return {
-			Name: "World"
-		}
-	}
-}
-</script>
-`);
+    expect(VueFilter(testHTML)).toMatch(`<div>
+    <span>Hello {{Name}}!!!</span>
+</div>`);
 });

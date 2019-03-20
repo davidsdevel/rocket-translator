@@ -291,7 +291,8 @@ class AngularStateManagement extends StateManagement {
 
 		let _isNull = data === null;
 		let _isUndefined = data === undefined;
-		let _isNaN = isNaN(data);
+		// eslint-disable-next-line use-isnan
+		let _isNaN = data === NaN;
 		let _isInfinity = data === Infinity;
 
 		if (_isNull)

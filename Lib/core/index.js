@@ -77,6 +77,7 @@ const VueCompiler = (name, html, css) => {
 
 	let VStateManagement = new VueStateManagement();
 
+	
 	let parse = new Parser(); //JS Parser
 
 	// Set Styles
@@ -163,28 +164,9 @@ const AngularCompiler = (name, html, css) => {
 			if (e) return `\t${e}\n`;
 		})
 		.join("");
-	/*
-Component Template
-
-
-import { Component } from '@angular/core';
- 
-@Component({
-  selector: 'app-root',
-  template: `
-    <h1>{{title}}</h1>
-    <h2>My favorite hero is: {{myHero}}</h2>
-    `
-})
-export class AppComponent {
-  title = 'Tour of Heroes';
-  myHero = 'Windstorm';
-}
-
-*/
 
 	const component = `import { Component ${AStateManagement.props.length > 0 ? ", Input" : ""}} from '@angular/core';
-${AStateManagement.components.map(e => `\nimport { ${e} } from "./components/${e}";`)}
+${AStateManagement.components.map(e => `\nimport { ${e} } from "./components/${e}";`).join("")}
 
 @Component({
 	selector: '${AStateManagement.generateComponentName(name)}-root',

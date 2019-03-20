@@ -1,4 +1,5 @@
 const lifecycle = require("../../const/Lifecycle.json");
+const {unlinkSync, existsSync} = require("fs");
 class JavascriptManagement {
 	constructor(){
 		this._data;
@@ -10,6 +11,14 @@ class JavascriptManagement {
 		this._main();
 	}
 	_main() {
+		//Reset Data
+		this._data = undefined;
+		this._watchers = [];
+		this._vars = [];
+		this._states = [];
+		this._functions = [];
+		this.lifecycles = [];
+
 		this._data = require(global.tempDataFile);
 		let dataKeys = Object.keys(this._data);
 
@@ -63,6 +72,10 @@ class JavascriptManagement {
 					this._vars.push({name:key, value:this._data[key]});
 			}
 		});
+		if (existsSync(global.defineGlobals))
+			unlinkSync(global.defineGlobals);
+		if (existsSync(global.tempDataFile))
+			unlinkSync(global.tempDataFile);
 	}
 	set functions(functionName) {
 		let name = functionName;

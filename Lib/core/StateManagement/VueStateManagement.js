@@ -170,7 +170,6 @@ class VueStateManagement extends StateManagement {
 			.split("<component ")
 			.map((content, i) => {
 				if (i > 0) {
-					console.log(content);
 					let componentName = content.match(/name=('|")\w*/)[0].slice(6);
 					let splitted = content.split("</component>");
 					let componentTag = splitted[0].split(/\r\n|\n|\r/)[0];
@@ -228,7 +227,7 @@ class VueStateManagement extends StateManagement {
 				
 			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t}${comma}`;
 
-			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`);
+			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`).join("");
 		}
 
 		//Props

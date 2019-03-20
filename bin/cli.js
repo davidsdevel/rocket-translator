@@ -4,7 +4,6 @@ const {
 	ReactCompiler,
 	AngularCompiler
 } = require("../Lib/core");
-const {unlinkSync} = require("fs");
 const FF = require("../Lib/file-utils/TranslatorFileFunctions");
 const clc = require("cli-color");
 
@@ -113,8 +112,6 @@ class CLI {
 		console.log(clc.greenBright("\nSuccess...\n"));
 		console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(this.output)} to view your files.`);
 		console.log(`\nSend a feedback to ${clc.whiteBright("@David_Devel")} on Twitter.\n\nTo report a Error, open a new issue on:\n${clc.whiteBright("https://github.com/Davids-Devel/rocket-translator")}`);
-		unlinkSync(global.defineGlobals);
-		unlinkSync(global.tempDataFile);
 	}
 }
 
