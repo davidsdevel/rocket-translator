@@ -1,9 +1,16 @@
 # Version 2
+
+## 2.0.1
+
+### Fix "exports." on internal function vars.
+
+When the take the data, create a temp file that contains the data setted in the html script tag. And replace the `var`, `let` and `const` with `exports.` that the module can export these vars. 
+
+## 2.0.0
+
 ## Added Angular Support!!!
 
 This was be the most awaited feature in the project. We start with Angular 7, and in future versions we will add previous angular versions. Remember help with issues and pull request.
-
-## 2.0.0
 
 ### Some Fix
 
