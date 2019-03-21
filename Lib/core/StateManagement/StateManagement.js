@@ -683,17 +683,17 @@ class StateManagement {
 			case "r":
 				stateReplace = "this.state.";
 				propReplace = "this.props.";
-				tab = "\t";
+				tab = "";
 				break;
 			case "a":
 				stateReplace = "this.";
 				propReplace = "this.";
-				tab = "\t";
+				tab = "";
 				break;
 			case "v":
 				stateReplace = "this.";
 				propReplace = "this.";
-				tab = "\t\t";
+				tab = "\t";
 				break;
 			default: throw new Error("The type param must be 'v', 'r' or 'a'");
 			}

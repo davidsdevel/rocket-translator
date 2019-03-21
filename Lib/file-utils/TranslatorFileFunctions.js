@@ -60,13 +60,8 @@ class TranslatorFileFunctions {
 	 */
 	getJs(){
 		if (this._js !== undefined){
-			return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e => {
-				if (e) return e.replace(/\t|\s\s\s\s|\s\s/, "");
-			})
-				.filter(e => {
-					return e;
-				})
-				.join("\r\n");
+			return this._js.join("\r\n");
+
 		} else {
 			return "";
 		}
@@ -78,16 +73,35 @@ class TranslatorFileFunctions {
 		data.forEach(e => {
 			newData = newData.replace(new RegExp(`(const|var|let)\\s*(?=${e})`), "exports.");
 		});
-		let splittedData = newData.split(/(\n|\r\n|\r)(?=var|let|const|function)/);
+
+		//Parse Functions
+		const splittedFunctions = newData.split(/\r*\n*(?=function)/);
+
+		newData = splittedFunctions.map(e => {
+
+			return e
+				.replace(/^function\s*/, "exports.")
+				.replace(/\(/, " = (")
+				.replace(/\)/, ") =>")
+				.replace(/=\s*=\s*/, "= ")
+				.replace(/=>\s*=>\s*/, "=> ");
+		}).join("");
+
+		let splittedData = newData.split(/\n/);
+		var functionIsOpen = false;
+
 		newData = splittedData
 			.map(e => {
-				if(e.startsWith("function")) {
-					return e
-						.replace(/^function\s*/, "exports.")
-						.replace(/\(/, "= (")
-						.replace(/\)/, ") =>");
-				}
-				return e.replace(/^(var|let|const)\s*/, "exports.");
+				if (/exports\.\w*\s*=\s*\(.*\)\s*=>\s*{/.test(e))
+					functionIsOpen = true;
+				else if (/\t*}\r*\n*/.test(e))
+					functionIsOpen = false;
+
+
+				if (!functionIsOpen)
+					return e.replace(/(var|let|const)\s*/, "exports.");
+
+				return e;
 			})
 			.join("\n");
 
