@@ -62,6 +62,21 @@ or this:
 </script>
 ```
 
+Or this:
+
+```ts
+import { Component } from '@angular/core';
+
+@Component({
+    selector: 'test-root',
+    template:`<div>Hello {{name}}!</div>`
+})
+
+export class Test {
+    name = "World";   
+}
+```
+
 ### How to Use
 
 To use, simpy create a HTML file, with the code to translate, and run:
@@ -70,7 +85,7 @@ To use, simpy create a HTML file, with the code to translate, and run:
 rocket [mode] path/to/file.html [output folder]
 ```
 
-The **mode** may be `vue` or `react`.
+The **mode** may be `vue`, `react` or `angular`.
 
 The **output folder** is optional, if this is not defined will create a folder named **dist**.
 
@@ -123,14 +138,20 @@ data(){
     }
 }
 ```
-And in React we obtain:
+In React we obtain:
 
 ```js
 this.state = {
     myState:""
 }
 ```
+And in Angular: 
 
+```ts
+export class Test {
+    myState = "";   
+}
+```
 In the **With value** case we obtain. In Vue:
 
 ```js
@@ -141,7 +162,7 @@ data(){
 }
 ```
 
-And in React:
+On React:
 
 ```js
 this.state = {
@@ -149,9 +170,15 @@ this.state = {
 }
 ```
 
-To know more about states, and JavaScript Management. You can see [JavaScript Management](#js-management) section. 
+And on Angular:
 
-Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `propName - state`;
+```ts
+export class Test {
+    stateName = "Some Value";   
+}
+```
+
+Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `stateName - state`;
 
 Example: 
 ```html
@@ -174,6 +201,8 @@ Or you can add the value next the `state` word.
     <span :class="className - state - 'foo'">Hello World!!!</span>
 </div>
 ```
+
+To know more about states and JavaScript Management. You can see [JavaScript Management](#js-management) section.
 
 ### Props <a name="props"></a>
 
@@ -204,6 +233,18 @@ And in React, auto declares the prop.
 return(
     <div>{this.props.parentData}</div>
 )
+```
+
+And on Angular, Import `Input` from `"@angular/core"` and declare as prop.
+
+```ts
+import { Component, Input} from '@angular/core';
+
+...
+
+export class Test {
+    @Input() parentData : string;   
+}
 ```
 
 Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `propName - prop`;
@@ -267,7 +308,7 @@ And to add a attr with a state value add `:` on the attr front.
 <MyComponent :my-bind-attr="stateName" />
 ```
 
-To write the component content, add a `component` tag with the component content. And an attr `component-name` with the component name. And others attrs can be passed to the component.
+To write the component content, add a `component` tag with the **component content**. And add the attr `component-name` with the **component name**. And others attrs can be passed to the component.
 
 ```html
 <component component-name="HelloWorldComponent" name="World">
@@ -352,6 +393,8 @@ class MyComponent extends Component {
 }
 ```
 
+Do not implement on Angular. We will add this features in futures versions.
+
 ### Conditionals <a name="conditionals"></a>
 
 To declare a **conditional**, add the `if` tag, with the `cond` attr, where `cond` is the condition to evaluate.
@@ -383,6 +426,49 @@ Since version **2.0.0** we add the `else-if` tag. Like the `if` tag, this take t
     <span>Too Old</span>
 </else-if>
 ```
+
+And now you can add the `tag` attribute to set conditional **tag name**.
+
+
+Example: 
+```html
+<div>
+    <if cond="auth === true" tag="span">
+        I must buy {item}
+    </if>
+</div>
+```
+The `for` tag now will be a `li` tag.
+
+**Vue**
+```html
+<ul>
+    <li v-for="item in buyList">
+        I must buy {{item}}
+    </li>
+</ul>
+```
+
+**Angular**
+```html
+<ul>
+    <li *ngFor="let item of buyList">
+        I must buy {{item}}
+    </li>
+</ul>
+```
+
+On **React** put the content inside the **tag**.
+
+```jsx
+var loop_0000 = this.state.buyList.map(item => 
+        (<li>{item}</li>)
+    );
+```
+
+The default tag on **Vue** is the `template` tag.
+On **React** don't have default tag. Put the content without tag.
+And on **Angular** the default tag is the `div` tag.
 ### List Render <a name="loops"></a>
 Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val` attr.
 
@@ -404,13 +490,24 @@ Example:
 ```
 The `for` tag now will be a `li` tag.
 
+**Vue**
 ```html
 <ul>
     <li v-for="item in buyList">
         I must buy {{item}}
     </li>
 </ul>
-``` 
+```
+
+**Angular**
+```html
+<ul>
+    <li *ngFor="let item of buyList">
+        I must buy {{item}}
+    </li>
+</ul>
+```
+
 On **React** put the content inside the **tag**.
 
 ```jsx
