@@ -1,6 +1,6 @@
 # RocketJS [![npm version](https://badge.fury.io/js/rocket-translator.svg)](https://badge.fury.io/js/rocket-translator)
 
-Translate HTML code to Vue or React.
+Translate HTML code to Vue, React or Angular.
 
 ## Instalation
 

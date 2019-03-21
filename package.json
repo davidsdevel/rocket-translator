@@ -34,7 +34,7 @@
 	"author": "David González <djgm1206@gmail.com>",
 	"license": "ISC",
 	"bin": {
-		"rocket": "bin/cli.js"
+		"rocket": "bin/index.js"
 	},
 	"dependencies": {
 		"accepts": "^1.3.5",
