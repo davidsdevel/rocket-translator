@@ -4,7 +4,11 @@
 
 ### Fix "exports." on internal function vars.
 
-When the take the data, create a temp file that contains the data setted in the html script tag. And replace the `var`, `let` and `const` with `exports.` that the module can export these vars. 
+When the take the data, create a temp file that contains the data setted in the html script tag. And replace the `var`, `let` and `const` with `exports.` that the module can export these vars.
+
+### Added "tag" for "if", "else-if" and "else" tags
+
+Now you can add the `tag` attribute to set the tag to put the conditional content.
 
 ## 2.0.0
 
