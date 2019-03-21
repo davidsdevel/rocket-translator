@@ -165,7 +165,7 @@ const AngularCompiler = (name, html, css) => {
 		})
 		.join("");
 
-	const component = `import { Component ${AStateManagement.props.length > 0 ? ", Input" : ""}} from '@angular/core';
+	const component = `import { Component${AStateManagement.props.length > 0 ? ", Input" : ""}} from '@angular/core';
 ${AStateManagement.components.map(e => `\nimport { ${e} } from "./components/${e}";`).join("")}
 
 @Component({
