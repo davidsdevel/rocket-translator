@@ -228,6 +228,7 @@ class ReactStateManagement extends StateManagement {
 					filterElseIf = conditionalData.elseIf.map(con => {
 						return {
 							cond:con.cond,
+							tag:con.tag,
 							content:this._filterConditionalHTML(con.content)
 						};
 					});
@@ -240,6 +241,8 @@ class ReactStateManagement extends StateManagement {
 				this.condStates.push({
 					id,
 					cond:conditionalData.cond,
+					tagIf:conditionalData.tagIf,
+					tagElse:conditionalData.tagElse,
 					elseIf:filterElseIf,
 					if:filterIf,
 					else:filterElse
@@ -714,7 +717,43 @@ class ReactStateManagement extends StateManagement {
 		});
 		this.condWasMapped = false;
 		let cond = this.condStates.map(e => {
-			return `var cond_${e.id};\n\t\tif(${this._setTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.if)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => `else if (${this._setTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(con.content)}\n\t\t}\n\t\t`).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.else)}\n\t\t}\n\t\t`:""}`;
+			
+			var ifContent;
+			if (e.tagIf)
+				ifContent = `<${e.tagIf}>${e.if}</${e.tagIf}>`;
+			else {
+				if (/^\w*/.test(e.if[0]))
+					ifContent = `"${e.if}";`;
+				else
+					ifContent = e.if;
+			}
+
+			var elseContent;
+			if (e.else) {
+				if (e.tagElse)
+					elseContent = `<${e.tagElse}>${e.else}</${e.tagElse}>`;
+				else {
+					if (/^\w*/.test(e.else[0]))
+						elseContent = `"${e.else}";`;
+					else
+						elseContent = e.else;
+				}
+			}
+		
+			return `var cond_${e.id};\n\t\tif(${this._setTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(ifContent)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => {
+				var content;
+				if (con.tag)
+					content = `<${con.tag}>${con.content}</${con.tag}>`;
+				else {
+					if (/^w*/.test(con.content[0]))
+						content = `"${con.content}";`;
+					else
+						// eslint-disable-next-line prefer-destructuring
+						content = con.content;
+				}
+				return `else if (${this._setTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(content)}\n\t\t}\n\t\t`;
+			
+			}).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(elseContent)}\n\t\t}\n\t\t`:""}`;
 		});
 		this.condStates = [];
 		this.loopsState = [];

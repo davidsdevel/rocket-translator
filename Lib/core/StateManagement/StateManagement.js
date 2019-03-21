@@ -478,15 +478,27 @@ class StateManagement {
 	*/
 	set conditionals(html){
 		//Function to get tag condition
-		let getCond = data => {
-			let dataCond = data.match(/cond=('|").*('|")(?=.*>)/g);
-			return dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
+		const getData = data => {
+			const tagRegExp = /\s*tag=('|")\w*(-\w*)*("|')/;
+			var tag = "";
+			if (tagRegExp.test(data))
+				tag = data.match(tagRegExp)[0].replace(/\s*tag=/, "").replace(/('|")/g, "");
+
+			data = data.replace(tagRegExp, "");
+
+			let dataCond = data.match(/cond=('|").*('|")/g);
+
+			return {
+				cond: dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, ""),
+				tag
+			};
 		};
 		let condTagsArray = html.split("<if ");
 		let condData = condTagsArray
 			.map((e, i) => {
 				if (i > 0) {
-					let cond = getCond(e);
+					let {cond, tag:tagIf} = getData(e);
+					let tagElse = "";
 					let elseIf = [];
 					let contentIf;
 					let contentElse;
@@ -494,15 +506,22 @@ class StateManagement {
 						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
 						if(/<else-if/.test(e)) {
 							e.split("<else-if").forEach((ev, i) => {
+								const {cond:elseIfCond, tag:elseIfTag} = getData(ev);
 								if (i > 0)
 									elseIf.push({
-										cond:getCond(ev),
+										cond:elseIfCond,
+										tag:elseIfTag,
 										content:ev.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
 									});
 							});
 						}
 						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
-						if (contentElse) {
+						if (contentElse) {	
+							const tagRegExp = /<else\s*tag=('|")\w*(-\w*)*("|')/;
+
+							if (tagRegExp.test(e))
+								tagElse = e.match(tagRegExp)[0].replace(/<else\s*tag=/, "").replace(/('|")/g, "");
+							
 							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
 						}
 					}
@@ -522,6 +541,8 @@ class StateManagement {
 						cond,
 						if:contentIf,
 						elseIf,
+						tagIf,
+						tagElse,
 						else:contentElse
 					};
 				}

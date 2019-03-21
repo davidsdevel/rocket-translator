@@ -97,22 +97,29 @@ class VueStateManagement extends StateManagement {
 			})
 			.join("<select");
 
-			
-		//Parsing conditionals tags
-		let condParsed  = selectTag
-			/*Replace closing if and else tags with the template tag*/
-			.replace(/(\/if|\/else)(?=>)/g, "/template")
-			
-			/*Replace open if tag*/
-			.replace(/if\s*cond=/g, "template v-if=")
+		const condParsed = selectTag
+			.split(/<(?=if\s*cond=)/)
+			.map((cond, i) => {
+				if (i > 0) {
+					const condTagName = cond.match(/^\w*(-\w*)*/)[0];
+					const tagRegExp = /\s*tag="\w*(-\w*)*"/;
+					var tagName = "template";
 
-			/*Replace open else tag*/
-			.replace(/else(?=>)/g, "template v-else")
+					if (tagRegExp.test(cond)) 
+						tagName = cond.match(tagRegExp)[0]
+							.replace(/\s*tag=/, "")
+							.replace(/'|"/g, "");
 
-			/*Replace unused spaces and duplicates quotes*/
-			.replace(/'(?=\s*.*>)/g, "\"")
-			.replace(/''(?=.*>)/g, "'\"");
-			
+					return cond.replace(new RegExp(`${condTagName} cond="(?=.*>)`, "g"), `${tagName} v-${condTagName}='`)
+						.replace(`</${condTagName}>`, `</${tagName}>`)
+						.replace(`<${condTagName}>`, `<${tagName}>`)
+						.replace(tagRegExp, "")
+						.replace(/"\s*"/, "\"'");
+				}
+				return cond;
+			})
+			.join("<");
+
 		//Parsing the bind attr with the v-bind directive
 		let bindDirectivesReplaced = condParsed
 			.split(/:(?=\w*=)/)
