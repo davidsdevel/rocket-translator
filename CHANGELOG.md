@@ -1,5 +1,18 @@
 # Version 2
 
+## 2.0.3
+
+### Updated CLI Help Message
+
+Updated help message that was show `[vue or react]` and was changed with `[mode]`.
+
+
+## 2.0.2
+
+## Fix CLI Error
+
+Fixed Error: Unable to start the CLI when we execute `rocket` command.
+
 ## 2.0.1
 
 ### Fix "exports." on internal function vars.
