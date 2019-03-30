@@ -2,6 +2,12 @@ const StateManagement = require("./StateManagement");
 const JavaScriptEvents = require("../../const/Events.json");
 const {isUpperCase} = require("../../commons/utils");
 
+/**
+ * Class Angular State Management
+ * 
+ * @class
+ * @extends StateManagement
+ */
 class AngularStateManagement extends StateManagement {
 	/**
 	 * Get Component Data (getter)
@@ -33,7 +39,7 @@ class AngularStateManagement extends StateManagement {
 		if(haveStates) {
 			let mappedStates = this.states.map(e => {
 				if(typeof e === "object")
-					return `${e.key} = ${this._aDefineTypeFromString(e.value)};`;
+					return `${e.key} = ${this._toString(e.value)};`;
 				
 				return `${e} = "";`;
 			});
@@ -263,7 +269,7 @@ class AngularStateManagement extends StateManagement {
 	/**
 	 * Generate Component 
 	 *
-	 * Take a Camel Case and return Kebak Case
+	 * Take a Camel Case and return Kebab Case
 	 *
 	 * @param {String} name
 	 *
@@ -287,7 +293,17 @@ class AngularStateManagement extends StateManagement {
 
 		return newName;
 	}
-	_aDefineTypeFromString(data){
+	/**
+	 *  To String
+	 * 
+	 * Get all and Return String
+	 * 
+	 * @private
+	 * @param {any} data 
+	 * 
+	 * @return {String}
+	 */
+	_toString(data){
 
 		let _isNull = data === null;
 		let _isUndefined = data === undefined;

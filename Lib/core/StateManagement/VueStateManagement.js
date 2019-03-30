@@ -4,6 +4,7 @@ const StateManagement = require("./StateManagement");
  *
  * Class to handle the Vue Data
  *
+ * @class
  * @extends StateManagement
  *
  */

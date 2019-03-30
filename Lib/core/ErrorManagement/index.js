@@ -7,6 +7,14 @@ class ErrorManagement {
 		this.lines = file.split(/\r\n|\n|\r/);
 		console.log(clc.redBright("\nError!!!\n"));
 	}
+	/**
+	 * Throw Error
+	 * 
+	 * Get the Component data and throw a new Error
+	 * 
+	 * @param {String} data 
+	 * @param {String} type Error Type
+	 */
 	throwError(data, type) {
 		let stringToMatch;
 		let name;
@@ -71,42 +79,92 @@ class ErrorManagement {
 }
 
 class MissingVarError extends ErrorManagement {
+	/**
+	 * Missing Var Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} stateName 
+	 * @param {String} varName 
+	 */
 	constructor(stateName, varName) {
 		super();
 		this.throwError({stateName, varName}, "Missing Var");
 	}
 }
 class DuplicateComponentError extends ErrorManagement {
+	/**
+	 * Duplicate Component Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} componentName 
+	 */
 	constructor(componentName) {
 		super();
 		this.throwError(componentName, "Duplicate Component");
 	}
 }
 class UndefinedMethodError extends ErrorManagement {
+	/**
+	 * Undefined Method Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} methodName 
+	 */
 	constructor(methodName) {
 		super();
 		this.throwError(methodName, "Undefined Method");
 	}
 }
 class UndefinedComputedError extends ErrorManagement {
+	/**
+	 * Undefined Computed Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} computedName 
+	 */
 	constructor(computedName) {
 		super();
 		this.throwError(computedName, "Undefined Computed");
 	}
 }
 class ExpectedTokenError extends ErrorManagement {
+	/**
+	 * Expected Token Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} data 
+	 */
 	constructor(data) {
 		super();
 		this.throwError(data, "Expected Token");
 	}
 }
 class UndefinedTypeError extends ErrorManagement {
+	/**
+	 * Undefined Type Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} data 
+	 */
 	constructor(data) {
 		super();
 		this.throwError(data, "Undefined Type");
 	}
 }
 class UndefinedStateError extends ErrorManagement {
+	/**
+	 * Undefined State Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} data 
+	 */
 	constructor(data) {
 		super();
 		let {type, name} = data;
@@ -127,12 +185,27 @@ class UndefinedStateError extends ErrorManagement {
 	}
 }
 class ExpectedAttributeError extends ErrorManagement {
+	/**
+	 * Expected Attribute Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} line 
+	 * @param {String} name 
+	 */
 	constructor(line, name) {
 		super();
 		this.throwError({line, name}, "Expected Attribute");
 	}
 }
 class UndefinedInputNameError extends ErrorManagement {
+	/**
+	 * Undefined Input Name Error
+	 * 
+	 * @constructor
+	 * 
+	 * @param {String} line 
+	 */
 	constructor(line) {
 		super();
 		this.throwError(line, "Undefined Input Name");

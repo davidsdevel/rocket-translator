@@ -9,7 +9,20 @@ const clc = require("cli-color");
 
 const functions = new FF();
 
+/**
+ * CLI
+ * 
+ * Initialize and Handle the Command Line Interface (CLI)
+ * 
+ * @class
+ */
 class CLI {
+	/**
+	 * CLI
+	 * 
+	 * @constructor
+	 * @param {Object} param0 
+	 */
 	constructor({entry, output, mode}) {
 		this.entry = entry;
 		this.output = output;
@@ -24,6 +37,14 @@ class CLI {
 		functions.setParams(entry, output);
 		this.handleMode();
 	}
+	/**
+	 * Handle Mode
+	 * 
+	 * Get compiler mode and then call respective compiler.
+	 * If not have valid compiler throw Invalid Mode Error
+	 * 
+	 * @public
+	 */
 	handleMode() {
 		switch(this.mode) {
 			case "vue":
@@ -40,6 +61,13 @@ class CLI {
 				break;
 		}
 	}
+	/**
+	 * Compile
+	 * 
+	 * Execute a Compiler corresponding with mode
+	 * 
+	 * @param {String} mode 
+	 */
 	compile(mode) {
 		
 		let {html, css, js, name} = this.fileContent;
@@ -68,10 +96,18 @@ class CLI {
 		functions.writeComponents(name, mode, components);
 		this.sayThanks();
 	}
+	/**
+	 * Show Help
+	 * 
+	 * Show help Window
+	 * 
+	 * @static
+	 * @public
+	 */
 	static showHelp() {
 		//Help Commands
 		console.log(
-	`	Usage: rocket [vue | react] <input-file> <output-folder>
+	`	Usage: rocket [command] <input-file> <output-folder>
 
     	Commands:
         Translate to React:		react
@@ -82,14 +118,34 @@ class CLI {
         Version:			--version | -v`
 		);
 	}
+	/**
+	 * Show Version
+	 * 
+	 * @static
+	 * @public
+	 */
 	static showVersion() {
 		let {version} = require("../package.json");
 		console.log(`v${version}`);
 	}
+	/**
+	 * Invalid Mode
+	 * 
+	 * Show a Message with the invalid Mode
+	 * 
+	 * @static
+	 * @public
+	 * @param {String} mode 
+	 */
 	static invalidMode(mode) {
 		console.log(clc.redBright("\nError!!!\n"));
 		console.log(clc.redBright("Invalid Mode "+clc.whiteBright(`"${mode}"`)));
 	}
+	/**
+	 * File Content Getter
+	 * 
+	 * @return {Object}
+	 */
 	get fileContent() {
 		let componentName = this.entry.match(/((\w*-)*\w*|\w*)(?=.html$)/); //Get the name from the file
 
@@ -108,6 +164,13 @@ class CLI {
 			name
 		}
 	}
+	/**
+	 * Say Thanks
+	 * 
+	 * Show a Thanks Message to invite to follow on my Social Networks
+	 * 
+	 * @public
+	 */
 	sayThanks() {
 		console.log(clc.greenBright("\nSuccess...\n"));
 		console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(this.output)} to view your files.`);

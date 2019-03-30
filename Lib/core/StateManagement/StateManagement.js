@@ -4,6 +4,8 @@ require("../ErrorManagement")(); //Define Error Management Globals
  * State Management Base Class
  * 
  * Class that manage HTML String and get all data from these
+ * 
+ * @class
  */
 class StateManagement {
 	constructor(){
@@ -133,7 +135,7 @@ class StateManagement {
 		}
 	}
 	/**
-	 * Set State Watcher
+	 * Setter Watcher
 	 * 
 	 * Get State Watchers from JS Parsed and set to Component Watchers
 	 * 
@@ -155,6 +157,13 @@ class StateManagement {
 			this._watchers = watchersArray;
 		}
 	}
+	/**
+	 * Getter Watchers
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get watchers(){
 		return this._watchers;
 	}
@@ -164,6 +173,9 @@ class StateManagement {
 	 * 
 	 * @public
 	 * @param {Array} lifecycles
+	 * @param {String} type
+	 * 
+	 * @return {Object}
 	 */
 	setLifecycle(lifecycles, type) {
 		if (lifecycles.length > 0) {
@@ -209,13 +221,19 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Lifecycle Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get lifecycle() {
 		return this._lifecycle;
 	}
 	/**
-	* Get Component Name And Data
+	* Components Setter
 	* 
-	* @private
+	* @public
 	* @param {string} html 
 	*/
 	set components(html){
@@ -264,13 +282,20 @@ class StateManagement {
 			
 		});
 	}
+	/**
+	 * Components Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get components() {
 		return this._components;
 	}
 	/**
-	 * Get Computed Methods from the data Array
+	 * Computed Setter
 	 * 
-	 * @private
+	 * @public
 	 * @param {array} dataArray Array With All Data
 	 */
 	set computed(dataArray){
@@ -305,9 +330,22 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Computed Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get computed() {
 		return this._computed;
 	}
+	/**
+	 * State In Bind Attributes Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set statesInBindAttributes(html) {
 		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
 			if (i > 0) {
@@ -325,9 +363,9 @@ class StateManagement {
 		});
 	}
 	/**
-	 * Get State From Data Array
+	 * States In Bars Setter
 	 * 
-	 * @private
+	 * @public
 	 * @param {array} dataArray 
 	 */
 	set statesInBars(dataArray){
@@ -369,11 +407,17 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * States Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get states() {
 		return this._states;
 	}
 	/**
-	 * Get Methods from HTML String
+	 * Methods Setter
 	 * 
 	 * Map and get all HTML events attr like onclick, onsubmit, etc.
 	 * 
@@ -409,9 +453,21 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Methods Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get methods() {
 		return this._methods;
 	}
+	/**
+	 * Props In Bind Attributes Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set propsInBindAttributes(html) {
 		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
 			if (i > 0) {
@@ -428,9 +484,9 @@ class StateManagement {
 		});
 	}
 	/**
-	* Get Props From Data Array
+	* Props In Bars
 	* 
-	* @private
+	* @public
 	* @param {Array} dataArray
 	*/
 	set propsInBars(dataArray) {
@@ -442,15 +498,24 @@ class StateManagement {
 			}
 		});
 	}
+	/**
+	 * Props Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get props() {
 		return this._props;
 	}
 	/**
-	* Get Input, Textarea and Option Tags from HTML String
-	* 
-	* @private
-	* @param {string} html 
-	*/
+	 * Inputs Setter
+	 * 
+	 * Get Input, Textarea and Option Tags from HTML String
+	 * 
+	 * @public
+	 * @param {string} html 
+	 */
 	set inputs(html) {
 		//Match Tags
 		let inputs = html.match(/<(input|select|textarea).*(\/>|>)/g);
@@ -471,11 +536,21 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Handle Inputs Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get handleInputs() {
 		return this._handleInputs;
 	}
 	/**
-	*/
+	 * Conditionals Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set conditionals(html){
 		//Function to get tag condition
 		const getData = data => {
@@ -552,9 +627,22 @@ class StateManagement {
 			return e;
 		});
 	}
+	/**
+	 * Conditionals Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get conditionals() {
 		return this._cond;
 	}
+	/**
+	 * Loops Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set loops(html){
 		let loopsTagsArray = html.split(/<for /);
 
@@ -588,6 +676,13 @@ class StateManagement {
 			return e;
 		});
 	}
+	/**
+	 * Loops Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get loops() {
 		return this._loops;
 	}
@@ -596,10 +691,13 @@ class StateManagement {
 	/*Internal Methods*/
 	
 	/**
+	 * JSON Prettify
+	 * 
 	 * Convert an Object to String and add new lines and indents to code beauty
 	 * 
 	 * @protected
 	 * @param {Object} json
+	 * 
 	 * @return {String}
 	 */
 	_JSONPrettify(json){
@@ -621,6 +719,8 @@ class StateManagement {
 			.replace(/:(?="|\d|true|false|\{|\[)/g, ": ");
 	}
 	/**
+	 * Set Data From HTML
+	 * 
 	 * Get All Data From HTML
 	 * 
 	 * @private
@@ -689,6 +789,7 @@ class StateManagement {
 	 *
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
 	 *
+	 * @protected
 	 * @param {Array} JsArray 
 	 * @param {String} type 
 	 * 
@@ -795,10 +896,16 @@ class StateManagement {
 	}
 
 	/**
+	 * Expressions Filter
 	 * 
+	 * Filter States and Props vars with corresponding caller
+	 * 
+	 * @private
 	 * @param {String} html 
 	 * @param {String} name 
 	 * @param {String} replace 
+	 * 
+	 * @return {String}
 	 */
 	_expressionsFilter(html, name, replace) {
 		var filtered = html
@@ -850,7 +957,7 @@ class StateManagement {
 		return filtered;
 	}
 	/**
-	 * Globals
+	 * Globals Getter
 	 * 
 	 * Getter that return the global list
 	 * 
@@ -865,9 +972,13 @@ class StateManagement {
 		return globalList.concat(defineGlobals !== undefined ? defineGlobals() : []);
 	}
 	/**
+	 * Define Type From String
+	 * 
 	 * Get String Value and Parse that
+	 * 
 	 * @param {string} string String Value
-	 * @returns {any}
+	 * 
+	 * @return {any}
 	 */
 	_defineTypeFromString(string){
 		let _isString = /^("|').*('|")$/.test(string);
@@ -911,10 +1022,13 @@ class StateManagement {
 		return {var:string};
 	}
 	/**
+	 * Boolean Parser
+	 * 
 	 * Parse Boolean String
 	 * 
 	 * @param {string} string String Value
-	 * @returns {Boolean}
+	 * 
+	 * @return {Boolean}
 	 */
 	_BooleanParser(string){
 		if (string === "true")
@@ -923,10 +1037,13 @@ class StateManagement {
 		return false;
 	}
 	/**
+	 * Array And Object Parser
+	 * 
 	 * Parse Array, Object and Define Type
 	 * 
 	 * @param {string} string String Value
-	 * @returns {Array}
+	 * 
+	 * @return {Array}
 	 */
 	_ArrayAndObjectParser(string){
 		let filtered = string;

@@ -1,7 +1,6 @@
 const {readFileSync} = require("fs");
 
 class File {
-
 	/**
 	 * Read File As String
 	 * 

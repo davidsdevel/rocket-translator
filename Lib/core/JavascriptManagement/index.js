@@ -1,6 +1,14 @@
 const lifecycle = require("../../const/Lifecycle.json");
 const {unlinkSync, existsSync} = require("fs");
+
 class JavascriptManagement {
+	/**
+	 * Javascript Management
+	 * 
+	 * Initialize the data and execute the _main method
+	 * 
+	 * @constructor
+	 */
 	constructor(){
 		this._data;
 		this._watchers = new Array();
@@ -10,6 +18,13 @@ class JavascriptManagement {
 		this.lifecycles = new Array();
 		this._main();
 	}
+	/**
+	 * Main
+	 * 
+	 * Reset the data, get the Javascript data from the temp data file
+	 * 
+	 * @return {void}
+	 */
 	_main() {
 		//Reset Data
 		this._data = undefined;
@@ -77,23 +92,59 @@ class JavascriptManagement {
 		if (existsSync(global.tempDataFile))
 			unlinkSync(global.tempDataFile);
 	}
+
+	/**
+	 * Setter Functions
+	 * 
+	 * Parse the function and push to _functions Array
+	 * 
+	 * @param {String} functionName
+	 */
 	set functions(functionName) {
 		let name = functionName;
 		let content = this._data[name].toString().replace(/\s*=>\s*/, "");
 		this._functions.push({name, content});
 	}
+	/**
+	 * Getter Functions
+	 * 
+	 * Return the _functions Array
+	 * 
+	 * @return {Array}
+	 */
 	get functions(){
 		return this._functions;
 	}
+	/**
+	 * Setter States
+	 * 
+	 * Get a Javascript Object and set all states to _states Array
+	 * 
+	 * @param {Object} js
+	 */
 	set states(js){
 		let keys = Object.keys(js);
 		keys.forEach(e => {
 			this._states.push({key:e, value:js[e]});
 		});
 	}
+	/**
+	 * Getter States
+	 * 
+	 * Return _states Array
+	 * 
+	 * @return {Array}
+	 */
 	get states(){
 		return this._states;
 	}
+	/**
+	 * Setter Watchers
+	 * 
+	 * Get a Javascript Object and set all watchers to _watchers Array
+	 * 
+	 * @param {Object} js
+	 */
 	set watchers(js){
 		let keys = Object.keys(js);
 		keys.forEach(e => {
@@ -108,9 +159,23 @@ class JavascriptManagement {
 			this._watchers.push({name, content});
 		});
 	}
+	/**
+	 * Getter Watchers
+	 * 
+	 * Return _watchers Array
+	 * 
+	 * @return {Array}
+	 */
 	get watchers(){
 		return this._watchers;
 	}
+	/**
+	 * Getter Vars
+	 * 
+	 * Return _vars Array
+	 * 
+	 * @return {Array}
+	 */
 	get vars(){
 		return this._vars;
 	}

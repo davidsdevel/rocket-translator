@@ -66,6 +66,14 @@ class TranslatorFileFunctions {
 			return "";
 		}
 	}
+	/**
+	 * Filter Javascript Data File
+	 * 
+	 * Get the HTML file and create a temp file that export the Javascript Data
+	 * 
+	 * @public
+	 * @param {String} js 
+	 */
 	filterJavascriptDataFile(js) {
 		let newData = js;
 		let data = js.match(new RegExp(lifecycle.join("|"), "g")) || [];
@@ -124,6 +132,13 @@ class TranslatorFileFunctions {
 
 		this._filterGlobals();
 	}
+	/**
+	 * Filter Globals
+	 * 
+	 * Get the globals list, then replace on temp data file and create a global's global list
+	 * 
+	 * @private
+	 */
 	_filterGlobals() {
 		const globalList = require("../const/Globals");
 		const {defineGlobals} = require(global.defineGlobals);
@@ -136,7 +151,6 @@ class TranslatorFileFunctions {
 		});
 
 		writeFileSync(global.tempDataFile, fileData);
-
 	}
 	/**
 	 * Get CSS
@@ -271,6 +285,13 @@ class TranslatorFileFunctions {
 			}
 		}
 	}
+	/**
+	 * Get Script Tags
+	 * 
+	 * Find the script tags and set the content as Component Data
+	 * 
+	 * @param {String} html 
+	 */
 	_getScriptTags(html) {
 		html.split(/<script.*>/g).forEach((e, i) => {
 			if (i > 0) {
@@ -278,6 +299,13 @@ class TranslatorFileFunctions {
 			}
 		});
 	}
+	/**
+	 * Get Style Tags
+	 * 
+	 * Find the style tags and set the content as Component Styles
+	 * 
+	 * @param {String} html 
+	 */
 	_getStyleTags(html){
 		html.split(/<style.*>/g).forEach((e, i) => {
 			if (i > 0) {

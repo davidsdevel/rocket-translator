@@ -3,6 +3,8 @@ const JavaScriptEvents = require("../../const/Events.json");
 
 /**
  * Class React State Management
+ * 
+ * @class
  * @extends StateManagement
  */
 class ReactStateManagement extends StateManagement {
@@ -186,8 +188,8 @@ class ReactStateManagement extends StateManagement {
 	 *
 	 * @private
 	 * @param {string} html
-	 * @return {string}
-	 *
+	 * 
+	 * @return {string} 
 	 */
 	_mapConditionals(html) {
 		let splittedCond = html.split(/<(?=if\s*cond)/);
@@ -252,6 +254,16 @@ class ReactStateManagement extends StateManagement {
 		this.condWasMapped = true;
 		return splittedCond.join("");
 	}
+	/**
+	 * Filter Conditional HTML
+	 * 
+	 * Get the conditional HTML and filter all HTML single tags
+	 * 
+	 * @private
+	 * @param {String} html 
+	 * 
+	 * @return {String}
+	 */
 	_filterConditionalHTML(html) {
 		let finalHTML = html
 			/*Filter Firts Tabs*/
@@ -278,8 +290,8 @@ class ReactStateManagement extends StateManagement {
 	 *
 	 * @private
 	 * @param {string} html
+	 * 
 	 * @return {string}
-	 *
 	 */
 	_mapLoops(html) {
 		let splittedLoops = html.split(/<(?=for\s*val)/);
@@ -323,11 +335,12 @@ class ReactStateManagement extends StateManagement {
 	/**
 	 * Filter HTML
 	 *
+	 * Filter HTML String and return with React Syntax
+	 * 
 	 * @public
 	 * @param {string} html
 	 *
 	 * @return {string}
-	 *
 	 */
 	filterHTML(html){
 		if (!this.condWasMapped) {
@@ -678,7 +691,7 @@ class ReactStateManagement extends StateManagement {
 	 * 
 	 * @return {String}
 	 */
-	_setTypeofData(data) {
+	_getTypeofData(data) {
 		const name = data.match(/^\w*/)[0];
 		//Map States
 		for (let i = 0; i < this.states.length; i++) {
@@ -740,7 +753,7 @@ class ReactStateManagement extends StateManagement {
 				}
 			}
 		
-			return `var cond_${e.id};\n\t\tif(${this._setTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(ifContent)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => {
+			return `var cond_${e.id};\n\t\tif(${this._getTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(ifContent)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => {
 				var content;
 				if (con.tag)
 					content = `<${con.tag}>${con.content}</${con.tag}>`;
@@ -751,7 +764,7 @@ class ReactStateManagement extends StateManagement {
 						// eslint-disable-next-line prefer-destructuring
 						content = con.content;
 				}
-				return `else if (${this._setTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(content)}\n\t\t}\n\t\t`;
+				return `else if (${this._getTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(content)}\n\t\t}\n\t\t`;
 			
 			}).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(elseContent)}\n\t\t}\n\t\t`:""}`;
 		});

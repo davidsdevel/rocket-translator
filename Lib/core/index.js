@@ -63,7 +63,7 @@ export default ${name || "MyComponent"};
 };
 
 /**
- * Vue Translator
+ * Vue Compiler
  * 
  * Function that take the HTML string and translate to Vue
  *
@@ -121,7 +121,7 @@ ${style}`;
 };
 
 /**
- * Angular Translator
+ * Angular Compiler
  * 
  * Function that take the HTML string and translate to Angular
  *

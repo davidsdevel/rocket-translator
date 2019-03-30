@@ -1,9 +1,16 @@
 class Utils {
+	/**
+	 * Is Upper Case
+	 * 
+	 * Return true is letter is Upper Case
+	 * 
+	 * @static
+	 * @param {String} letter
+	 * 
+	 * @return {String}
+	 */
 	static isUpperCase(letter) {
 		return letter === letter.toUpperCase();
-	}
-	static isLowerCase(letter) {
-		return letter === letter.toLowerCase();
 	}
 }
 
