@@ -140,6 +140,8 @@
 		"eslint-plugin-import": "^2.14.0",
 		"eslint-plugin-react": "^7.12.2",
 		"eslint-watch": "^4.0.2",
-		"jest": "^23.6.0"
+		"jest": "^23.6.0",
+		"webpack": "^4.29.6",
+		"webpack-cli": "^3.3.0"
 	}
 }
