@@ -4,6 +4,7 @@ const StateManagement = require("./StateManagement");
  *
  * Class to handle the Vue Data
  *
+ * @class
  * @extends StateManagement
  *
  */
@@ -97,43 +98,54 @@ class VueStateManagement extends StateManagement {
 			})
 			.join("<select");
 
-			
-		//Parsing conditionals tags
-		let condParsed  = selectTag
-			/*Replace closing if and else tags with the template tag*/
-			.replace(/(\/if|\/else)(?=>)/g, "/template")
-			
-			/*Replace open if tag*/
-			.replace(/if\s*cond=/g, "template v-if=")
+		const condParsed = selectTag
+			.split(/<(?=if\s*cond=)/)
+			.map((cond, i) => {
+				if (i > 0) {
+					const condTagName = cond.match(/^\w*(-\w*)*/)[0];
+					const tagRegExp = /\s*tag="\w*(-\w*)*"/;
+					var tagName = "template";
 
-			/*Replace open else tag*/
-			.replace(/else(?=>)/g, "template v-else")
+					if (tagRegExp.test(cond)) 
+						tagName = cond.match(tagRegExp)[0]
+							.replace(/\s*tag=/, "")
+							.replace(/'|"/g, "");
 
-			/*Replace unused spaces and duplicates quotes*/
-			.replace(/'(?=\s*.*>)/g, "\"")
-			.replace(/''(?=.*>)/g, "'\"");
-			
+					return cond.replace(new RegExp(`${condTagName} cond="(?=.*>)`, "g"), `${tagName} v-${condTagName}='`)
+						.replace(`</${condTagName}>`, `</${tagName}>`)
+						.replace(`<${condTagName}>`, `<${tagName}>`)
+						.replace(tagRegExp, "")
+						.replace(/"\s*"/, "\"'");
+				}
+				return cond;
+			})
+			.join("<");
+
 		//Parsing the bind attr with the v-bind directive
 		let bindDirectivesReplaced = condParsed
 			.split(/:(?=\w*=)/)
 			.map((content, i) => {
 				if (i > 0) {
+					const bindSimpleOrWithTypeRegExp = /^\w*="(\w*(\s*-\s*\w*)*)"/;
+					const bindWithConditional = /^\w*="\s*\w*\s*(\?).*('|"|}|])\s*"/;
 
-					//if have Attribute whit data
-					if (/^\w*="\w*"/.test(content))
+					if (bindSimpleOrWithTypeRegExp.test(content)) {
+						const bindAttr = content.match(bindSimpleOrWithTypeRegExp)[0];
+
+						if (/prop/.test(bindAttr) || /state/.test(bindAttr))
+							return content.replace(bindAttr, bindAttr.replace(/\s*-.*$/, "\""));
+						
 						return content;
-
-					//else
-					if (/^\w*="\w*\s*==/.test(content))
-						return content
-							.replace(/""/, "\"'")
-							.replace(/'"/, "\"'")
-							.replace(/"/, "'");
-
-					return content
-						.replace(/""/, "\"'")
-						.replace("\"", "'")
-						.replace(/"""/, "''\"");
+					}
+					else if (bindWithConditional.test(content)) {
+						const expression = content.match(bindWithConditional)[0];
+						const replacedQuotes = expression
+							.replace(/"/g, "'")
+							.replace("'", "\"")
+							.replace(/'$/, "\"");
+						
+						return content.replace(expression, replacedQuotes);
+					}
 				}
 
 				//return content of index 0
@@ -143,8 +155,24 @@ class VueStateManagement extends StateManagement {
 			
 		//Parsing for tags
 		let loopParse = bindDirectivesReplaced
-			.replace(/for val=(?=.*>)/g, "template v-for=")
-			.replace(/\/for(?=>)/g, "/template");
+			.split(/<(?=for val=)/)
+			.map((e, i) => {
+				if (i > 0) {
+					const tagRegExp = /\s*tag=('|")\w*(-\w*)*('|")/;
+					var tagName = "template";
+					if (tagRegExp.test(e)) 
+						tagName = e.match(tagRegExp)[0]
+							.replace(/\s*tag=/, "")
+							.replace(/'|"/g, "");
+
+					return e.replace(/for val=(?=.*>)/g, `${tagName} v-for=`)
+						.replace(/\/for(?=>)/g, `/${tagName}`)
+						.replace(tagRegExp, "");
+				}
+				return e;
+			})
+			.join("<");
+			
 			
 		let componentParsed = loopParse
 			.split("<component ")
@@ -156,7 +184,7 @@ class VueStateManagement extends StateManagement {
 
 					return componentTag
 						/*Deleted component name attr*/
-						.replace(/name=('|")\w*('|")/, componentName)
+						.replace(/component-name=('|")\w*('|")/, componentName)
 
 						/*If not have add enclosing tag*/
 						.replace(">", "/>") + splitted[1];
@@ -207,7 +235,7 @@ class VueStateManagement extends StateManagement {
 				
 			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t}${comma}`;
 
-			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`);
+			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`).join("");
 		}
 
 		//Props

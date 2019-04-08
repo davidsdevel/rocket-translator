@@ -1,5 +1,7 @@
 dist
 tmp
+angular-guide.txt
+
 
 # Testing
 test/

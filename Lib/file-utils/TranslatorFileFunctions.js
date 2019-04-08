@@ -5,7 +5,7 @@ const {
 } = require("fs");
 const{ join } = require("path");
 const {readFileAsString} = require("../commons/file");
-const {VueCompiler, ReactCompiler} = require("../core");
+const {VueCompiler, ReactCompiler, AngularCompiler} = require("../core");
 const clc = require("cli-color");
 const lifecycle = require("../const/Lifecycle.json");
 
@@ -60,17 +60,20 @@ class TranslatorFileFunctions {
 	 */
 	getJs(){
 		if (this._js !== undefined){
-			return this._js.join("\r\n").split(/\n|\r|\r\n/g).map(e => {
-				if (e) return e.replace(/\t|\s\s\s\s|\s\s/, "");
-			})
-				.filter(e => {
-					return e;
-				})
-				.join("\r\n");
+			return this._js.join("\r\n");
+
 		} else {
 			return "";
 		}
 	}
+	/**
+	 * Filter Javascript Data File
+	 * 
+	 * Get the HTML file and create a temp file that export the Javascript Data
+	 * 
+	 * @public
+	 * @param {String} js 
+	 */
 	filterJavascriptDataFile(js) {
 		let newData = js;
 		let data = js.match(new RegExp(lifecycle.join("|"), "g")) || [];
@@ -78,16 +81,35 @@ class TranslatorFileFunctions {
 		data.forEach(e => {
 			newData = newData.replace(new RegExp(`(const|var|let)\\s*(?=${e})`), "exports.");
 		});
-		let splittedData = newData.split(/(\n|\r\n|\r)(?=var|let|const|function)/);
+
+		//Parse Functions
+		const splittedFunctions = newData.split(/\r*\n*(?=function)/);
+
+		newData = splittedFunctions.map(e => {
+
+			return e
+				.replace(/^function\s*/, "exports.")
+				.replace(/\(/, " = (")
+				.replace(/\)/, ") =>")
+				.replace(/=\s*=\s*/, "= ")
+				.replace(/=>\s*=>\s*/, "=> ");
+		}).join("");
+
+		let splittedData = newData.split(/\n/);
+		var functionIsOpen = false;
+
 		newData = splittedData
 			.map(e => {
-				if(e.startsWith("function")) {
-					return e
-						.replace(/^function\s*/, "exports.")
-						.replace(/\(/, "= (")
-						.replace(/\)/, ") =>");
-				}
-				return e.replace(/^(var|let|const)\s*/, "exports.");
+				if (/exports\.\w*\s*=\s*\(.*\)\s*=>\s*{/.test(e))
+					functionIsOpen = true;
+				else if (/\t*}\r*\n*/.test(e))
+					functionIsOpen = false;
+
+
+				if (!functionIsOpen)
+					return e.replace(/(var|let|const)\s*/, "exports.");
+
+				return e;
 			})
 			.join("\n");
 
@@ -110,6 +132,13 @@ class TranslatorFileFunctions {
 
 		this._filterGlobals();
 	}
+	/**
+	 * Filter Globals
+	 * 
+	 * Get the globals list, then replace on temp data file and create a global's global list
+	 * 
+	 * @private
+	 */
 	_filterGlobals() {
 		const globalList = require("../const/Globals");
 		const {defineGlobals} = require(global.defineGlobals);
@@ -122,7 +151,6 @@ class TranslatorFileFunctions {
 		});
 
 		writeFileSync(global.tempDataFile, fileData);
-
 	}
 	/**
 	 * Get CSS
@@ -155,19 +183,26 @@ class TranslatorFileFunctions {
 				mkdirSync(componentsFolder);
 			}
 			for (let i = 0; i <= ComponentsArray.length - 1; i++) {
-				let {name} = ComponentsArray[i];
-				let {content} = ComponentsArray[i];
+				let {name, content} = ComponentsArray[i];
 				let mime;
 				
-				if (type === "vue") {
-					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+				switch(type) {
+				case "vue":
+					content = VueCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
 					mime = "vue";
-				} else if (type === "react") {
-					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs());
+					break;
+				case "react":
+					content = ReactCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
 					mime = "jsx";
+					break;
+				case "angular":
+					content = AngularCompiler(name, content.split(/\n/).map(e => e.replace(/\t\t/, "")).join("\n"), "", this.getJs()).main;
+					mime = "component.ts";
+					break;
+				default: 
+					console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
+					process.exit(1);
 				}
-				else console.error(`Type must be '${clc.whiteBright("react")}' or '${clc.whiteBright("vue")}'"`);
-
 				writeFileSync(join(componentsFolder, `${name}.${mime}`), content);
 			}
 		}
@@ -191,6 +226,9 @@ class TranslatorFileFunctions {
 			break;
 		case "react":
 			mime = "jsx"; //Set "jsx" extension
+			break;
+		case "angular":
+			mime = "component.ts";
 			break;
 		default:
 			throw new Error(`Invalid Type ${type}`);
@@ -247,6 +285,13 @@ class TranslatorFileFunctions {
 			}
 		}
 	}
+	/**
+	 * Get Script Tags
+	 * 
+	 * Find the script tags and set the content as Component Data
+	 * 
+	 * @param {String} html 
+	 */
 	_getScriptTags(html) {
 		html.split(/<script.*>/g).forEach((e, i) => {
 			if (i > 0) {
@@ -254,6 +299,13 @@ class TranslatorFileFunctions {
 			}
 		});
 	}
+	/**
+	 * Get Style Tags
+	 * 
+	 * Find the style tags and set the content as Component Styles
+	 * 
+	 * @param {String} html 
+	 */
 	_getStyleTags(html){
 		html.split(/<style.*>/g).forEach((e, i) => {
 			if (i > 0) {

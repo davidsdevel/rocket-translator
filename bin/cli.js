@@ -2,16 +2,27 @@
 const { 
 	VueCompiler,
 	ReactCompiler,
-	Components,
 	AngularCompiler
 } = require("../Lib/core");
-const {unlinkSync} = require("fs");
 const FF = require("../Lib/file-utils/TranslatorFileFunctions");
 const clc = require("cli-color");
 
 const functions = new FF();
 
+/**
+ * CLI
+ * 
+ * Initialize and Handle the Command Line Interface (CLI)
+ * 
+ * @class
+ */
 class CLI {
+	/**
+	 * CLI
+	 * 
+	 * @constructor
+	 * @param {Object} param0 
+	 */
 	constructor({entry, output, mode}) {
 		this.entry = entry;
 		this.output = output;
@@ -26,6 +37,14 @@ class CLI {
 		functions.setParams(entry, output);
 		this.handleMode();
 	}
+	/**
+	 * Handle Mode
+	 * 
+	 * Get compiler mode and then call respective compiler.
+	 * If not have valid compiler throw Invalid Mode Error
+	 * 
+	 * @public
+	 */
 	handleMode() {
 		switch(this.mode) {
 			case "vue":
@@ -34,17 +53,21 @@ class CLI {
 			case "react":
 				this.compile("react");
 				break;
-			/*
-			TODO: Implement Angular Mode
 			case "angular":
 				this.compile("angular");
 				break;
-			*/
 			default:
 				this.invalidMode();
 				break;
 		}
 	}
+	/**
+	 * Compile
+	 * 
+	 * Execute a Compiler corresponding with mode
+	 * 
+	 * @param {String} mode 
+	 */
 	compile(mode) {
 		
 		let {html, css, js, name} = this.fileContent;
@@ -64,37 +87,65 @@ class CLI {
 				break;
 			default: break;
 		}
+		const {main, components} = compiler(name, html, css);
 		functions.writeFile({
 			name,
-			content:compiler(name, html, css),
+			content:main,
 			type:mode
 		});
-		functions.writeComponents(name, mode, Components);
+		functions.writeComponents(name, mode, components);
 		this.sayThanks();
 	}
+	/**
+	 * Show Help
+	 * 
+	 * Show help Window
+	 * 
+	 * @static
+	 * @public
+	 */
 	static showHelp() {
 		//Help Commands
 		console.log(
-	`	Usage: rocket [vue | react] <input-file> <output-folder>
+	`	Usage: rocket [command] <input-file> <output-folder>
 
     	Commands:
         Translate to React:		react
         Translate to Vue:		vue
+        Translate to Angular:		angular 
 
         Help:				--help | -h
         Version:			--version | -v`
 		);
-		process.exit(1); //Stop execution
 	}
+	/**
+	 * Show Version
+	 * 
+	 * @static
+	 * @public
+	 */
 	static showVersion() {
 		let {version} = require("../package.json");
 		console.log(`v${version}`);
 	}
+	/**
+	 * Invalid Mode
+	 * 
+	 * Show a Message with the invalid Mode
+	 * 
+	 * @static
+	 * @public
+	 * @param {String} mode 
+	 */
 	static invalidMode(mode) {
 		console.log(clc.redBright("\nError!!!\n"));
 		console.log(clc.redBright("Invalid Mode "+clc.whiteBright(`"${mode}"`)));
-		process.exit(1);
 	}
+	/**
+	 * File Content Getter
+	 * 
+	 * @return {Object}
+	 */
 	get fileContent() {
 		let componentName = this.entry.match(/((\w*-)*\w*|\w*)(?=.html$)/); //Get the name from the file
 
@@ -113,12 +164,17 @@ class CLI {
 			name
 		}
 	}
+	/**
+	 * Say Thanks
+	 * 
+	 * Show a Thanks Message to invite to follow on my Social Networks
+	 * 
+	 * @public
+	 */
 	sayThanks() {
 		console.log(clc.greenBright("\nSuccess...\n"));
 		console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(this.output)} to view your files.`);
 		console.log(`\nSend a feedback to ${clc.whiteBright("@David_Devel")} on Twitter.\n\nTo report a Error, open a new issue on:\n${clc.whiteBright("https://github.com/Davids-Devel/rocket-translator")}`);
-		unlinkSync(global.defineGlobals);
-		unlinkSync(global.tempDataFile);
 	}
 }
 

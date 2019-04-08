@@ -4,6 +4,8 @@ require("../ErrorManagement")(); //Define Error Management Globals
  * State Management Base Class
  * 
  * Class that manage HTML String and get all data from these
+ * 
+ * @class
  */
 class StateManagement {
 	constructor(){
@@ -133,7 +135,7 @@ class StateManagement {
 		}
 	}
 	/**
-	 * Set State Watcher
+	 * Setter Watcher
 	 * 
 	 * Get State Watchers from JS Parsed and set to Component Watchers
 	 * 
@@ -155,6 +157,13 @@ class StateManagement {
 			this._watchers = watchersArray;
 		}
 	}
+	/**
+	 * Getter Watchers
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get watchers(){
 		return this._watchers;
 	}
@@ -164,6 +173,9 @@ class StateManagement {
 	 * 
 	 * @public
 	 * @param {Array} lifecycles
+	 * @param {String} type
+	 * 
+	 * @return {Object}
 	 */
 	setLifecycle(lifecycles, type) {
 		if (lifecycles.length > 0) {
@@ -209,13 +221,19 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Lifecycle Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get lifecycle() {
 		return this._lifecycle;
 	}
 	/**
-	* Get Component Name And Data
+	* Components Setter
 	* 
-	* @private
+	* @public
 	* @param {string} html 
 	*/
 	set components(html){
@@ -242,8 +260,9 @@ class StateManagement {
 		let splitComponentWithContent = html.split("<component ");
 		splitComponentWithContent.forEach((e, i) => {
 			if (i > 0) {
-				let componentName = e.match(/component-name\s*=\s*('|")\w*/)[0].replace(/component-name\s*=\s*("|')/);
+				let componentName = e.match(/component-name\s*=\s*('|")\w*/)[0].replace(/component-name\s*=\s*("|')/, "");
 				let componentContent = e.replace(/.*>(\r\n|\n|\r)/, "").split(/(\r\n|\n|\r)*\t*<\/component>/)[0];
+
 				this._components.push(componentName);
 				
 				this.componentsContent.push({
@@ -263,13 +282,20 @@ class StateManagement {
 			
 		});
 	}
+	/**
+	 * Components Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get components() {
 		return this._components;
 	}
 	/**
-	 * Get Computed Methods from the data Array
+	 * Computed Setter
 	 * 
-	 * @private
+	 * @public
 	 * @param {array} dataArray Array With All Data
 	 */
 	set computed(dataArray){
@@ -304,16 +330,45 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Computed Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get computed() {
 		return this._computed;
 	}
 	/**
-	 * Get State From Data Array
+	 * State In Bind Attributes Setter
 	 * 
-	 * @private
+	 * @public
+	 * @param {String} html
+	 */
+	set statesInBindAttributes(html) {
+		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
+			if (i > 0) {
+				const withTypeRegExp = /^\w*=("|')\w*\s*-\s*\w*("|')/;
+
+				if (withTypeRegExp.test(bindAttr)) {
+					const attrib = bindAttr.match(withTypeRegExp)[0];
+
+					if (/state/.test(attrib)) {
+						const stateName = attrib.replace(/'/g, "\"").split(/="/)[1].replace(/\s*-.*$/, "");
+						this._states.push(stateName);
+					}
+				}
+			}
+		});
+	}
+	/**
+	 * States In Bars Setter
+	 * 
+	 * @public
 	 * @param {array} dataArray 
 	 */
-	set states(dataArray){
+	set statesInBars(dataArray){
 		/* 
 			Capture State Without Value and push to Empty Array
 		*/
@@ -352,11 +407,17 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * States Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get states() {
 		return this._states;
 	}
 	/**
-	 * Get Methods from HTML String
+	 * Methods Setter
 	 * 
 	 * Map and get all HTML events attr like onclick, onsubmit, etc.
 	 * 
@@ -392,16 +453,43 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Methods Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get methods() {
 		return this._methods;
 	}
 	/**
-	* Get Props From Data Array
+	 * Props In Bind Attributes Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
+	set propsInBindAttributes(html) {
+		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
+			if (i > 0) {
+				const regExpToMatch = /^\w*="(\w*(\s*-\s*\w*)*)"/;
+				if (regExpToMatch.test(bindAttr)) {
+					const attrib = bindAttr.match(regExpToMatch)[0];
+
+					if (/prop/.test(attrib)) {
+						const propName = attrib.replace(/'/g, "\"").split(/="/)[1].replace(/\s*-.*$/, "");
+						this._props.push(propName);
+					}
+				}
+			}
+		});
+	}
+	/**
+	* Props In Bars
 	* 
-	* @private
-	* @param {Array} dataArray 
+	* @public
+	* @param {Array} dataArray
 	*/
-	set props(dataArray){
+	set propsInBars(dataArray) {
 		//Map Array
 		dataArray.forEach(e => {
 			//If Match Add Prop Name to Props
@@ -410,15 +498,24 @@ class StateManagement {
 			}
 		});
 	}
+	/**
+	 * Props Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get props() {
 		return this._props;
 	}
 	/**
-	* Get Input, Textarea and Option Tags from HTML String
-	* 
-	* @private
-	* @param {string} html 
-	*/
+	 * Inputs Setter
+	 * 
+	 * Get Input, Textarea and Option Tags from HTML String
+	 * 
+	 * @public
+	 * @param {string} html 
+	 */
 	set inputs(html) {
 		//Match Tags
 		let inputs = html.match(/<(input|select|textarea).*(\/>|>)/g);
@@ -439,22 +536,44 @@ class StateManagement {
 			});
 		}
 	}
+	/**
+	 * Handle Inputs Getter
+	 * 
+	 * @public
+	 * @return {Array}
+	 */
 	get handleInputs() {
 		return this._handleInputs;
 	}
 	/**
-	*/
+	 * Conditionals Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set conditionals(html){
 		//Function to get tag condition
-		let getCond = data => {
-			let dataCond = data.match(/cond=('|").*('|")(?=.*>)/g);
-			return dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
+		const getData = data => {
+			const tagRegExp = /\s*tag=('|")\w*(-\w*)*("|')/;
+			var tag = "";
+			if (tagRegExp.test(data))
+				tag = data.match(tagRegExp)[0].replace(/\s*tag=/, "").replace(/('|")/g, "");
+
+			data = data.replace(tagRegExp, "");
+
+			let dataCond = data.match(/cond=('|").*('|")/g);
+
+			return {
+				cond: dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, ""),
+				tag
+			};
 		};
 		let condTagsArray = html.split("<if ");
 		let condData = condTagsArray
 			.map((e, i) => {
 				if (i > 0) {
-					let cond = getCond(e);
+					let {cond, tag:tagIf} = getData(e);
+					let tagElse = "";
 					let elseIf = [];
 					let contentIf;
 					let contentElse;
@@ -462,15 +581,22 @@ class StateManagement {
 						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
 						if(/<else-if/.test(e)) {
 							e.split("<else-if").forEach((ev, i) => {
+								const {cond:elseIfCond, tag:elseIfTag} = getData(ev);
 								if (i > 0)
 									elseIf.push({
-										cond:getCond(ev),
+										cond:elseIfCond,
+										tag:elseIfTag,
 										content:ev.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
 									});
 							});
 						}
 						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
-						if (contentElse) {
+						if (contentElse) {	
+							const tagRegExp = /<else\s*tag=('|")\w*(-\w*)*("|')/;
+
+							if (tagRegExp.test(e))
+								tagElse = e.match(tagRegExp)[0].replace(/<else\s*tag=/, "").replace(/('|")/g, "");
+							
 							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
 						}
 					}
@@ -490,6 +616,8 @@ class StateManagement {
 						cond,
 						if:contentIf,
 						elseIf,
+						tagIf,
+						tagElse,
 						else:contentElse
 					};
 				}
@@ -499,9 +627,22 @@ class StateManagement {
 			return e;
 		});
 	}
+	/**
+	 * Conditionals Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get conditionals() {
 		return this._cond;
 	}
+	/**
+	 * Loops Setter
+	 * 
+	 * @public
+	 * @param {String} html
+	 */
 	set loops(html){
 		let loopsTagsArray = html.split(/<for /);
 
@@ -510,12 +651,13 @@ class StateManagement {
 				if (i > 0) {
 					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
 					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
-					let stateToMap = valueAndState.replace(/^.*in /, "");
+					let stateToMap = valueAndState.replace(/^.*in /, "").replace(/('|").*/, "");
 					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
 					
 					let matchState = false;
 					this.states.forEach(e => {
-						if(e === stateToMap)
+
+						if(stateToMap === (typeof e === "object" ? e.key : e))
 							matchState = true;
 					});
 					if (!matchState)
@@ -534,6 +676,13 @@ class StateManagement {
 			return e;
 		});
 	}
+	/**
+	 * Loops Getter
+	 * 
+	 * @public
+	 * 
+	 * @return {Array}
+	 */
 	get loops() {
 		return this._loops;
 	}
@@ -542,10 +691,13 @@ class StateManagement {
 	/*Internal Methods*/
 	
 	/**
+	 * JSON Prettify
+	 * 
 	 * Convert an Object to String and add new lines and indents to code beauty
 	 * 
 	 * @protected
 	 * @param {Object} json
+	 * 
 	 * @return {String}
 	 */
 	_JSONPrettify(json){
@@ -567,6 +719,8 @@ class StateManagement {
 			.replace(/:(?="|\d|true|false|\{|\[)/g, ": ");
 	}
 	/**
+	 * Set Data From HTML
+	 * 
 	 * Get All Data From HTML
 	 * 
 	 * @private
@@ -606,15 +760,21 @@ class StateManagement {
 			});
 			//Handle Error
 		_getBarsSyntax.forEach(e => {
+			if (/^\w*$/.test(e))
+				return;
+			
 			if (/\w*\s*-\s*(state|prop|computed)/.test(e) === false)
 				new global.UndefinedTypeError(e);
 		});
 
 		if (_getBarsSyntax) {
-			this.states = _getBarsSyntax; //Get States
+			this.statesInBars = _getBarsSyntax; //Get States
 			this.computed = _getBarsSyntax; //Get Computed Methods 
-			this.props = _getBarsSyntax; //Get Props
+			this.propsInBars = _getBarsSyntax; //Get Props
 		}
+		this.statesInBindAttributes = html;
+
+		this.propsInBindAttributes = html;
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 
@@ -629,6 +789,7 @@ class StateManagement {
 	 *
 	 * Get an Object's Array with JS Data and return with Vue or React Syntax
 	 *
+	 * @protected
 	 * @param {Array} JsArray 
 	 * @param {String} type 
 	 * 
@@ -644,14 +805,19 @@ class StateManagement {
 			case "r":
 				stateReplace = "this.state.";
 				propReplace = "this.props.";
-				tab = "\t";
+				tab = "";
+				break;
+			case "a":
+				stateReplace = "this.";
+				propReplace = "this.";
+				tab = "";
 				break;
 			case "v":
 				stateReplace = "this.";
 				propReplace = "this.";
-				tab = "\t\t";
+				tab = "\t";
 				break;
-			default: throw new Error("The type param must be 'v' or 'r'");
+			default: throw new Error("The type param must be 'v', 'r' or 'a'");
 			}
 			//Map JS Content
 			let JsonArray = JsArray.map(({content, name}) => {
@@ -679,6 +845,7 @@ class StateManagement {
 				this.props.forEach(prop => {
 					data = this._expressionsFilter(data, prop, propReplace);
 				});
+
 				if (type === "r")
 					data = this._setStateFilter(data);
 
@@ -729,10 +896,16 @@ class StateManagement {
 	}
 
 	/**
+	 * Expressions Filter
 	 * 
+	 * Filter States and Props vars with corresponding caller
+	 * 
+	 * @private
 	 * @param {String} html 
 	 * @param {String} name 
 	 * @param {String} replace 
+	 * 
+	 * @return {String}
 	 */
 	_expressionsFilter(html, name, replace) {
 		var filtered = html
@@ -781,9 +954,10 @@ class StateManagement {
 			
 			return filtered.replace(toUnfilter[0], toUnfilter[0].replace(replace, ""));
 		}
+		return filtered;
 	}
 	/**
-	 * Globals
+	 * Globals Getter
 	 * 
 	 * Getter that return the global list
 	 * 
@@ -798,9 +972,13 @@ class StateManagement {
 		return globalList.concat(defineGlobals !== undefined ? defineGlobals() : []);
 	}
 	/**
+	 * Define Type From String
+	 * 
 	 * Get String Value and Parse that
+	 * 
 	 * @param {string} string String Value
-	 * @returns {any}
+	 * 
+	 * @return {any}
 	 */
 	_defineTypeFromString(string){
 		let _isString = /^("|').*('|")$/.test(string);
@@ -844,10 +1022,13 @@ class StateManagement {
 		return {var:string};
 	}
 	/**
+	 * Boolean Parser
+	 * 
 	 * Parse Boolean String
 	 * 
 	 * @param {string} string String Value
-	 * @returns {Boolean}
+	 * 
+	 * @return {Boolean}
 	 */
 	_BooleanParser(string){
 		if (string === "true")
@@ -856,10 +1037,13 @@ class StateManagement {
 		return false;
 	}
 	/**
+	 * Array And Object Parser
+	 * 
 	 * Parse Array, Object and Define Type
 	 * 
 	 * @param {string} string String Value
-	 * @returns {Array}
+	 * 
+	 * @return {Array}
 	 */
 	_ArrayAndObjectParser(string){
 		let filtered = string;

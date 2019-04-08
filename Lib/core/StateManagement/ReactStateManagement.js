@@ -3,6 +3,8 @@ const JavaScriptEvents = require("../../const/Events.json");
 
 /**
  * Class React State Management
+ * 
+ * @class
  * @extends StateManagement
  */
 class ReactStateManagement extends StateManagement {
@@ -186,8 +188,8 @@ class ReactStateManagement extends StateManagement {
 	 *
 	 * @private
 	 * @param {string} html
-	 * @return {string}
-	 *
+	 * 
+	 * @return {string} 
 	 */
 	_mapConditionals(html) {
 		let splittedCond = html.split(/<(?=if\s*cond)/);
@@ -228,6 +230,7 @@ class ReactStateManagement extends StateManagement {
 					filterElseIf = conditionalData.elseIf.map(con => {
 						return {
 							cond:con.cond,
+							tag:con.tag,
 							content:this._filterConditionalHTML(con.content)
 						};
 					});
@@ -240,6 +243,8 @@ class ReactStateManagement extends StateManagement {
 				this.condStates.push({
 					id,
 					cond:conditionalData.cond,
+					tagIf:conditionalData.tagIf,
+					tagElse:conditionalData.tagElse,
 					elseIf:filterElseIf,
 					if:filterIf,
 					else:filterElse
@@ -249,6 +254,16 @@ class ReactStateManagement extends StateManagement {
 		this.condWasMapped = true;
 		return splittedCond.join("");
 	}
+	/**
+	 * Filter Conditional HTML
+	 * 
+	 * Get the conditional HTML and filter all HTML single tags
+	 * 
+	 * @private
+	 * @param {String} html 
+	 * 
+	 * @return {String}
+	 */
 	_filterConditionalHTML(html) {
 		let finalHTML = html
 			/*Filter Firts Tabs*/
@@ -275,8 +290,8 @@ class ReactStateManagement extends StateManagement {
 	 *
 	 * @private
 	 * @param {string} html
+	 * 
 	 * @return {string}
-	 *
 	 */
 	_mapLoops(html) {
 		let splittedLoops = html.split(/<(?=for\s*val)/);
@@ -291,6 +306,14 @@ class ReactStateManagement extends StateManagement {
 			}
 
 			if(splittedLoops.length > 1) {
+				var tag = null;
+				const tagRegExp = /\s*tag=('|")\w*(-\w*)*('|")/;
+
+				if (tagRegExp.test(splittedLoops[1]))
+					tag = splittedLoops[1].match(tagRegExp)[0]
+						.replace(/\s*tag=/, "")
+						.replace(/'|"/g, "");
+				
 				//Replace Content with Loop ID
 				let replaced = splittedLoops[i+1].split("</for>");
 				replaced[0] = `{loop_${id}}`;
@@ -299,6 +322,7 @@ class ReactStateManagement extends StateManagement {
 				
 				this.loopsState.push({
 					id,
+					tag,
 					state:loopData.state,
 					value:loopData.value,
 					content:loopData.content.replace(/(\n|\r|\r\n|\t|\s\s*)/g, "")
@@ -311,11 +335,12 @@ class ReactStateManagement extends StateManagement {
 	/**
 	 * Filter HTML
 	 *
+	 * Filter HTML String and return with React Syntax
+	 * 
 	 * @public
 	 * @param {string} html
 	 *
 	 * @return {string}
-	 *
 	 */
 	filterHTML(html){
 		if (!this.condWasMapped) {
@@ -329,61 +354,58 @@ class ReactStateManagement extends StateManagement {
 			.split(/\{(?=\w*)/g)
 			.map((e, i) => {
 				if (e) {
-					let str;
-					if (i === 0) {
-						str = e;
-					} else if (e.match(/prop/)) { 
-						str = `{this.props.${e.replace(/(\s*-.*\})/g, "}")}`;
-					}else if (e.match(/computed/)) {
-						str = `{${e.replace(/(\s-.*\})/g, "}")}`;
-					} else if (e.match(/state/)){
-						str = `{this.state.${e.replace(/(\s*-.*\})/g, "}")}`;
-					} else {
-						str = `{${e}`;
-					}
-					return str;
+					if (i === 0)
+						return e;
+					
+					if (/prop/.test(e))
+						return `{this.props.${e.replace(/(\s*-.*\})/g, "}")}`;
+					
+					if (/computed/.test(e))
+						return `{${e.replace(/(\s-.*\})/g, "}")}`;
+					
+					if (/state/.test(e))
+						return `{this.state.${e.replace(/(\s*-.*\})/g, "}")}`;
+				
+					return `{${e}`;
 				}
 			})
 			.join("")
 			.split(/:(?=\w*='\w*)/g)
 			.map((e, i) => {
-				let valueToReturn;
 				if (i !== 0) {
-					if(e.match(/^\w*='\w*'/)){
+					if(/^\w*='\w*'/.test(e)){
 						let isState = false;
 						let toCompare = e.match(/='\w*(?=')/)[0];
 						this.states.forEach(state => {
 							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
+							if (new RegExp(state).test(toCompare)) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
-					} else if (e.match(/^\w*='\w*\s*-\s*\w*'/)) {
-						let isState = false;
-						let toCompare = e.match(/^\w*='\w*/g)[0];
-						this.states.forEach(state => {
-							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
-								isState = true;
-							}
-						});
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
-					} else if (e.match(/^\w*='(\w*|\w*(\.\w*)*)\s*(<|>|==|===|\?)/)) {
+						return e.replace(/'/, isState ? "{this.state." :  "{").replace(/'/, "}");
+					}
+					if (/^\w*='\w*\s*-\s*\w*'/.test(e)) {
+						var type = "";
+						if (/^\w*='\w*\s*-\s*prop'/.test(e))
+							type = "this.props.";
+						else if(/^\w*='\w*\s*-\s*state'/.test(e))
+							type = "this.state.";
+
+						return e.replace(/'(?=\w*)/, `{${type}`).replace(/\s*-\s*.*''/, "}").replace(/}'/, "}}");
+					}
+					if (/^\w*='(\w*|\w*(\.\w*)*)\s*(<|>|==|===|\?)/.test(e)) {
 						let isState = false;
 						let toCompare = e.match(/(\w*|\w*(\.\w*)*)(?=\s*(<|>|==|===|\?))/)[0];
 						this.states.forEach(state => {
 							state = typeof state === "object" ? state.key : state;
-							if (toCompare.match(new RegExp(state))) {
+							if (new RegExp(state).test(toCompare)) {
 								isState = true;
 							}
 						});
-						valueToReturn = e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/'''/, "\"\"}").replace(/''/, "'}").replace(/='}/, "=''").replace(/}'/, "}}");
+						return e.replace(/'(?=\w*)/, isState ? "{this.state." : "{").replace(/'''/, "\"\"}").replace(/''/, "'}").replace(/='}/, "=''").replace(/}'/, "}}");
 					}
-				} else {
-					valueToReturn = e;
 				}
-				return valueToReturn;
+				return e;
 			})
 			.join(" ")
 			.replace(/\s-\s.*'/g, "}")
@@ -566,84 +588,94 @@ class ReactStateManagement extends StateManagement {
 						eventName = eventName[0].toUpperCase() + eventName.slice(1);
 						break;
 					}
-					if(e.match(/='\w*\(\)/)) {
+
+					if(/='\w*\(\)/.test(e))
 						return e.replace(/\w*/, eventName)
 							.replace(/'(?=\w*)/, "{this.")
 							.replace(/\(\)'(?=\s|\/|>)/, "}");
 
-					} else if(e.match(/='\w*\(.*\)/)) {
+					if(/='\w*\(.*\)/.test(e))
 						return e.replace(/\w*/, eventName)
 							.replace(/'(?=\w*)/, "{()=>this.")
 							.replace(/\)'(?=\s|\/|>)/, ")}");
-					} else {
-						return e.replace(/\w*/, eventName)
-							.replace("'", "{")
-							.replace("'", "}");
-					}
+
+
+					return e.replace(/\w*/, eventName)
+						.replace("'", "{")
+						.replace("'", "}");
 				} 
 			})
 			.join("on")
 			.split(/<input/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<input ")
 			.split(/<textarea/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<textarea ")
 			.split(/<select/)
 			.map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=("|')\w*("|')/);
+					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (name) {
+					if (haveName) {
 						handler = "onChange={this.inputHandler.bind(this)}";
 					}
 					return handler + e;
-				} else return e;
+				}
+				return e;
 			})
 			.join("<select ")
 			.replace(/class(?=='|={)/g, "className")
 			.replace(/for(?=='|={)/g, "htmlFor")
 			.split(/<br/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<br")
 			.split(/<img/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<img")
 			.split(/<input/)
 			.map((e, i) => {
-				if (i > 0) return e.replace(/>|\/>/, "/>");
-				else return e; 
+				if (i > 0)
+					return e.replace(/>|\/>/, "/>");
+				
+				return e; 
 			}).join("<input")
 			.split("<component ").map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/name=('|")\w*/)[0].slice(6);
+					let name = e.match(/component-name=('|")\w*/)[0].replace(/component-name=('|")/, "");
 					let splitted = e.split("</component>");
 					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
-					return tag.replace(/name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
+					return tag.replace(/component-name=('|")\w*('|")/, name).replace(">", "/>") + splitted[1];
 				} 
-				else return e;
+				return e;
 			})
 			.join("<");
 
@@ -659,7 +691,7 @@ class ReactStateManagement extends StateManagement {
 	 * 
 	 * @return {String}
 	 */
-	_setTypeofData(data) {
+	_getTypeofData(data) {
 		const name = data.match(/^\w*/)[0];
 		//Map States
 		for (let i = 0; i < this.states.length; i++) {
@@ -687,11 +719,54 @@ class ReactStateManagement extends StateManagement {
 	get prerenderLogical(){
 		this.loopsWasMapped = false;
 		let loops = this.loopsState.map(e => {
-			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${this.filterHTML(e.content)})\n\t\t);\n\t\t`;
+			var content;
+
+			if (e.tag !== null)
+				content = `<${e.tag}>${this.filterHTML(e.content)}</${e.tag}>`;
+			else
+				content = this.filterHTML(e.content);
+
+			return `var loop_${e.id} = this.state.${e.state}.map(${e.value}=>\n\t\t\t(${content})\n\t\t);\n\t\t`;
 		});
 		this.condWasMapped = false;
 		let cond = this.condStates.map(e => {
-			return `var cond_${e.id};\n\t\tif(${this._setTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.if)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => `else if (${this._setTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(con.content)}\n\t\t}\n\t\t`).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(e.else)}\n\t\t}\n\t\t`:""}`;
+			
+			var ifContent;
+			if (e.tagIf)
+				ifContent = `<${e.tagIf}>${e.if}</${e.tagIf}>`;
+			else {
+				if (/^\w*/.test(e.if[0]))
+					ifContent = `"${e.if}";`;
+				else
+					ifContent = e.if;
+			}
+
+			var elseContent;
+			if (e.else) {
+				if (e.tagElse)
+					elseContent = `<${e.tagElse}>${e.else}</${e.tagElse}>`;
+				else {
+					if (/^\w*/.test(e.else[0]))
+						elseContent = `"${e.else}";`;
+					else
+						elseContent = e.else;
+				}
+			}
+		
+			return `var cond_${e.id};\n\t\tif(${this._getTypeofData(e.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(ifContent)}\n\t\t} ${e.elseIf ? e.elseIf.map(con => {
+				var content;
+				if (con.tag)
+					content = `<${con.tag}>${con.content}</${con.tag}>`;
+				else {
+					if (/^w*/.test(con.content[0]))
+						content = `"${con.content}";`;
+					else
+						// eslint-disable-next-line prefer-destructuring
+						content = con.content;
+				}
+				return `else if (${this._getTypeofData(con.cond)}) {\n\t\t\tcond_${e.id} = ${this.filterHTML(content)}\n\t\t}\n\t\t`;
+			
+			}).join(""):""}${e.else ? `else {\n\t\t\tcond_${e.id} = ${this.filterHTML(elseContent)}\n\t\t}\n\t\t`:""}`;
 		});
 		this.condStates = [];
 		this.loopsState = [];

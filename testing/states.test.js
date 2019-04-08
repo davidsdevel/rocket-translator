@@ -30,7 +30,7 @@ state = "<h1>Hello I have {yearlsOld - state - 19}!</h1>";
 stateNumberManager.getHTMLString(state);
 
 test("test get state and Number value from template", ()=>{
-    expect(stateNumberManager.states).toEqual([{key:"clicks",value:19}]);
+    expect(stateNumberManager.states).toEqual([{key:"yearlsOld",value:19}]);
 });
 
 

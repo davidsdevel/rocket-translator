@@ -1,6 +1,33 @@
 # Version 2
 
+## 2.0.3
+
+### Updated CLI Help Message
+
+Updated help message that was show `[vue or react]` and was changed with `[mode]`.
+
+
+## 2.0.2
+
+## Fix CLI Error
+
+Fixed Error: Unable to start the CLI when we execute `rocket` command.
+
+## 2.0.1
+
+### Fix "exports." on internal function vars.
+
+When the take the data, create a temp file that contains the data setted in the html script tag. And replace the `var`, `let` and `const` with `exports.` that the module can export these vars.
+
+### Added "tag" for "if", "else-if" and "else" tags
+
+Now you can add the `tag` attribute to set the tag to put the conditional content.
+
 ## 2.0.0
+
+## Added Angular Support!!!
+
+This was be the most awaited feature in the project. We start with Angular 7, and in future versions we will add previous angular versions. Remember help with issues and pull request.
 
 ### Some Fix
 
@@ -9,6 +36,40 @@ Fixed the State assignament on react and all states that has be changed, will be
 Fixed Quotes on Vue Filter.
 
 Fixed the "Missing Var" Error.
+
+Fixed the bind attribute value assignament.
+
+### Added the "tag" attribute for the "for" tag
+Now you can add the `tag` attribute to set the tag to put the loop content.
+
+Example: 
+```html
+<ul>
+    <for val="item in buyList" tag="li">
+        I must buy {item}
+    </for>
+</ul>
+```
+The `for` tag now will be a `li` tag.
+
+```html
+<ul>
+    <li v-for="item in buyList">
+        I must buy {{item}}
+    </li>
+</ul>
+``` 
+On **React** put the content inside the **tag**.
+
+```jsx
+var loop_0000 = this.state.buyList.map(item => 
+        (<li>{item}</li>)
+    );
+```
+
+The default tag on **Vue** is the `template` tag.
+On **React** don't have default tag. Put the content without tag.
+And on **Angular** the default tag is the `div` tag.
 
 ### Added Else If Support
 

@@ -6,7 +6,6 @@ const {write, remove} = require("../file-utils/ServerFileFunctions");
 const {VueCompiler, ReactCompiler} = require("../core");
 
 const server = express();
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const publicFolder = join(__dirname, "public");
 
 server.use(express.json());
@@ -24,7 +23,7 @@ server
 		res.setHeader("Content-Type", "text/css");
 		res.sendFile(join(publicFolder, url));
 	})
-	.post("/translator", urlencodedParser, ({body}, res) => {
+	.post("/translator", ({body}, res) => {
 		let {
 			html,
 			js,
