@@ -5,7 +5,7 @@ var testHTML = `<div>
 </div>`;
 
 test("test filter simple state", () => {
-    expect(VueCompiler("Test", testHTML, "")).toBe(`<template>
+    expect(VueCompiler("Test", testHTML, "")).toMatch(`<template>
 	<div>
 	    <span>Hello {{Name}}!!!</span>
 	</div>
