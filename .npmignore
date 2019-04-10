@@ -1,16 +1,22 @@
-dist
+# Builds
+dist/
+test/
+*.config.js
+
+# Main
+src
+
+# Others
 angular-guide.txt
 
+# Dev Files
 .eslintignore
 .eslintrc.js
 .gitignore
 
 # Testing
-test/
-test.*
-public/*
-Lib/server
-Lib/file-utils/ServerFileFunctions.js
+test.[js|html]
+public/
 testing/
 
 # Logs

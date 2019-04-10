@@ -1,4 +1,4 @@
-let StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
+let StateManagement = require("../test/StateManagement").default;
 
 let methodsWithInput = "<button onclick='helloWorld()'>Click Me</button>";
 let manager = new StateManagement();

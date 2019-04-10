@@ -1,4 +1,4 @@
-let StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
+let StateManagement = require("../test/StateManagement").default;
 
 let component = `<div>
     <MyComponent/>

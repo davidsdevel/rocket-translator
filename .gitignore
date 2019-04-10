@@ -1,10 +1,13 @@
-dist
-tmp
-angular-guide.txt
-
-
-# Testing
+# Builds
+dist/
+lib/
 test/
+
+# Others
+angular-guide.txt
+public/
+
+# Temp Test Files
 test.*
 
 # Logs

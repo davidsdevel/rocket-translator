@@ -1,4 +1,4 @@
-let StateManagement = require("../Lib/core/StateManagement/StateManagement.js");
+let StateManagement = require("../test/StateManagement").default;
 
 let methodsWithInput = "<h1>Hello {world - computed}</h1>";
 let manager = new StateManagement();
