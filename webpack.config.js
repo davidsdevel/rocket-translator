@@ -17,10 +17,6 @@ module.exports = {
 			Commons: resolve(__dirname, "src/commons"),
 			Const: resolve(__dirname, "src/const"),
 			FileFunctions: resolve(__dirname, "src/file-functions"),
-		},
-		modules:[
-			resolve(__dirname, "dist"),
-			"node_modules"
-		]
+		}
 	}
 }

@@ -80,61 +80,8 @@ class TranslatorFileFunctions {
 	filterJavascriptDataFile(js) {
 		if (!js)
 			return;
-		
-		let newData = js;
-		let data = js.match(new RegExp(lifecycle.join("|"), "g")) || [];
-
-		data.forEach(e => {
-			newData = newData.replace(new RegExp(`(const|var|let)\\s*(?=${e})`), "exports.");
-		});
-
-		//Parse Functions
-		const splittedFunctions = newData.split(/\r*\n*(?=function)/);
-
-		newData = splittedFunctions.map(e => {
-
-			return e
-				.replace(/^function\s*/, "exports.")
-				.replace(/\(/, " = (")
-				.replace(/\)/, ") =>")
-				.replace(/=\s*=\s*/, "= ")
-				.replace(/=>\s*=>\s*/, "=> ");
-		}).join("");
-
-		let splittedData = newData.split(/\n/);
-		var functionIsOpen = false;
-
-		newData = splittedData
-			.map(e => {
-				if (/exports\.\w*\s*=\s*\(.*\)\s*=>\s*{/.test(e))
-					functionIsOpen = true;
-				else if (/\t*}\r*\n*/.test(e))
-					functionIsOpen = false;
-
-
-				if (!functionIsOpen)
-					return e.replace(/(var|let|const)\s*/, "exports.");
-
-				return e;
-			})
-			.join("\n");
-
-		const defineGlobalsFile = newData
-			.split(/(\n|\r\n|\r)(?=exports.\w*)/)
-			.filter(e => e.startsWith("exports.defineGlobals"))
-			.join("");
-		
-		if (!existsSync(this._out))
-			mkdirSync(this._out);
-			
-		const tempDataFilePath = join(this._out, "rockettemp_data.js");
-		const tempDefineGlobals = join(this._out, "rockettemp_defineglobals.js");
-
-		writeFileSync(tempDataFilePath, newData);
-		writeFileSync(tempDefineGlobals, defineGlobalsFile || "exports.defineGlobals = () => []");
 
 		global.tempDataFile = tempDataFilePath;
-		global.defineGlobals = tempDefineGlobals;
 
 		this._filterGlobals();
 	}
@@ -146,17 +93,17 @@ class TranslatorFileFunctions {
 	 * @private
 	 */
 	_filterGlobals() {
-		const {defineGlobals} = require(`${global.defineGlobals}`);
+		eval(global.tempDataFile);
 		
 		const globals = Object.assign([], globalList, defineGlobals !== undefined ? defineGlobals() : []);
 
-		let fileData = readFileAsString(global.tempDataFile);
+		let fileData = global.tempDataFile;
 
 		globals.forEach(glob => {
 			fileData = fileData.replace(new RegExp(`:${glob}`), `:"${glob}"`);
 		});
 
-		writeFileSync(global.tempDataFile, fileData);
+		global.tempDataFile = fileData;
 	}
 	/**
 	 * Get CSS

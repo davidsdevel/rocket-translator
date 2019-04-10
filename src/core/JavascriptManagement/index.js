@@ -37,51 +37,52 @@ class JavascriptManagement {
 		if (!global.tempDataFile)
 			return;
 		
-		this._data = require(`${global.tempDataFile}`);
-		let dataKeys = Object.keys(this._data);
+		eval(global.tempDataFile);
 
-		if(this._data.setInitialState)
-			this.states = this._data.setInitialState();
+		if(setInitialState)
+			this.states = setInitialState();
 
-		if(this._data.setStateWatchers)
-			this.watchers = this._data.setStateWatchers();
+		if(setStateWatchers)
+			this.watchers = setStateWatchers();
 
-		if(this._data.beforeMount)
+		if(beforeMount)
 			this.lifecycles.push({
 				name:"beforeMount",
-				content:this._data.beforeMount.toString()
+				content:beforeMount.toString()
 			});
 
-		if(this._data.mounted)
+		if(mounted)
 			this.lifecycles.push({
 				name:"mounted",
-				content:this._data.mounted.toString()
+				content:mounted.toString()
 			});
 
-		if(this._data.beforeUpdate)
+		if(beforeUpdate)
 			this.lifecycles.push({
 				name:"beforeUpdate",
-				content:this._data.beforeUpdate.toString()
+				content:beforeUpdate.toString()
 			});
 
-		if(this._data.updated)
+		if(updated)
 			this.lifecycles.push({
 				name:"updated",
-				content:this._data.updated.toString()
+				content:updated.toString()
 			});
 
-		if(this._data.beforeUnmount)
+		if(beforeUnmount)
 			this.lifecycles.push({
 				name:"beforeUnmount",
-				content:this._data.beforeUnmount.toString()
+				content:beforeUnmount.toString()
 			});
 
-		if(this._data.unmount)
+		if(unmount)
 			this.lifecycles.push({
 				name:"unmount",
-				content:this._data.unmount.toString()
+				content:unmount.toString()
 			});
 
+		var data = global.tempDataFile;
+		console.log(data);
 		dataKeys.forEach(key => {
 			if (lifecycle.indexOf(key) === -1) {
 				if (typeof this._data[key] === "function")
