@@ -7,11 +7,11 @@ class Utils {
 	 * @static
 	 * @param {String} letter
 	 * 
-	 * @return {String}
+	 * @return {Boolean}
 	 */
 	static isUpperCase(letter) {
 		return letter === letter.toUpperCase();
 	}
 }
 
-module.exports = Utils;
+export default Utils;

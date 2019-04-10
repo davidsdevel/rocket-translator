@@ -1,5 +1,5 @@
-const lifecycle = require("../../const/Lifecycle.json");
-const {unlinkSync, existsSync} = require("fs");
+import lifecycle from "Const/Lifecycle.json";
+import {unlinkSync, existsSync} from "fs";
 
 class JavascriptManagement {
 	/**
@@ -34,7 +34,10 @@ class JavascriptManagement {
 		this._functions = [];
 		this.lifecycles = [];
 
-		this._data = require(global.tempDataFile);
+		if (!global.tempDataFile)
+			return;
+		
+		this._data = require(`${global.tempDataFile}`);
 		let dataKeys = Object.keys(this._data);
 
 		if(this._data.setInitialState)
@@ -180,4 +183,4 @@ class JavascriptManagement {
 		return this._vars;
 	}
 }
-module.exports = JavascriptManagement;
+export default JavascriptManagement;

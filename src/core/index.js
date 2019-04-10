@@ -1,5 +1,5 @@
-const { ReactStateManagement, VueStateManagement, AngularStateManagement } = require("./StateManagement");
-const Parser = require("./JavascriptManagement");
+import { ReactStateManagement, VueStateManagement, AngularStateManagement } from "Core/StateManagement";
+import Parser from "Core/JavascriptManagement";
 
 /**
  * React Compiler
@@ -182,6 +182,8 @@ export class ${name} {
 	};
 };
 
-exports.VueCompiler = VueCompiler;
-exports.AngularCompiler = AngularCompiler;
-exports.ReactCompiler = ReactCompiler;
+export {
+	VueCompiler,
+	AngularCompiler,
+	ReactCompiler
+};

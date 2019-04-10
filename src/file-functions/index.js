@@ -1,13 +1,16 @@
-const {
+import {
 	existsSync,
 	mkdirSync,
 	writeFileSync
-} = require("fs");
-const{ join } = require("path");
-const {readFileAsString} = require("../commons/file");
-const {VueCompiler, ReactCompiler, AngularCompiler} = require("../core");
-const clc = require("cli-color");
-const lifecycle = require("../const/Lifecycle.json");
+} from "fs";
+import { join } from "path";
+import FileUtils from "Commons/file";
+import {VueCompiler, ReactCompiler, AngularCompiler} from "Core";
+import clc from "cli-color";
+import lifecycle from "Const/Lifecycle";
+import globalList from "Const/Globals";
+
+const {readFileAsString} = FileUtils;
 
 /**
   * File Functions to CLI
@@ -75,6 +78,9 @@ class TranslatorFileFunctions {
 	 * @param {String} js 
 	 */
 	filterJavascriptDataFile(js) {
+		if (!js)
+			return;
+		
 		let newData = js;
 		let data = js.match(new RegExp(lifecycle.join("|"), "g")) || [];
 
@@ -140,8 +146,8 @@ class TranslatorFileFunctions {
 	 * @private
 	 */
 	_filterGlobals() {
-		const globalList = require("../const/Globals");
-		const {defineGlobals} = require(global.defineGlobals);
+		const {defineGlobals} = require(`${global.defineGlobals}`);
+		
 		const globals = Object.assign([], globalList, defineGlobals !== undefined ? defineGlobals() : []);
 
 		let fileData = readFileAsString(global.tempDataFile);
@@ -342,4 +348,4 @@ class TranslatorFileFunctions {
 		}
 	}
 }
-module.exports = TranslatorFileFunctions;
+export default TranslatorFileFunctions;

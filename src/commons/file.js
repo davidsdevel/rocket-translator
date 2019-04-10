@@ -1,4 +1,4 @@
-const {readFileSync} = require("fs");
+import {readFileSync} from "fs";
 
 class File {
 	/**
@@ -15,4 +15,4 @@ class File {
 	}
 }
 
-module.exports = File;
+export default File;

@@ -1,5 +1,7 @@
-const {readFileAsString} = require("../../commons/file");
-const clc = require("cli-color");
+import FileUtils from "Commons/file";
+import clc from "cli-color";
+
+const {readFileAsString} = FileUtils;
 
 class ErrorManagement {
 	constructor() {
@@ -211,7 +213,8 @@ class UndefinedInputNameError extends ErrorManagement {
 		this.throwError(line, "Undefined Input Name");
 	}
 }
-module.exports = () => {
+
+const defineGlobals = () => {
 	global.UndefinedTypeError = UndefinedTypeError;
 	global.ExpectedTokenError = ExpectedTokenError;
 	global.MissingVarError = MissingVarError;
@@ -222,3 +225,5 @@ module.exports = () => {
 	global.ExpectedAttributeError = ExpectedAttributeError;
 	global.UndefinedInputNameError = UndefinedInputNameError;
 };
+
+export default defineGlobals;

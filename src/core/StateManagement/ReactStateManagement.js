@@ -1,5 +1,5 @@
-const StateManagement = require("./StateManagement");
-const JavaScriptEvents = require("../../const/Events.json");
+import StateManagement from "./StateManagement";
+import JavaScriptEvents from "Const/Events.json";
 
 /**
  * Class React State Management
@@ -774,4 +774,4 @@ class ReactStateManagement extends StateManagement {
 	}
 }
 
-module.exports = ReactStateManagement;
+export default ReactStateManagement;

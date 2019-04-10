@@ -1,4 +1,5 @@
-const StateManagement = require("./StateManagement");
+import StateManagement from "./StateManagement";
+
 /**
  * Vue State Management
  *
@@ -338,4 +339,4 @@ class VueStateManagement extends StateManagement {
 	}
 }
 
-module.exports = VueStateManagement;
+export default VueStateManagement;

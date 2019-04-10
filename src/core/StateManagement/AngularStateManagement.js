@@ -1,6 +1,8 @@
-const StateManagement = require("./StateManagement");
-const JavaScriptEvents = require("../../const/Events.json");
-const {isUpperCase} = require("../../commons/utils");
+import StateManagement from "./StateManagement";
+import JavaScriptEvents from "Const/Events.json";
+import Utils from "Commons/utils";
+
+const {isUpperCase} = Utils;
 
 /**
  * Class Angular State Management
@@ -326,4 +328,5 @@ class AngularStateManagement extends StateManagement {
 		return JSON.stringify(data);
 	}
 }
-module.exports = AngularStateManagement;
+
+export default AngularStateManagement;

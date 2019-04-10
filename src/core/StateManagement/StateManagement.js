@@ -1,4 +1,7 @@
-require("../ErrorManagement")(); //Define Error Management Globals
+import defineErrors from "Core/ErrorManagement"; //Define Error Management Globals
+import globalList from "Const/Globals";
+
+defineErrors(); 
 
 /**
  * State Management Base Class
@@ -965,9 +968,10 @@ class StateManagement {
 	 * @return {Array}
 	 */
 	get _globals () {
+		if (!global.defineGlobals)
+			return globalList;
 		
-		const globalList = require("../../const/Globals.json");
-		const {defineGlobals} = require(global.defineGlobals);
+		const {defineGlobals} = require(`${global.defineGlobals}`);
 
 		return globalList.concat(defineGlobals !== undefined ? defineGlobals() : []);
 	}
@@ -1059,4 +1063,5 @@ class StateManagement {
 		return JSON.parse(filtered);
 	}
 }
-module.exports = StateManagement;
+
+export default StateManagement;
