@@ -29,6 +29,8 @@ class CLI {
 		this.output = output;
 		this.mode = mode;
 
+		global.Errors = new Array(); //Init Errors Counter
+
 		if (this.entry === "not-file") {
 			console.log(clc.redBright("\nError!!!\n"));
 			console.log(clc.whiteBright("Please select a file to compile."));
@@ -88,13 +90,23 @@ class CLI {
 			break;
 		default: break;
 		}
+
 		const {main, components} = compiler(name, html, css);
+		
+		if (global.Errors.length > 0) {
+			console.log(clc.redBright("\nError!!!\n"));
+			console.error(global.Errors.join(""));
+			process.exit(1);
+		}
+		
 		functions.writeFile({
 			name,
 			content:main,
 			type:mode
 		});
+		
 		functions.writeComponents(name, mode, components);
+		
 		this.sayThanks();
 	}
 	/**
