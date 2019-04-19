@@ -14,5 +14,13 @@ module.exports = {
 		path: resolve(__dirname, "test"),
 		filename: "[name].js",
 		libraryTarget:"commonjs"
+	},
+	resolve: {
+		alias: {
+			Core: resolve(__dirname, "src/core"),
+			Commons: resolve(__dirname, "src/commons"),
+			Const: resolve(__dirname, "src/const"),
+			FileFunctions: resolve(__dirname, "src/file-functions"),
+		}
 	}
 }
