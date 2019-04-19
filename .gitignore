@@ -1,7 +1,8 @@
 # Builds
-dist/
-lib/
-test/
+dist/*
+lib/*
+Lib/*
+test/*
 
 # Others
 angular-guide.txt
