@@ -33,7 +33,6 @@ test("test get state and Number value from template", ()=>{
     expect(stateNumberManager.states).toEqual([{key:"yearlsOld",value:19}]);
 });
 
-
 const stateBooleanManager = new StateManagement();
 state = "<h1>{Alone - state - true}!</h1>";
 stateBooleanManager.getHTMLString(state);
