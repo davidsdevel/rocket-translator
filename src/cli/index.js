@@ -24,10 +24,27 @@ class CLI {
 	 * @constructor
 	 * @param {Object} param0 
 	 */
-	constructor({entry, output, mode}) {
+	constructor({entry, output, mode, options}) {
 		this.entry = entry;
 		this.output = output;
 		this.mode = mode;
+
+
+		/**
+		 * Define Initial CLI Options
+		 */
+		global.RocketTranslator = {
+			ignoreInputName: false
+		};
+
+		options.forEach(option => {
+			switch(option) {
+				case "--ignore-input-name":
+					global.RocketTranslator.ignoreInputName = true;
+					break;
+				default: break;
+			}
+		});
 
 		global.Errors = new Array(); //Init Errors Counter
 
@@ -94,7 +111,7 @@ class CLI {
 		const {main, components} = compiler(name, html, css);
 		
 		if (global.Errors.length > 0) {
-			console.log(clc.redBright("\nError!!!\n"));
+			console.log(clc.redBright("\nError!!!"));
 			console.error(global.Errors.join(""));
 			process.exit(1);
 		}
@@ -119,8 +136,12 @@ class CLI {
 	 */
 	static showHelp() {
 		//Help Commands
-		console.log(`\nUsage:	rocket <command> [filename] <output-folder>
+		console.log(`\nUsage:	rocket <command> <filename> <output-folder>
+	rocket <command> [options] <filename> <output-folder>
+	rocket <command> [options] <filename>
+	rocket <command> <filename>
 	rocket [option]
+
 
 Commands:
   ${clc.whiteBright("react")}			Translate to React
@@ -128,6 +149,8 @@ Commands:
   ${clc.whiteBright("angular")}		Translate to Angular
 
 Options:
+  ${clc.whiteBright("--ignore-input-name")}	Ignore the filter of name attribute on inputs
+
   ${clc.whiteBright("--help, -h")}		Show help
   ${clc.whiteBright("--version, -v")}		Show version number`);
 	}
@@ -187,7 +210,7 @@ Options:
 	sayThanks() {
 		console.log(clc.greenBright("\nSuccess...\n"));
 		console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(this.output)} to view your files.`);
-		console.log(`\nSend a feedback to ${clc.whiteBright("@David_Devel")} on Twitter.\n\nTo report a Error, open a new issue on:\n${clc.whiteBright("https://github.com/Davids-Devel/rocket-translator")}`);
+		console.log(`\nSend a feedback to ${clc.whiteBright("@davidsdevel")} on Twitter.\n\nTo report a Error, open a new issue on:\n${clc.whiteBright("https://github.com/davidsdevel/rocket-translator")}`);
 	}
 }
 

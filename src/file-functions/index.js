@@ -9,6 +9,7 @@ import {VueCompiler, ReactCompiler, AngularCompiler} from "Core";
 import clc from "cli-color";
 import lifecycle from "Const/Lifecycle";
 import globalList from "Const/Globals";
+import {transform} from "babel-core";
 
 const {readFileAsString} = FileUtils;
 
@@ -81,7 +82,25 @@ class TranslatorFileFunctions {
 		if (!js)
 			return;
 
-		global.tempDataFile = tempDataFilePath;
+		const {code} = transform(js);
+		var data = code.split(/\n(?=var|const|let|function|async)/)
+			.map(e => {
+				var data = e;
+
+				if (/^(var|let|const)/.test(e))
+					data = data.replace(/=/, ":");
+
+				if (/^async/.test(e))
+					data = data.replace(/\s*function\s*/, " ")
+
+				return data.replace(/;$/, "")
+				.replace(/^(var|let|const|function)/, "")
+			
+			})
+			.filter(e => e)
+			.join(",");
+
+		global.RocketData = data;
 
 		this._filterGlobals();
 	}
@@ -93,17 +112,17 @@ class TranslatorFileFunctions {
 	 * @private
 	 */
 	_filterGlobals() {
-		eval(global.tempDataFile);
+		const {defineGlobals} = new Function(`return {${global.RocketData}}`)();
 		
 		const globals = Object.assign([], globalList, defineGlobals !== undefined ? defineGlobals() : []);
 
-		let fileData = global.tempDataFile;
+		let fileData = global.RocketData;
 
 		globals.forEach(glob => {
-			fileData = fileData.replace(new RegExp(`:${glob}`), `:"${glob}"`);
+			fileData = fileData.replace(new RegExp(`:\s*${glob}`), `: "${glob}"`);
 		});
 
-		global.tempDataFile = fileData;
+		global.RocketData = fileData;
 	}
 	/**
 	 * Get CSS

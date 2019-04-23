@@ -59,14 +59,30 @@ class StateManagement {
 			this._filterJS(JSParsed, type).forEach(e => {
 				//Map Methods
 				this.methods.forEach((method, i) => {
-					if (e.name === method.name) {
-						this._methods[i].content = e.content;
+					if (/^async/.test(e.name)) {
+						if (e.name === `async ${method.name}`) {
+							this._methods[i] = { 
+								content: e.content,
+								name: e.name
+							}
+						}
+					} else {
+						if (e.name === method.name)
+							this._methods[i].content = e.content;
 					}
 				});
 				//Map Computed
 				this.computed.forEach(({name}, i) => {
-					if (e.name === name) {
-						this._computed[i].content = e.content;
+					if (/^async/.test(e.name)) {
+						if (e.name === `async ${name}`) {
+							this._computed[i] = { 
+								content: e.content,
+								name: e.name
+							}
+						}
+					} else {
+						if (e.name === name)
+							this._computed[i].content = e.content;
 					}
 				});
 
@@ -427,10 +443,23 @@ class StateManagement {
 	 * @public
 	 * @param {string} html HTML String
 	 */
-	set methods(html){
-		let events = html.match(/on\w*=("|')\w*\(.*\)("|')/g); //Match RegExp
-		if (events) {
-			events.forEach(e => {
+	set methods(html) {
+		const	methodRegExp = /on\w*=("|')\w*\(.*\)("|')/g,
+				assignRegExp = /on\w*=("|')\w*\s*=\s*(?=('|")\w*|\d*|\{|\[)/g,
+				incrementRegExp = /on\w*=("|')\w*\s*\+/g,
+				multRegExp = /on\w*=("|')\w*\s*\*/g,
+				divRegExp = /on\w*=("|')\w*\s*\//g,
+				decrementRegExp = /on\w*=("|')\w*\s*-/g;
+
+		var haveMethods = methodRegExp.test(html),
+			haveAssign = assignRegExp.test(html),
+			haveIncrement = incrementRegExp.test(html),
+			haveMult = multRegExp.test(html),
+			haveDiv = divRegExp.test(html),
+			haveDecrement = decrementRegExp.test(html);
+
+		if (haveMethods) {
+			html.match(methodRegExp).forEach(e => {
 				let split = e.split("=");
 				let name = split[1].match(/\w*(?=\()/)[0];
 				this._methods.push({
@@ -453,6 +482,25 @@ class StateManagement {
 						duplicateList.push(method.name);
 				});
 				if (!duplicate) return method;
+			});
+		} else if (haveAssign) {
+			html.match(assignRegExp).forEach(e => {
+				const expression = html.match(new RegExp(`${e}.*('|")`))[0];
+				var haveState = false;
+				
+				const name = expression.match(/=('|")\w*/)[0].replace(/=('|")/, "");
+
+				for(let i = 0; i < this._states.length; i++) {
+					const stateName = typeof this._states[i] === "object" ? this._states[i].key : this._states[i];
+					
+					haveState = new RegExp(`=("|')${stateName}`).test(expression);
+
+					if (haveState)
+						break;
+				}
+				
+				if (!haveState)
+					new global.UndefinedStateError({name, type: expression});
 			});
 		}
 	}
@@ -534,8 +582,10 @@ class StateManagement {
 					this._handleInputs = true;
 					this._states.push(stateKey); //push to states
 				}
-				else
-					new global.ExpectedAttributeError(e.split(/\r\n|\n|\r/)[0], "name");
+				else {
+					if (!global.RocketTranslator.ignoreInputName)
+						new global.ExpectedAttributeError(e.split(/\r\n|\n|\r/)[0], "name");
+				}
 			});
 		}
 	}
@@ -765,7 +815,7 @@ class StateManagement {
 		_getBarsSyntax.forEach(e => {
 			if (/^\w*$/.test(e))
 				return;
-			
+			console.log(e);
 			if (/\w*\s*-\s*(state|prop|computed)/.test(e) === false)
 				new global.UndefinedTypeError(e);
 		});
@@ -824,7 +874,10 @@ class StateManagement {
 			}
 			//Map JS Content
 			let JsonArray = JsArray.map(({content, name}) => {
-				let params = content.match(/\(.*\)|\w*/)[0];
+				if (/^async/.test(content))
+					name = `async ${name}`;
+				
+				let params = content.match(/\(.*\)|(\w*(?=\s*=>))/)[0];
 				content = content.replace(/.*(?={)/, "");
 
 				var data = content; //Asign content to var data
@@ -845,9 +898,7 @@ class StateManagement {
 					let stateName = typeof state === "object" ? state.key : state;
 					data = this._expressionsFilter(data, stateName, stateReplace);
 				});
-				this.props.forEach(prop => {
-					data = this._expressionsFilter(data, prop, propReplace);
-				});
+				this.props.forEach(prop => data = this._expressionsFilter(data, prop, propReplace));
 
 				if (type === "r")
 					data = this._setStateFilter(data);
@@ -916,7 +967,7 @@ class StateManagement {
 			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), `(${replace}${name}`)
 			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), `[${replace}${name}`)
 			.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+name}|${name})`, "g"), `\${${replace}${name}`)
-			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})`, "g"), `= ${replace}${name}`)
+			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})(?!\\s*=>)`, "g"), `= ${replace}${name}`)
 			.replace(new RegExp(`(>|>\\s*)(${replace+name}|${name})`, "g"), `> ${replace}${name}`)
 			.replace(new RegExp(`(<|<\\s*)(${replace+name}|${name})`, "g"), `< ${replace}${name}`)
 			.replace(new RegExp(`(~|~\\s*)(${replace+name}|${name})`, "g"), `~${replace}${name}`)
@@ -938,7 +989,7 @@ class StateManagement {
 			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\+\\+)`, "g"), `\t${replace}${name}`)
 			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\s*=)`, "g"), `\t${replace}${name}`)
 			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=--)`, "g"), `\t${replace}${name}`);
-
+			
 		//To Replace Filtered No States
 		const toUnfilter = new RegExp(`(${replace+name}|${name})\\w*`).exec(filtered);
 

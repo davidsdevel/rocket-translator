@@ -34,55 +34,54 @@ class JavascriptManagement {
 		this._functions = [];
 		this.lifecycles = [];
 
-		if (!global.tempDataFile)
+		if (!global.RocketData)
 			return;
 		
-		eval(global.tempDataFile);
+		this._data = new Function(`return {${global.RocketData}}`)();
 
-		if(setInitialState)
-			this.states = setInitialState();
+		if(this._data.setInitialState)
+			this.states = this._data.setInitialState();
 
-		if(setStateWatchers)
-			this.watchers = setStateWatchers();
+		if(this._data.setStateWatchers)
+			this.watchers = this._data.setStateWatchers();
 
-		if(beforeMount)
+		if(this._data.beforeMount)
 			this.lifecycles.push({
 				name:"beforeMount",
-				content:beforeMount.toString()
+				content:this._data.beforeMount.toString()
 			});
 
-		if(mounted)
+		if(this._data.mounted)
 			this.lifecycles.push({
 				name:"mounted",
-				content:mounted.toString()
+				content:this._data.mounted.toString()
 			});
 
-		if(beforeUpdate)
+		if(this._data.beforeUpdate)
 			this.lifecycles.push({
 				name:"beforeUpdate",
-				content:beforeUpdate.toString()
+				content:this._data.beforeUpdate.toString()
 			});
 
-		if(updated)
+		if(this._data.updated)
 			this.lifecycles.push({
 				name:"updated",
-				content:updated.toString()
+				content:this._data.updated.toString()
 			});
 
-		if(beforeUnmount)
+		if(this._data.beforeUnmount)
 			this.lifecycles.push({
 				name:"beforeUnmount",
-				content:beforeUnmount.toString()
+				content:this._data.beforeUnmount.toString()
 			});
 
-		if(unmount)
+		if(this._data.unmount)
 			this.lifecycles.push({
 				name:"unmount",
-				content:unmount.toString()
+				content:this._data.unmount.toString()
 			});
 
-		var data = global.tempDataFile;
-		console.log(data);
+		const dataKeys = Object.keys(this._data);
 		dataKeys.forEach(key => {
 			if (lifecycle.indexOf(key) === -1) {
 				if (typeof this._data[key] === "function")
@@ -91,10 +90,6 @@ class JavascriptManagement {
 					this._vars.push({name:key, value:this._data[key]});
 			}
 		});
-		if (existsSync(global.defineGlobals))
-			unlinkSync(global.defineGlobals);
-		if (existsSync(global.tempDataFile))
-			unlinkSync(global.tempDataFile);
 	}
 
 	/**

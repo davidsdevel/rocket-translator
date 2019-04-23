@@ -69,10 +69,7 @@ class ErrorManagement {
 		this.lines.forEach((line, i) => {
 			let matched = line.match(new RegExp(stringToMatch));
 			if (matched) {
-				global.Errors.push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n`+
-					clc.redBright(`${i}|`)+clc.red(`${this.lines[i-1]}\n`)+
-					clc.redBright(`${i+1}|${this.lines[i]}\n`)+
-					clc.redBright(`${i+2}|`)+clc.red(`${this.lines[i+1]}\n`)
+				global.Errors.push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`
 				);
 			}
 		});
@@ -180,7 +177,9 @@ class UndefinedStateError extends ErrorManagement {
 		case "watcher":
 			stringToMatch = `watch\\s*${name}\\s*=`;
 			break;
-		default: break;
+		default: 
+			stringToMatch = type;
+			break;
 		}
 		this.throwError({name, string:stringToMatch}, "Undefined State");
 	}
