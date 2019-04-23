@@ -25,7 +25,7 @@
 		"test": "webpack --config testing.config.js && jest",
 		"lint": "eslint -c .eslintrc.js ./src",
 		"lint-fix": "eslint -c .eslintrc.js --fix ./src",
-		"build": "webpack --mode production",
+		"build": "webpack --optimize-minimize --mode production",
 		"dev": "webpack --mode development && node bin"
 	},
 	"bugs": {
