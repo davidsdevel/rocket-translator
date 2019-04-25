@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Rocket Translator - The HTML Translator</title>
+	<link rel="stylesheet" href="styles/index.css"/>
+	<link rel="stylesheet" href="styles/prism.css"/>
+	<script src="js/prism.js"></script>
+</head>
+<body>
+	<header id="header">
+		<nav>
+			<ul>
+				<img src="images/Rocket-Translator-Logo.png" alt="Rocket Translator Logo">
+				<li id="github-menu">
+					<img src="svg/github.svg" alt="Rocket Translator Version"/>
+				</li>
+				<li>
+					<a href="/docs">Docs</a>
+				</li>
+				<li>
+					<a href="/">Home</a>
+				</li>
+			</ul>
+		</nav>
+	</header>
+	<div class="banner-gradient"></div>
+	<div id="banner-logo">
+		<h1 id="banner-title">Rocket Translator</h1>
+		<div id="banner-description">
+			<p>Create HTML Components and Use it on Vue, React and Angular</p>
+			<div id="links">
+				<a id="github" class="banner-links" href="https://github.com/davidsdevel/rocket-translator" target="_blank">
+					<img src="svg/github.svg" alt="Rocket Translator GitHub Logo">
+				</a>
+				<a id="npm" class="banner-links" href="https://www.npmjs.com/package/rocket-translator" target="_blank">
+					<img src="svg/npm.svg" alt="Rocket Translator NPM Logo">
+				</a>
+			</div>
+		</div>
+		<img src="images/Rocket-Translator-Logo.png" alt="Rocket Translator Logo" id="logo"/>
+	</div>
+	<div id="about">
+		<h2>What is Rocket Translator?</h2>
+		<div id="composition">
+			<img style="left: calc(50% - 50px); top: 5%" src="svg/html5.svg">
+			<img style="left: calc(50% - 50px); top: 70%;" src="svg/react.svg">
+			<img style="top:50%; right: 10%;" src="svg/angular.svg">
+			<img style="top:50%; left: 10%;" src="svg/vue-dot-js.svg">
+		</div>
+		<p class="left">Is a HTML translator, which you can create a single file component, and then translate to React, Angular or Vue.</p>
+		<p class="middle">The idea is unify frameworks development, with the same base code.</p>
+		<p class="right">With Rocket Translator, you going to save some time, creating a HTML component, and share that components beetwen diferent-famework's projects</p>
+	</div>
+	<div class="separator">
+		<hr/>
+	</div>
+	<div class="content">
+		<h3>How To Start?</h3>
+		<p>Is easy! Rocket Translator is in a CLI (Command Line Interface) format.<br>
+		To start, simply install it on global with your package manager.</p>
+		<pre><code class="language-bash">#install with NPM
+$ npm i -g rocket-translator
+
+#install with Yarn
+$ yarn global add rocket-translator</code></pre>
+</div>
+
+<div class="content" id="write">
+		<h3>Now let's start to write code!</h3>
+		<p>The basic Rocket Translator functionality is Only HTML.<br>We can declare a Component State in template</p>
+		<pre><code class="language-html">&lt;div&gt;
+	&lt;span&gt;Hello {name - state - "World"}!&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+		<p>Some features in Rocket Translator, works with <b>name-type-value</b> concepts. We declare, name and type, and then we assign a value.</p>
+		<p>In the previous example, the translator detect <code class="language-html">{name - state - "World"}</code> and get the name: 'name', type: 'state' and value: 'World'</p>
+		<p>Then do some works to translate the template on Vue, React or Angular.</p>
+		<pre data-language="VueJS"><code class="language-html">&lt;template&gt;
+	&lt;div&gt;
+		&lt;span&gt;Hello {{name}}!&lt;/span&gt;
+	&lt;/div&gt;
+&lt;/template&gt;
+&lt;script&gt;
+	export default {
+		name: "MyComponent",
+		data() {
+			return {
+				name: "World"
+			}
+		}
+	}
+&lt;/script&gt;</code></pre>
+<pre data-language="ReactJS"><code class="language-jsx">import React, {Component} from "react";
+
+class MyComponent extends Component {
+	constructor() {
+		super();
+		this.state = {
+			name: "World"
+		};
+	}
+	render() {
+		return (
+			&lt;div&gt;
+				&lt;span&gt;Hello {this.state.name}!&lt;/span&gt;
+			&lt;/div&gt;
+		)
+	}
+}
+export default MyComponent;</code></pre>
+<pre data-language="Angular"><code class="language-ts">import {Component} from '@angular/core';
+
+@Component({
+	selector: 'my-component-root',
+	template:`&lt;div&gt;
+		&lt;span&gt;Hola {{name}}&lt;/span&gt;
+	&lt;/div&gt;`
+})
+export class MyComponent {
+	name = "Mundo";	
+}</code></pre>	
+</div>
+</body>
+</html>

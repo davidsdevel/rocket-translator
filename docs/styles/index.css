@@ -1,0 +1,159 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	background: #f7f7f7;
+	font-family: Roboto;
+}
+@font-face {
+	font-family:"Roboto";
+	src:url(../fonts/Roboto.ttf);
+}
+@font-face {
+	font-family:"IndieFlower";
+	src:url(../fonts/IndieFlower.ttf);
+}
+#header {
+	width: 100%;
+	height: 80px;
+	z-index: 2;
+	background: white;
+}
+#header nav {
+	height: 100%;
+}
+#header nav ul {
+	overflow: hidden;
+	height: 100%;
+	position: relative;
+}
+#header nav ul li {
+	display: inline-block;
+	font-family: IndieFlower;
+	height: 100%;
+	vertical-align: top;
+	font-size: 28px;
+	float: right;
+}
+#header nav ul li a {
+	color: black;
+	text-decoration: none;
+	display: block;
+	margin-top: 20.5px;
+}
+#header nav ul img {
+	height: 70px;
+	margin: 5px 50% 5px 5%;
+}
+#header #github-menu img {
+	height: 40px;
+	margin: 20px 20px 20px 60px;
+}
+.banner-gradient {
+	position: absolute;
+	top: -15px;
+	z-index: -1;
+	width: 100%;
+	height: 600px;
+	transform: skew(0, -8deg);
+	background: -webkit-linear-gradient(right,#b993d6,#8CA6DC);
+	background: -moz-linear-gradient(right,#b993d6,#8CA6DC);
+}
+#banner-title {
+	font-family: IndieFlower;
+	text-align: center;
+	font-size: 60px;
+	margin-top: 50px;
+	color: black;
+}
+#banner-description {
+	color: white;
+	font-size: 28px;
+	font-family: Roboto;
+	width: 30%;
+	margin: 100px 0 0 10%;
+	display: inline-block;
+}
+#links {
+	display: block;
+	margin: 50px auto;
+	width: fit-content;
+}
+#links a {
+	margin: auto;
+	display: inline-block;
+	margin: 0 20px;
+
+}
+#banner-logo #logo {
+	display: inline-block;
+	margin-left: 30%;
+	width: 200px;
+}
+#about {
+	margin-top: 200px;
+}
+#about h2 {
+	text-align: center;
+	font-size: 50px;
+}
+#about {
+	position: relative;
+	height: 500px;
+}
+.left, .middle, .right {
+	font-family: Roboto;
+	position: absolute;
+	top: 150px;
+	width: 25%;
+	font-size: 18px;
+	text-align: center;
+}
+.left {
+	left: 5%;
+}
+.right {
+	right: 5%;
+}
+.middle {
+	position: relative;
+	margin: auto;
+	width: 30%;
+	top: 400px;
+}
+#composition {
+	position: absolute;
+    width: 40%;
+    left: 30%;
+    height: 400px;
+}
+#composition img {
+	position: absolute;
+	height: 100px;
+	top:calc(50% - 50px);
+}
+.separator {
+	margin: 50px auto 0 auto;
+	width: 50%;
+}
+.separator hr {
+	border: .5px solid rgb(233, 224, 241);
+}
+.content {
+	text-align: center;
+	width: 50%;
+	margin: auto;
+}
+.content h3 {
+	font-size: 40px;
+	display: block;
+	margin: 50px 0;
+}
+.content p {
+	font-size: 18px;
+	margin: 0 0 50px 0;
+}
+#write {
+	background: 
+}
