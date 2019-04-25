@@ -7,7 +7,6 @@ class ErrorManagement {
 	constructor() {
 		let file = readFileAsString(global.translatorFilePath);
 		this.lines = file.split(/\r\n|\n|\r/);
-		console.log(clc.redBright("\nError!!!\n"));
 	}
 	/**
 	 * Throw Error
@@ -23,10 +22,10 @@ class ErrorManagement {
 		switch(type) {
 		case "Missing Var":
 			stringToMatch = `{${data.stateName}\\s*-\\s*state\\s*-\\s*${data.varName}}`;
-			name = data.stateName;
+			name = data.varName;
 			break;
 		case "Duplicate Component":
-			stringToMatch = `<component name=('|")${data}('|")`;
+			stringToMatch = `<component component-name=('|")${data}('|")`;
 			name = data;
 			break;
 		case "Undefined Method":
@@ -70,17 +69,14 @@ class ErrorManagement {
 			break;
 		default: break;
 		}
-		console.log(clc.whiteBright(`${type}:\n`));
+		global.Errors.push(clc.whiteBright(`\n${type}:\n`));
 		this.lines.forEach((line, i) => {
 			let matched = line.match(new RegExp(stringToMatch));
 			if (matched) {
-				console.log(`-> ${clc.whiteBright(name)} on line: ${i+1}`);
-				console.log(clc.redBright(`${i}|`)+clc.red(`${this.lines[i-1]}`));
-				console.log(clc.redBright(`${i+1}|${this.lines[i]}`));
-				console.log(clc.redBright(`${i+2}|`)+clc.red(`${this.lines[i+1]}`));
+				global.Errors.push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`
+				);
 			}
 		});
-		process.exit(1);
 	}
 }
 
@@ -185,7 +181,9 @@ class UndefinedStateError extends ErrorManagement {
 		case "watcher":
 			stringToMatch = `watch\\s*${name}\\s*=`;
 			break;
-		default: break;
+		default: 
+			stringToMatch = type;
+			break;
 		}
 		this.throwError({name, string:stringToMatch}, "Undefined State");
 	}

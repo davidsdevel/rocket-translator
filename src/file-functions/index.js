@@ -82,21 +82,22 @@ class TranslatorFileFunctions {
 			return;
 
 		function filterJavascript(js) {
-			var data = js.replace(/;$/, "");
-		
-			if (/^var|let|const/.test(data))
-				data = data.replace(/\s=\s/, ": ");
+			var data = js;
+			if (/^(var|let|const)/.test(js))
+				data = data.replace(/=/, ":");
 
-			data = data.replace(/^function|var|let|const\s*/, "");
+			if (/^async/.test(js))
+				data = data.replace(/\s*function\s*/, " ")
 
-			return data;
+			return data.replace(/;$/, "")
+				.replace(/^(var|let|const|function)/, "")
 		}
 
 		var {code} = transform(js, {
 			compact: false
 		});
 		
-		const splitted = code.split(/\n(?=const|var|let|function)/).filter(e => e);
+		const splitted = code.split(/\n(?=const|var|let|function|async)/).filter(e => e);
 		
 		var final = splitted.map(data => filterJavascript(data)).join(",\n");
 
@@ -118,7 +119,6 @@ class TranslatorFileFunctions {
 	_filterGlobals() {
 		if (!global.RocketGlobals)
 			return;
-		
 
 		const {defineGlobals} = new Function(`return {${global.RocketGlobals}}`)();
 		
@@ -127,7 +127,7 @@ class TranslatorFileFunctions {
 		let fileData = global.RocketFunction;
 
 		globals.forEach(glob => {
-			fileData = fileData.replace(new RegExp(`:${glob}`), `:"${glob}"`);
+			fileData = fileData.replace(new RegExp(`:\s*${glob}`), `: "${glob}"`);
 		});
 
 		global.RocketFunction = fileData;

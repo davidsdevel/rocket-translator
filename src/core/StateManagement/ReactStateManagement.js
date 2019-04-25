@@ -117,7 +117,7 @@ class ReactStateManagement extends StateManagement {
 
 			//Add to bind methods
 			let mappedBindMethods = this.methods.map(({name}) => {
-				let sliced = name.replace("()", "");
+				let sliced = name.replace("()", "").replace(/^async\s*/, "");
 				return `this.${sliced} = this.${sliced}.bind(this);`;
 			});
 			bindMethods = `\n\t\t${mappedBindMethods.join("\n\t\t")}`;
@@ -167,7 +167,7 @@ class ReactStateManagement extends StateManagement {
 		}
 
 		//Map Input Handler
-		if (this.handleInputs) {
+		if (this.handleInputs && !global.RocketTranslator.ignoreInputName) {
 			inputHandler = "inputHandler({target}){\n\t\tlet {name, type} = target;\n\t\tlet value = type === 'checkbox' ? target.checked : target.value;\n\t\tthis.setState({\n\t\t\t[name]: value\n\t\t});\n\t}\n\t";
 		}
 		//If don't have data return empty
@@ -181,7 +181,7 @@ class ReactStateManagement extends StateManagement {
 			return "";
 		}
 
-		return `constructor() {\n\t\tsuper();${states}${bindMethods}${this.handleInputs ? "\n\t\tthis.inputHandler = this.inputHandler.bind(this);" : ""}${bindLifecycles}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}\n\t}\n\t${lifecycle}${computed}${methods}${inputHandler}${watchers}`;
+		return `constructor() {\n\t\tsuper();${states}${bindMethods}${(this.handleInputs && !global.RocketTranslator.ignoreInputName) ? "\n\t\tthis.inputHandler = this.inputHandler.bind(this);" : ""}${bindLifecycles}${watchers ? "\n\t\tthis.componentDidUpdate = this.componentDidUpdate.bind(this);" : ""}${bindComputeds}\n\t}\n\t${lifecycle}${computed}${methods}${inputHandler}${watchers}`;
 	}
 	/**
 	 * Map Conditionals
@@ -596,9 +596,14 @@ class ReactStateManagement extends StateManagement {
 
 					if(/='\w*\(.*\)/.test(e))
 						return e.replace(/\w*/, eventName)
-							.replace(/'(?=\w*)/, "{()=>this.")
+							.replace(/'(?=\w*)/, "{() => this.")
 							.replace(/\)'(?=\s|\/|>)/, ")}");
 
+					if (/='\w*\s*=/.test(e))
+						return e.replace(/\w*/, eventName)
+							.replace(/'/, "{() => this.setState({")
+							.replace(/\s*=\s*(?!>|{)/, ": ")
+							.replace(/'(?=\n|\s|\/|>)/, "})}");
 
 					return e.replace(/\w*/, eventName)
 						.replace("'", "{")
@@ -611,40 +616,41 @@ class ReactStateManagement extends StateManagement {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (haveName) {
-						handler = "onChange={this.inputHandler}";
+
+					if (haveName && !global.RocketTranslator.ignoreInputName) {
+						handler = " onChange={this.inputHandler}";
 					}
 					return handler + e;
 				}
 				return e;
 			})
-			.join("<input ")
+			.join("<input")
 			.split(/<textarea/)
 			.map((e, i) => {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (haveName) {
-						handler = "onChange={this.inputHandler}";
+					if (haveName && !global.RocketTranslator.ignoreInputName) {
+						handler = " onChange={this.inputHandler}";
 					}
 					return handler + e;
 				}
 				return e;
 			})
-			.join("<textarea ")
+			.join("<textarea")
 			.split(/<select/)
 			.map((e, i) => {
 				if (i > 0) {
 					const haveName = /name=("|')\w*("|')/.test(e);
 					let handler = "";
-					if (haveName) {
-						handler = "onChange={this.inputHandler}";
+					if (haveName && !global.RocketTranslator.ignoreInputName) {
+						handler = " onChange={this.inputHandler}";
 					}
 					return handler + e;
 				}
 				return e;
 			})
-			.join("<select ")
+			.join("<select")
 			.replace(/class(?=='|={)/g, "className")
 			.replace(/for(?=='|={)/g, "htmlFor")
 			.split(/<br/)

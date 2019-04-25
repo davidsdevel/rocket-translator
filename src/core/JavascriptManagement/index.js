@@ -102,7 +102,7 @@ class JavascriptManagement {
 	 */
 	set functions(functionName) {
 		let name = functionName;
-		let content = this._data[name].toString().replace(/^\w*/, "").replace(/\s*=>\s*/, " ");
+		let content = this._data[name].toString().replace(/\s*=>\s*/, "");
 		this._functions.push({name, content});
 	}
 	/**

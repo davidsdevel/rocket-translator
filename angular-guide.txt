@@ -1,0 +1,145 @@
+Display Data with interpolation "{{}}"
+
+import { Component } from '@angular/core';
+ 
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>{{title}}</h1>
+    <h2>My favorite hero is: {{myHero}}</h2>
+    `
+})
+export class AppComponent {
+  title = 'Tour of Heroes';
+  myHero = 'Windstorm';
+}
+
+
+Component With Constructor:
+
+export class AppComponent {
+	title: string;
+	myHero: string;
+
+	constructor() {
+		this.title = "Tour of Heroes";
+		this.myHero = "Windstorm";
+	}
+}
+
+Arrays and *ngFor
+
+Data:
+export class AppComponent {
+  title = 'Tour of Heroes';
+  heroes = ['Windstorm', 'Bombasto', 'Magneta', 'Tornado'];
+  myHero = this.heroes[0];
+}
+
+
+Template:
+
+template: `
+  <h1>{{title}}</h1>
+  <h2>My favorite hero is: {{myHero}}</h2>
+  <p>Heroes:</p>
+  <ul>
+    <li *ngFor="let hero of heroes; let i = index">
+      {{ hero }}
+    </li>
+  </ul>
+`
+
+
+Conditionals *ngIf
+
+Else: *ngIf="condition; else elseBlock"
+#elseBlock var
+
+TODO: Add Expresion interpolation ("{1 + 1}")
+Bind:
+
+{{expression}}
+[target]="expression"
+bind-target="expression"
+
+//Object Syntax
+[class.special]
+[style.color]
+
+//Intepolation
+<img src="{{url}}" />
+
+//Toggles
+<div [class.special]="isSpecial">The class binding is special</div>
+
+
+//Model
+<input [(ngModel)]="state" />
+<input [value]="currentHero.name" (input)="currentHero.name=$event.target.value" >
+
+Events:
+
+(event)
+on-target
+
+Two Ways
+
+[(target)]
+bindon-target
+
+
+
+Switch Case:
+
+<div [ngSwitch]="currentHero.emotion">
+  <app-happy-hero    *ngSwitchCase="'happy'"    [hero]="currentHero"></app-happy-hero>
+  <app-sad-hero      *ngSwitchCase="'sad'"      [hero]="currentHero"></app-sad-hero>
+  <app-confused-hero *ngSwitchCase="'confused'" [hero]="currentHero"></app-confused-hero>
+  <app-unknown-hero  *ngSwitchDefault           [hero]="currentHero"></app-unknown-hero>
+</div>
+
+
+
+
+Lifecycles
+
+ngOnChanges()	
+Respond when Angular (re)sets data-bound input properties. The method receives a SimpleChanges object of current and previous property values.
+
+Called before ngOnInit() and whenever one or more data-bound input properties change.
+
+ngOnInit()	
+Initialize the directive/component after Angular first displays the data-bound properties and sets the directive/component's input properties.
+
+Called once, after the first ngOnChanges().
+
+ngDoCheck()	
+Detect and act upon changes that Angular can't or won't detect on its own.
+
+Called during every change detection run, immediately after ngOnChanges() and ngOnInit().
+
+ngAfterContentInit()	
+Respond after Angular projects external content into the component's view / the view that a directive is in.
+
+Called once after the first ngDoCheck().
+
+ngAfterContentChecked()	
+Respond after Angular checks the content projected into the directive/component.
+
+Called after the ngAfterContentInit() and every subsequent ngDoCheck().
+
+ngAfterViewInit()	
+Respond after Angular initializes the component's views and child views / the view that a directive is in.
+
+Called once after the first ngAfterContentChecked().
+
+ngAfterViewChecked()	
+Respond after Angular checks the component's views and child views / the view that a directive is in.
+
+Called after the ngAfterViewInit() and every subsequent ngAfterContentChecked().
+
+ngOnDestroy()	
+Cleanup just before Angular destroys the directive/component. Unsubscribe Observables and detach event handlers to avoid memory leaks.
+
+Called just before Angular destroys the directive/component.

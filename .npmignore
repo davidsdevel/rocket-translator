@@ -1,10 +1,10 @@
 # Builds
-dist/
-test/
+dist/*
+test/*
 *.config.js
 
 # Main
-src
+src/*
 
 # Others
 angular-guide.txt
@@ -15,9 +15,9 @@ angular-guide.txt
 .gitignore
 
 # Testing
-test.[js|html]
-public/
-testing/
+test.*
+public/*
+testing/*
 
 # Logs
 logs

@@ -2,13 +2,193 @@
 
 ## 2.1.0
 
+### Show All Errors
+
+Now you can show all errors at the same time on CLI, to save many time.
+
 ### Some Fixes
 
-Fixes on React HTML Filter
+Fixed React HTML Filter and Vue HTML filter, and Javascript Filter.
+And Fixed HTML Filter Error on parsed Methods and Computeds
 
-### Updated Help Message on CLI
 
-Reformated Help Message
+### Updated CLI Interface
+
+Reformated Help Message, and added `--ignore-input-name` option, to evite parse name attributes on input, select, and textarea tags.
+
+Normaly when we exec `rocket vue my-component.html` or `rocket react my-component.html`, the final component will parse name attribute.
+
+```html
+<div>
+    <input type="text" name="username">
+    <input type="password" name="password">
+</div>
+<script>
+    function setInitialState() {
+        return {
+            username: "",
+            password: ""
+        }
+    }
+</script>
+```
+Vue:
+```html
+<template>
+    <div>
+        <input v-model="username" type="text" name="username">
+        <input v-model="password" type="password" name="password">
+    </div>
+</template>
+<script>
+    export default {
+        name: "MyComponent",
+        data() {
+            return {
+                username: "",
+                password: ""
+            }
+        }
+    }
+</script>
+```
+
+React: 
+```jsx
+import React, {Component} from "react";
+
+class MyComponent extends Component {
+    constructor() {
+        super();
+        this.state = {
+            username: "",
+            password: ""
+        }
+        this.handleInput = this.handleInput.bind(this);
+    }
+    inputHandler({target}){
+        let {name, type} = target;
+        let value = type === 'checkbox' ? target.checked : target.value;
+        this.setState({
+            [name]: value
+        });
+    }
+    render() {
+        return (
+            <div>
+                <input onChange={this.inputHandler} type="text" name="username"/>
+                <input onChange={this.inputHandler} type="password" name="password"/>
+            </div>
+        )
+    }
+}
+```
+
+But, if we exec the same with `--ignore-input-name` flag. We optain:
+
+Vue:
+```html
+<template>
+    <div>
+        <input type="text" name="username">
+        <input type="password" name="password">
+    </div>
+</template>
+<script>
+    export default {
+        name: "MyComponent",
+        data() {
+            return {
+                username: "",
+                password: ""
+            }
+        }
+    }
+</script>
+```
+
+React: 
+```jsx
+import React, {Component} from "react";
+
+class MyComponent extends Component {
+    constructor() {
+        super();
+        this.state = {
+            username: "",
+            password: ""
+        }
+    }
+    render() {
+        return (
+            <div>
+                <input type="text" name="username"/>
+                <input type="password" name="password"/>
+            </div>
+        )
+    }
+}
+export default MyComponent;
+```
+
+### Added Async Functions Support
+
+Now we can declare a `async` function in **Rocket Translator**.
+```html
+<div>
+    <div>{data - state}</div>
+    <button onclick="fetchData()">Fetch Data</button>
+</div>
+<script>
+    function setInitialState() {
+        return {
+            data: ""
+        }
+    }
+    async function fetchData() {
+        try {
+            const req = await fetch("http://someurl/data");
+            const fetched = await req.json();
+            data = fetched;
+        }
+        catch(err) {
+            console.log(err);
+        }
+    }
+</script>
+```
+
+```jsx
+import React, {Component} from "react";
+
+class Test extends Component {
+    constructor() {
+        super();
+        this.state = {
+            data: ""
+        };
+        this.fetchData = this.fetchData.bind(this);
+    }
+    async fetchData(){
+        try {
+            const req = await fetch("http://someurl");
+            const fetched = await req.json();
+            this.setState({data: fetched});
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    render(){
+        return(
+            <div>
+                <div>{this.state.data}</div>
+                <button onClick={this.fetchData}>Fetch Data</button>
+            </div>
+        )
+    }
+}
+export default Test;
+```
 
 ### Optimized with Webpack
 

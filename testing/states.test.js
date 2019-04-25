@@ -22,7 +22,7 @@ state = "<h1>Hello {name - state - 'world'}!</h1>";
 stateStringManager.getHTMLString(state);
 
 test("test get state and string value from template", ()=>{
-    expect(stateStringManager.states).toEqual([{key:"nam",value:"world"}]);
+    expect(stateStringManager.states).toEqual([{key:"name",value:"world"}]);
 });
 
 const stateNumberManager = new StateManagement();
@@ -32,7 +32,6 @@ stateNumberManager.getHTMLString(state);
 test("test get state and Number value from template", ()=>{
     expect(stateNumberManager.states).toEqual([{key:"yearlsOld",value:19}]);
 });
-
 
 const stateBooleanManager = new StateManagement();
 state = "<h1>{Alone - state - true}!</h1>";

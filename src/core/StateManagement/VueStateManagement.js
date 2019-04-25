@@ -1,4 +1,5 @@
 import StateManagement from "./StateManagement";
+import Events from "Const/Events";
 
 /**
  * Vue State Management
@@ -49,7 +50,7 @@ class VueStateManagement extends StateManagement {
 		
 		//Parsing Event Tags "on"
 		let addEventToVue = addOpenBraces
-			.replace(/on(?=\w*="\w*\(.*\)")/g, "@");
+			.replace(new RegExp(`on(?=('|")${Events.join("|")})`), "@");
 
 		/*----------Parsing Inputs Tags----------*/
 		
@@ -62,8 +63,10 @@ class VueStateManagement extends StateManagement {
 			.map((content, i) => {
 				if (i > 0) {
 					let nameTag = content.match(/name=("|')\w*("|')/);
-					
-					let vModelDirective = nameTag ? `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`: "";
+					var vModelDirective = "";
+
+					if (nameTag && !global.RocketTranslator.ignoreInputName)
+						vModelDirective = `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`;
 					
 					return content.replace(" ", ` ${vModelDirective}`);
 				} 
@@ -76,8 +79,10 @@ class VueStateManagement extends StateManagement {
 			.map((content, i) => {
 				if (i > 0) {
 					let nameTag = content.match(/name=("|')\w*("|')/);
+					var vModelDirective = "";
 					
-					let vModelDirective = nameTag ? `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`: "";
+					if (nameTag && !global.RocketTranslator.ignoreInputName)
+						vModelDirective = `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`;
 					
 					return content.replace(" ", ` ${vModelDirective}`);
 				} 
@@ -90,8 +95,10 @@ class VueStateManagement extends StateManagement {
 			.map((content, i) => {
 				if (i > 0) {
 					let nameTag = content.match(/name=("|')\w*("|')/);
+					var vModelDirective = "";
 					
-					let vModelDirective = nameTag ? `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`: "";
+					if (nameTag && !global.RocketTranslator.ignoreInputName)
+						vModelDirective = `v-model='${nameTag[0].match(/"\w*(?=")/)[0].slice(1)}'`;
 					
 					return content.replace(" ", ` ${vModelDirective}`);
 				} 
@@ -100,7 +107,7 @@ class VueStateManagement extends StateManagement {
 			.join("<select");
 
 		const condParsed = selectTag
-			.split(/<(?=if\s*cond=)/)
+			.split(/<(?=if.*>|else.*>)/)
 			.map((cond, i) => {
 				if (i > 0) {
 					const condTagName = cond.match(/^\w*(-\w*)*/)[0];
@@ -112,9 +119,9 @@ class VueStateManagement extends StateManagement {
 							.replace(/\s*tag=/, "")
 							.replace(/'|"/g, "");
 
-					return cond.replace(new RegExp(`${condTagName} cond="(?=.*>)`, "g"), `${tagName} v-${condTagName}='`)
+					return cond.replace(new RegExp(`${condTagName} cond="(?=.*>)`, "g"), `${tagName} v-${condTagName}="`)
 						.replace(`</${condTagName}>`, `</${tagName}>`)
-						.replace(`<${condTagName}>`, `<${tagName}>`)
+						.replace(`${condTagName}>`, `${tagName} v-${condTagName}>`)
 						.replace(tagRegExp, "")
 						.replace(/"\s*"/, "\"'");
 				}
@@ -330,7 +337,7 @@ class VueStateManagement extends StateManagement {
 			haveMethods ||
 			haveWatchers;
 
-		let mainTemplate = 	`${importComponents}export default {\n\tname:${componentName || "MyComponent"}${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}\n}`;
+		let mainTemplate = 	`${importComponents}export default {\n\tname:"${componentName || "MyComponent"}"${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}\n}`;
 		
 		if (haveData)
 			return `<script>\n${mainTemplate}\n</script>`;

@@ -1,11 +1,20 @@
 # Builds
-dist/
+
+dist/*
+lib/*
+Lib/*
+Lib
+lib
+Lib/
 lib/
-test/
+test/*
+
 
 # Others
 angular-guide.txt
 public/
+public
+public/*
 
 # Temp Test Files
 test.*
