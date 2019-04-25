@@ -22,6 +22,7 @@
 	},
 	"scripts": {
 		"postinstall": "node bin/changelog.js",
+		"prepublishOnly": "yarn test && yarn build",
 		"test": "webpack --config testing.config.js && jest",
 		"lint": "eslint -c .eslintrc.js ./src",
 		"lint-fix": "eslint -c .eslintrc.js --fix ./src",
@@ -33,7 +34,7 @@
 	},
 	"homepage": "https://github.com/davidsdevel/rocket-translator#readme",
 	"author": "David's Devel <djgm1206@gmail.com>",
-	"license": "ISC",
+	"license": "MIT",
 	"bin": {
 		"rocket": "bin/index.js"
 	},
