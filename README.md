@@ -1,4 +1,4 @@
-# RocketJS [![npm version](https://badge.fury.io/js/rocket-translator.svg)](https://badge.fury.io/js/rocket-translator)
+# Rocket Translator [![npm version](https://badge.fury.io/js/rocket-translator.svg)](https://badge.fury.io/js/rocket-translator)
 
 Translate HTML code to Vue, React or Angular.
 
@@ -103,6 +103,7 @@ The **output folder** is optional, if this is not defined will create a folder n
 * [Bind Attributes](#binds)
 * [JavaScript Management](#js-management)
 * [HTML Syntax](#syntax)
+* [CLI](#cli)
 
 ### States Simple <a name="states-simple"></a>
 
@@ -295,6 +296,32 @@ function hello() {
 </script>
 ```
 
+Since Version 2.1.0 you can use `async` funtions.
+
+```html
+<div>
+    <div>{data - state}</div>
+    <button onclick="fetchData()">Fetch Data</button>
+</div>
+<script>
+    function setInitialState() {
+        return {
+            data: ""
+        }
+    }
+    async function fetchData() {
+        try {
+            const req = await fetch("http://someurl/data");
+            const fetched = await req.json();
+            data = fetched;
+        }
+        catch(err) {
+            console.log(err);
+        }
+    }
+</script>
+``` 
+
 ### Components \(**Partial**\)<a name="components"></a>
 
 To import a **component** inside the main component. Only add the tag with the component syntax.
@@ -469,7 +496,9 @@ var loop_0000 = this.state.buyList.map(item =>
 The default tag on **Vue** is the `template` tag.
 On **React** don't have default tag. Put the content without tag.
 And on **Angular** the default tag is the `div` tag.
+
 ### List Render <a name="loops"></a>
+
 Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val` attr.
 
 ```html
@@ -704,6 +733,48 @@ We add this tag to declare a **custom** component inside the **Main Component**
     <span>Component Content</span>
 </component>
 ```
+
+### CLI <a name="cli"></a>
+
+CLI use is simple: `rocket [mode] <input-file> <output-folder>`
+
+**mode** will be the target framework: _React_, _Vue_ or _Angular_.
+**input-file** will be the HTML component filepath.
+**output-folder** is optional. Will be the folder path. If is not defined, create a folder named `dist`.
+
+#### Options
+
+##### --ignore-input-name
+
+Option `--ignore-input-name`, is used to evite that the filter, parse the name attribute on `input`, `select` or `textarea` tags.
+
+See a React Example
+Without `--ignore-input-name`:
+
+```jsx
+render() {
+    return (
+        <div>
+            <input onChange={this.inputHandler} type="text" name="username"/>
+            <input onChange={this.inputHandler} type="password" name="password"/>
+        </div>
+    )
+}
+```
+
+With `--ignore-input-name`:
+
+```jsx
+render() {
+    return (
+        <div>
+            <input type="text" name="username"/>
+            <input type="password" name="password"/>
+        </div>
+    )
+}
+```
+
 ## To Do
 
 ### Features Support
