@@ -1,0 +1,49 @@
+{
+	"name": "rocket-translator",
+	"version": "2.0.3",
+	"description": "Translate your HTML files to React.js and Vue.js",
+	"keywords": [
+		"vue",
+		"react",
+		"translator",
+		"html translator"
+	],
+	"engines": {
+		"node": ">= 0.1"
+	},
+	"directories": {
+		"bin": "bin",
+		"Lib": "Lib"
+	},
+	"main": "./Lib/core/index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/davidsdevel/rocket-translator.git"
+	},
+	"scripts": {
+		"postinstall": "node bin/changelog.js",
+		"test": "webpack --config testing.config.js && jest",
+		"lint": "eslint -c .eslintrc.js ./src",
+		"lint-fix": "eslint -c .eslintrc.js --fix ./src",
+		"build": "webpack --mode production --optimization-minimize",
+		"dev": "webpack --mode development && node bin"
+	},
+	"bugs": {
+		"url": "https://github.com/davidsdevel/rocket-translator/issues"
+	},
+	"homepage": "https://github.com/davidsdevel/rocket-translator#readme",
+	"author": "David's Devel <djgm1206@gmail.com>",
+	"license": "ISC",
+	"bin": {
+		"rocket": "bin/index.js"
+	},
+	"devDependencies": {
+		"cli-color": "^1.4.0",
+		"eslint": "^5.11.1",
+		"eslint-plugin-import": "^2.14.0",
+		"eslint-plugin-react": "^7.12.2",
+		"jest": "^23.6.0",
+		"webpack": "^4.29.6",
+		"webpack-cli": "^3.3.0"
+	}
+}

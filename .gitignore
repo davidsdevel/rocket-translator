@@ -1,0 +1,24 @@
+# Builds
+dist/
+lib/
+test/
+
+# Others
+angular-guide.txt
+public/
+
+# Temp Test Files
+test.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# VS Debug Dir
+.vscode
