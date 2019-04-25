@@ -6,7 +6,7 @@
 
 Now you can show all errors at the same time on CLI, to save many time.
 
-### Some Fixes
+### Some Fixes Solved
 
 Fixed React HTML Filter and Vue HTML filter, and Javascript Filter.
 And Fixed HTML Filter Error on parsed Methods and Computeds
