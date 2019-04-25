@@ -64,7 +64,7 @@ class StateManagement {
 							this._methods[i] = { 
 								content: e.content,
 								name: e.name
-							}
+							};
 						}
 					} else {
 						if (e.name === method.name)
@@ -78,7 +78,7 @@ class StateManagement {
 							this._computed[i] = { 
 								content: e.content,
 								name: e.name
-							}
+							};
 						}
 					} else {
 						if (e.name === name)
@@ -472,11 +472,11 @@ class StateManagement {
 	 */
 	set methods(html) {
 		const	methodRegExp = /on\w*=("|')\w*\(.*\)("|')/g,
-				assignRegExp = /on\w*=("|')\w*\s*=\s*(?=('|")\w*|\d*|\{|\[)/g,
-				incrementRegExp = /on\w*=("|')\w*\s*\+/g,
-				multRegExp = /on\w*=("|')\w*\s*\*/g,
-				divRegExp = /on\w*=("|')\w*\s*\//g,
-				decrementRegExp = /on\w*=("|')\w*\s*-/g;
+			assignRegExp = /on\w*=("|')\w*\s*=\s*(?=('|")\w*|\d*|\{|\[)/g,
+			incrementRegExp = /on\w*=("|')\w*\s*\+/g,
+			multRegExp = /on\w*=("|')\w*\s*\*/g,
+			divRegExp = /on\w*=("|')\w*\s*\//g,
+			decrementRegExp = /on\w*=("|')\w*\s*-/g;
 
 		var haveMethods = methodRegExp.test(html),
 			haveAssign = assignRegExp.test(html),

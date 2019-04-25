@@ -38,10 +38,10 @@ class CLI {
 
 		options.forEach(option => {
 			switch(option) {
-				case "--ignore-input-name":
-					global.RocketTranslator.ignoreInputName = true;
-					break;
-				default: break;
+			case "--ignore-input-name":
+				global.RocketTranslator.ignoreInputName = true;
+				break;
+			default: break;
 			}
 		});
 

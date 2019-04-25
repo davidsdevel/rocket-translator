@@ -87,10 +87,10 @@ class TranslatorFileFunctions {
 				data = data.replace(/=/, ":");
 
 			if (/^async/.test(js))
-				data = data.replace(/\s*function\s*/, " ")
+				data = data.replace(/\s*function\s*/, " ");
 
 			return data.replace(/;$/, "")
-				.replace(/^(var|let|const|function)/, "")
+				.replace(/^(var|let|const|function)/, "");
 		}
 
 		var {code} = transform(js, {
