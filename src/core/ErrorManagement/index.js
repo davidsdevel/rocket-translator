@@ -69,11 +69,13 @@ class ErrorManagement {
 			break;
 		default: break;
 		}
-		global.Errors.push(clc.whiteBright(`\n${type}:\n`));
+		if (!global.Errors[type])
+			global.Errors[type] = [];
+
 		this.lines.forEach((line, i) => {
 			let matched = line.match(new RegExp(stringToMatch));
 			if (matched) {
-				global.Errors.push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`
+				global.Errors[type].push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`
 				);
 			}
 		});

@@ -1,5 +1,6 @@
 import defineErrors from "Core/ErrorManagement"; //Define Error Management Globals
 import globalList from "Const/Globals";
+import {parse} from "babylon";
 
 defineErrors(); 
 
@@ -20,7 +21,7 @@ class StateManagement {
 		this._watchers = new Array();
 		this._props = new Array();
 		this._handleInputs = false;
-		this._cond = new Array();
+		this._conditionals = new Array();
 		this._loops = new Array();
 		this._lifecycle = new Array();
 		
@@ -145,7 +146,7 @@ class StateManagement {
 		this._watchers = new Array();
 		this._props = new Array();
 		this._handleInputs = false;
-		this._cond = new Array();
+		this._conditionals = new Array();
 		this._loops = new Array();
 		this._lifecycle = new Array();
 
@@ -549,7 +550,7 @@ class StateManagement {
 	set propsInBindAttributes(html) {
 		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
 			if (i > 0) {
-				const regExpToMatch = /^\w*="(\w*(\s*-\s*\w*)*)"/;
+				const regExpToMatch = /^\w*=("|')(\w*(\s*-\s*\w*)*)("|')/;
 				if (regExpToMatch.test(bindAttr)) {
 					const attrib = bindAttr.match(regExpToMatch)[0];
 
@@ -626,60 +627,30 @@ class StateManagement {
 		return this._handleInputs;
 	}
 	/**
-	 * Conditionals Setter
+	 * Conditionals Validator
 	 * 
+	 * @description Validate that conditions are a state or prop
+	 *
 	 * @public
 	 * @param {String} html
 	 */
-	set conditionals(html){
+	conditionalsValidator(html){
 		//Function to get tag condition
-		const getData = data => {
+		const getCond = data => {
 			const tagRegExp = /\s*tag=('|")\w*(-\w*)*("|')/;
-			var tag = "";
-			if (tagRegExp.test(data))
-				tag = data.match(tagRegExp)[0].replace(/\s*tag=/, "").replace(/('|")/g, "");
 
 			data = data.replace(tagRegExp, "");
 
 			let dataCond = data.match(/cond=('|").*('|")/g);
 
-			return {
-				cond: dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, ""),
-				tag
-			};
+			return dataCond[0].replace(/cond=('|")/, "").replace(/('|")$/, "");
 		};
-		let condTagsArray = html.split("<if ");
-		let condData = condTagsArray
-			.map((e, i) => {
+		let condTagsArray = html.split(/<if |<else-if /);
+		condTagsArray
+			.forEach((e, i) => {
 				if (i > 0) {
-					let {cond, tag:tagIf} = getData(e);
-					let tagElse = "";
-					let elseIf = [];
-					let contentIf;
-					let contentElse;
-					if (e) {
-						contentIf = e.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/if>/)[0];
-						if(/<else-if/.test(e)) {
-							e.split("<else-if").forEach((ev, i) => {
-								const {cond:elseIfCond, tag:elseIfTag} = getData(ev);
-								if (i > 0)
-									elseIf.push({
-										cond:elseIfCond,
-										tag:elseIfTag,
-										content:ev.replace(/cond=.*>(\r|\n|\r\n)*/, "").split(/(\r|\n|\r\n)*\t*<\/else-if>/)[0]
-									});
-							});
-						}
-						contentElse = e.split(/<else>(\n|\r|\r\n)*/)[2];
-						if (contentElse) {	
-							const tagRegExp = /<else\s*tag=('|")\w*(-\w*)*("|')/;
+					let cond = getCond(e);
 
-							if (tagRegExp.test(e))
-								tagElse = e.match(tagRegExp)[0].replace(/<else\s*tag=/, "").replace(/('|")/g, "");
-							
-							contentElse = contentElse.split(/(\r|\n)*<\/else>/)[0];
-						}
-					}
 					let matchState = false;
 					let condDefined;
 					this.states.forEach(e => {
@@ -691,21 +662,8 @@ class StateManagement {
 					});
 					if (!matchState)
 						new global.UndefinedStateError({type:"conditional", name:condDefined});
-					
-					return {
-						cond,
-						if:contentIf,
-						elseIf,
-						tagIf,
-						tagElse,
-						else:contentElse
-					};
 				}
-				return null;
 			});
-		this._cond = condData.filter(e => {
-			return e;
-		});
 	}
 	/**
 	 * Conditionals Getter
@@ -715,24 +673,24 @@ class StateManagement {
 	 * @return {Array}
 	 */
 	get conditionals() {
-		return this._cond;
+		return this._conditionals;
 	}
 	/**
-	 * Loops Setter
+	 * Loops Validator
 	 * 
+	 * @description Validate that loop are a state or prop
+	 *
 	 * @public
 	 * @param {String} html
 	 */
-	set loops(html){
+	loopsValidator(html){
 		let loopsTagsArray = html.split(/<for /);
 
-		let loopsData = loopsTagsArray
-			.map((e, i) => {
+		loopsTagsArray
+			.forEach((e, i) => {
 				if (i > 0) {
 					let valueAndState = e.match(/val=('|").*(?=('|")>)/)[0];
-					let valueToSetInTemplate = valueAndState.replace(/^val=('|")/, "").match(/.*(?=\sin)/)[0];
 					let stateToMap = valueAndState.replace(/^.*in /, "").replace(/('|").*/, "");
-					let loopContent = e.replace(/val=.*>(\n|\r|\r\n)/, "").split(/<\/for>/)[0];
 					
 					let matchState = false;
 					this.states.forEach(e => {
@@ -740,21 +698,9 @@ class StateManagement {
 						if(stateToMap === (typeof e === "object" ? e.key : e))
 							matchState = true;
 					});
-					if (!matchState)
-						new global.UndefinedStateError({type:"loop", name:stateToMap});
-
-					return {
-						value:valueToSetInTemplate,
-						state:stateToMap,
-						content:loopContent
-					};
+					if (!matchState) new global.UndefinedStateError({type:"loop", name:stateToMap});
 				}
-				return null;
 			});
-			
-		this._loops = loopsData.filter(e => {
-			return e;
-		});
 	}
 	/**
 	 * Loops Getter
@@ -858,9 +804,9 @@ class StateManagement {
 
 		this.inputs = html; //Get Inputs, Textarea and Options
 
-		this.conditionals = html; //Get conditionals Data
+		this.conditionalsValidator(html); //Get conditionals Data
 
-		this.loops = html; //Get Loops Data
+		this.loopsValidator(html); //Get Loops Data
 
 		this.methods = html; //Call Method to Get Data from HTML String
 	}
@@ -878,27 +824,6 @@ class StateManagement {
 	_filterJS(JsArray, type){
 		//Watch if have Content
 		if (JsArray.length > 0) {
-			let stateReplace; //Empty var to set state declaration
-			let propReplace; //Empty var to set props declaration
-			let tab; //Empty var to set indent to code beauty
-			switch (type) {
-			case "r":
-				stateReplace = "this.state.";
-				propReplace = "this.props.";
-				tab = "";
-				break;
-			case "a":
-				stateReplace = "this.";
-				propReplace = "this.";
-				tab = "";
-				break;
-			case "v":
-				stateReplace = "this.";
-				propReplace = "this.";
-				tab = "\t";
-				break;
-			default: throw new Error("The type param must be 'v', 'r' or 'a'");
-			}
 			//Map JS Content
 			let JsonArray = JsArray.map(({content, name}) => {
 				if (/^async/.test(content))
@@ -915,18 +840,7 @@ class StateManagement {
 					On React was be: 'this.state.name' 
 					and on Vue was be: 'this.name'
 				*/
-				this.states.forEach(state => {
-					/*If state is an Object this will be like {key:'foo', value:'var'}
-						"key" is the state name.
-
-						If state is not an Object this was be like 'foo' 
-						this is the state name without value
-					*/
-					let stateName = typeof state === "object" ? state.key : state;
-					data = this._expressionsFilter(data, stateName, stateReplace);
-				});
-
-				this.props.forEach(prop => data = this._expressionsFilter(data, prop, propReplace));
+				data = this._expressionsFilter(content, type);
 
 				if (type === "r")
 					data = this._setStateFilter(data);
@@ -936,9 +850,8 @@ class StateManagement {
 					content:params + data
 						.split("\n")
 						.map((es, i) => {
-							if (es && i > 0 && es != /^}(\s|\t)*$/) return `${tab+es}\n`;
-							else if (es == /^}(\s|\t)*$/) return `${tab}}`;
-							else return `${es }\n`;
+							if (es && i > 0 && es != /^}(\s|\t)*$/) return `${es}\n`;
+							else return `${es}\n`;
 						})
 						.join("")
 						.replace(/(\n|\r)$/g, "")
@@ -976,6 +889,47 @@ class StateManagement {
 
 		return data;
 	}
+	/**
+	 * Parse JS
+	 *
+	 * Parse Javascript with Babylon parser
+	 *
+	 * @param {String} code
+	 *
+	 * return {Object}
+	 */
+	_parseJS(code) {
+		const ast = parse(code);
+		const parsed = ast.tokens.map(e => {
+			const matchVar = new RegExp(`(var|let|const)\\s*${e.value}`).exec(code);
+			const matchFuntion = new RegExp(`${e.value}\\s*\\(.*\\)`).exec(code);
+			const matchParam = new RegExp(`\\(\\s*(\\w*\\s*,\\s*)*${e.value}(\\w*\\s*,\\s*)*\\)\\s*{|\\(\\s*(\\w*\\s*,\\s*)*${e.value}(\\w*\\s*,\\s*)*\\)\\s*=>\\s*{|\\s*${e.value}\\s*=>`).exec(code);
+			const objectParam = new RegExp(`^${e.value}\\s*:`).exec(code.slice(e.start));
+
+			var type = e.type.label;
+			if (matchVar !== null)
+				type = matchVar[1];
+		
+			else if (matchFuntion !== null)
+				type = "function";
+			else if (matchParam !== null || objectParam !== null)
+				type = "param";
+		
+			return {
+				type,
+				position: e.start,
+				value: e.value
+			};
+		});
+		
+		const vars = parsed.filter(e => /var|let|const|param/.test(e.type));
+		const data = parsed.filter(e => /function|name/.test(e.type));
+	
+		return {
+			vars,
+			data
+		};
+	}
 
 	/**
 	 * Expressions Filter
@@ -983,59 +937,76 @@ class StateManagement {
 	 * Filter States and Props vars with corresponding caller
 	 * 
 	 * @private
-	 * @param {String} html 
-	 * @param {String} name 
-	 * @param {String} replace 
+	 * @param {String} code 
+	 * @param {String} type 
 	 * 
 	 * @return {String}
 	 */
-	_expressionsFilter(html, name, replace) {
-		var filtered = html
-			.replace(new RegExp(`\\t(${replace+name}|${name})(?!\\(|\\s*\\(|\\.)`, "g"), `\t${replace}${name}`)
-			.replace(new RegExp(`(\\(|\\(\\s*)(${replace+name}|${name})`, "g"), `(${replace}${name}`)
-			.replace(new RegExp(`(\\[|\\[\\s*)(${replace+name}|${name})`, "g"), `[${replace}${name}`)
-			.replace(new RegExp(`(\\$\\{|\\$\\{\\s*)(${replace+name}|${name})`, "g"), `\${${replace}${name}`)
-			.replace(new RegExp(`(=|=\\s*)(${replace+name}|${name})(?!\\s*=>)`, "g"), `= ${replace}${name}`)
-			.replace(new RegExp(`(>|>\\s*)(${replace+name}|${name})`, "g"), `> ${replace}${name}`)
-			.replace(new RegExp(`(<|<\\s*)(${replace+name}|${name})`, "g"), `< ${replace}${name}`)
-			.replace(new RegExp(`(~|~\\s*)(${replace+name}|${name})`, "g"), `~${replace}${name}`)
-			.replace(new RegExp(`(\\!|\\!\\s*)(${replace+name}|${name})`, "g"), `\\! ${replace}${name}`)
-			.replace(new RegExp(`(:|:\\s*)(${replace+name}|${name})`, "g"), `: ${replace}${name}`)
-			.replace(new RegExp(`(\\?|\\?\\s*)(${replace+name}|${name})(?=.*:)`, "g"), `? ${replace}${name}`)
-			.replace(new RegExp(`(\\+|\\+\\s*)(${replace+name}|${name})`, "g"), `+ ${replace}${name}`)
-			.replace(new RegExp(`(-|-\\s*)(${replace+name}|${name})`, "g"), `- ${replace}${name}`)
-			.replace(new RegExp(`(\\*|\\*\\s*)(${replace+name}|${name})`, "g"), `* ${replace}${name}`)
-			.replace(new RegExp(`(\\/|\\/\\s*)(${replace+name}|${name})`, "g"), `/ ${replace}${name}`)
-			.replace(new RegExp(`(\\%|\\%\\s*)(${replace+name}|${name})`, "g"), `% ${replace}${name}`)
-			.replace(new RegExp(`(return|return\\s*)(${replace+name}|${name})`, "g"), `return ${replace}${name}`)
-			.replace(new RegExp(`(typeof|typeof\\s*)(${replace+name}|${name})`, "g"), `typeof ${replace}${name}`)
-			.replace(new RegExp(`(\\&|\\&\\s*)(${replace+name}|${name})`, "g"), `& ${replace}${name}`)
-			.replace(new RegExp(`(\\||\\|\\s*)(${replace+name}|${name})(?!.*(\\\`|"|'))`, "g"), `| ${replace}${name}`)
-			.replace(new RegExp(`(in|in\\s*)(${replace+name}|${name})(?!.*(\\\`|"|'))`, "g"), `in ${replace}${name}`)
-			.replace(new RegExp(`(case|case\\s*)(${replace+name}|${name})(?!.*(\\\`|"|'))`, "g"), `case ${replace}${name}`)
-			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\.)`, "g"), `\t${replace}${name}`)
-			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\+\\+)`, "g"), `\t${replace}${name}`)
-			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=\\s*=)`, "g"), `\t${replace}${name}`)
-			.replace(new RegExp(`(\\t|\\s\\s\\s\\s|\\s\\s)(${replace+name}|${name})(?=--)`, "g"), `\t${replace}${name}`);
+	_expressionsFilter(code, type) {
+		//Filter States
+		var filtered = code;
 
-		//To Replace Filtered No States
-		const toUnfilter = new RegExp(`(${replace+name}|${name})\\w*`).exec(filtered);
+		const {data} = this._parseJS(code);
+		const isReact = type === "r";
+		const stateReplacemment = isReact ? "this.state." : "this.";
+		const propReplacemment = isReact ? "this.props." : "this.";
 
-		if (toUnfilter) {
+		data.reverse().forEach(({value, position}) => {
 			var isState = false;
-			for(let i = 0; i < this.states.length; i++) {
-				const state = typeof this.states[i] === "object" ? this.states[i].key : this.states[i];
+			var isMethod = false;
+			var isProp = false;
+			var isStateInObject = false;
 
-				if(toUnfilter[0] === `${replace}${state}`) {
+			const init = filtered.slice(0, position);
+			const rest = filtered.slice(position);
+
+
+			for (let i = 0; i <= this._states.length; i++) {
+				const state = this._states[i];
+				const name = typeof state === "object" ? state.key : state;
+				if (value === name) {
 					isState = true;
+					isStateInObject = new RegExp(`\\n(\\t*|(\\s\\s)*)${state}\\s*,|(\\{\\s*|,\\s*)${state}\\s*(,|\\})`).test(filtered);
 					break;
 				}
 			}
-			if (isState)
-				return filtered;
-			
-			return filtered.replace(toUnfilter[0], toUnfilter[0].replace(replace, ""));
-		}
+			for (let i = 0; i <= this._props.length; i++) {
+				const prop = this._props[i];
+
+				if (value === prop) {
+					isProp = true;
+					break;
+				}
+			}
+			for (let i = 0; i <= this._methods.length; i++) {
+				const method = this._methods[i];
+
+				if (value === method) {
+					isMethod = true;
+					break;
+				}
+			}
+
+			if (isStateInObject) {
+				filtered = `${init}${value}: ${stateReplacemment}${rest}`;
+				return;
+			}
+			if (isState) {
+				filtered = `${init}${stateReplacemment}${rest}`;
+				return;
+			}
+
+			if (isProp) {
+				filtered = `${init}${propReplacemment}${rest}`;
+				return;
+			}
+
+			if (isMethod) {
+				filtered = `${init}this.${rest}`;
+				return;
+			}
+		});
+
 		return filtered;
 	}
 	/**
@@ -1140,6 +1111,489 @@ class StateManagement {
 				.replace(/""/g, "\"");
 		}
 		return JSON.parse(filtered);
+	}
+	//------------------JSX Methods--------------------//
+	/**
+	 * Parse HTML
+	 *
+	 * @description Parse HTML and generate a JSX Linear AST
+	 * @private
+	 * @param {String} code
+	 *
+	 * @return {Array}
+	 */
+	_parseHTML(code) {
+		//TO DO implement Splitter /<(?=\w*(?!.*>.*(?!{).*})|\/\w*(?!.*>.*(?!{).*}))/
+	
+		return code.split(/</).filter(e => e).map((line) => {
+	
+			const tag = line.match(/\/*\w*(-\w*)*/)[0].replace("/", "");
+			const content = line.match(/>.*/)[0].replace(">", "");
+			var attr = line.match(/.*>/)[0].replace(/>/, "");
+	
+			attr = attr.split(/\s(?=:*\w*=('|"))/)
+				.filter(e => /\w*=("|')/.test(e))
+				.map(e => {
+					const isBind = e[0] === ":";
+	
+					if (isBind) e = e.slice(1);
+				
+					const splitted = e.split("=");
+					const name = splitted[0];
+	
+					splitted.shift();
+	
+					const value = splitted.join("=").replace(/^("|')|('|")$/g, "");
+	
+					return {
+						name,
+						value,
+						isBind
+					};
+				});
+			var mode;
+			var type;
+		
+			if (tag[0].toUpperCase() === tag[0]) 
+				type = "component";
+	
+			else if (tag === "if" || tag === "else" || tag === "else-if")
+				type = "conditional";
+	
+			else if (tag === "for")
+				type = "loop";
+	
+			else
+				type = "normal";
+		
+			if (/^\/\w*(-\w*)*>/.test(line))
+				mode = "close";
+	
+			else if (/\w*.*\/>/.test(line))
+				mode = "single";
+	
+			else if (/^\w*/.test(line))
+				mode = "open";
+	
+			return {
+				tag,
+				mode,
+				type,
+				content,
+				attr
+			};
+		});
+	}
+	/**
+	 * Generate JSX
+	 *
+	 * @description Generate JSX tags from linear AST
+	 * @private
+	 * @param {Array} parsedCode
+	 *
+	 * @return {Array}
+	 */
+	_generateJSXAst(parsedCode) {
+		var parts = [];
+		var tree = [];
+		var condID = -1;
+	
+		parsedCode.forEach(({type, mode, tag, content, attr}, i) => {
+			const isOpen = mode === "open";
+			if (i === 0) {
+				parts.push({tag, tree: Object.assign([], tree).join(","), content: `<${tag}>@content@</${tag}>`, type: "root"});
+				tree.push(tag);
+			} else {
+				if (isOpen) {
+					if (type === "loop") {
+						var state;
+						var toMap;
+						attr.forEach(({name, value}) => {
+							if (name === "val") {
+								state = value.match(/in\s*\w*/)[0].replace(/in\s*/, "");
+
+								this.states.forEach(k => {
+									const stateName = typeof k === "object" ? k.key : k;
+									var mode = global.RocketTranslator.mode === "react" ? "this.state." : "this.";
+									if (state === stateName) {
+										state = state.replace(stateName, `${mode}${stateName}`);
+									}
+								});
+								this.props.forEach(prop => {
+									var mode = global.RocketTranslator.mode === "react" ? "this.props." : "this.";
+									if (state === prop) {
+										state = state.replace(prop, `${mode}${prop}`);
+									}
+								});
+
+								toMap = value.match(/.*(?=\s*in)/)[0];
+							}
+						});
+						parts.push({tag, tree: Object.assign([], tree).join(","), content:`const loop${i} = ${state}.map(${toMap} => (@content@))`, type:"loop"});
+					}
+					else if (type === "conditional") {
+						var condition;
+						var newTag = tag.replace("-", " ");
+	
+						condID++;
+	
+						if (tag !== "else") {
+							attr.forEach(({name, value}) => {
+								if (name === "cond") {
+									this.states.forEach(state => {
+										const stateName = typeof state === "object" ? state.key : state;
+										var mode = global.RocketTranslator.mode === "react" ? "this.state." : "this.";
+
+										value = value.replace(stateName, `${mode}${stateName}`);
+									});
+									this.props.forEach(prop => {
+										var mode = global.RocketTranslator.mode === "react" ? "this.props." : "this.";
+
+										value = value.replace(prop, `${mode}${prop}`);
+									});
+
+									condition = ` (${value})`;
+								}
+							});
+						}
+						else
+							condition = "";
+	
+						parts.push({tag, tree: Object.assign([], tree).join(","), content:`${newTag}${condition} { conditional${condID} = @content@}`, type:"conditional"});
+					}
+					else {
+						const attributes = attr.map(({name, value, isBind}) => {
+							if (name.startsWith("on")) {
+								name = `on${  this._generateJSXEventName(name.slice(2))}`;
+								value = `${(value.endsWith(")") ? "{() => this." : "{this.") + value  }}`;
+							} else {
+								if (isBind) value = `{${value}}`;
+							}
+							return `${name}=${value}`;
+	
+						}).join(" ");
+						parts.push({tag, tree: Object.assign([], tree).join(","), type: "content", content: `<${tag}${attributes ? ` ${  attributes}` : ""}>${content ? content : "@content@"}</${tag}>`});
+					}
+					tree.push(tag);
+				}
+				else if (mode === "single") {
+					const attributes = attr.map(({name, value, isBind}) => {
+						if (name.startsWith("on")) {
+							name = `on${  this._generateJSXEventName(name.slice(2))}`;
+							value = `${(value.endsWith(")") ? "{() => this." : "{this.") + value  }}`;
+						} else {
+							if (isBind) value = `{${value}}`;
+						}
+						return `${name}=${value}`;
+					}).join(" ");
+					parts.push({tag, tree: Object.assign([], tree).join(","), type, content: `<${tag}${attributes ? ` ${  attributes}` : ""}/>`});
+				}
+				else {
+	
+					const next = parsedCode[i+1];
+	
+					if (next) {
+						if (mode === "close" && (next.type === "conditional" && next.mode === "close")) {
+							condID--;
+						}
+					}
+	
+					tree.pop();
+					parts.push({tag, type: "close", content:"", tree: Object.assign([], tree).join(",")});
+				}
+			}
+		});
+		return parts;
+	}
+	/**
+	 * Generate JSX Event Name
+	 *
+	 * @description Take HTML event name and return in JSX
+	 * @private
+	 * @param {String} name
+	 *
+	 * @return {String}
+	 */
+	_generateJSXEventName(name) {
+		var splitted;
+		switch (name) {
+		//3
+		case "dblclick":
+		case "canplay":
+		case "popstate":
+		case "keydown":
+		case "keypress":
+		case "keyup":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[2] = splitted[2].toUpperCase();
+			return splitted.join("");
+
+		//4
+		case "hashchange":
+		case "loadstart":
+		case "dragend":
+		case "dragenter":
+		case "dragleave":
+		case "dragover":
+		case "dragstart":
+		case "pagehide":
+		case "pageshow":
+		case "ratechange":
+		case "timeupdate":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[3] = splitted[3].toUpperCase();
+			return splitted.join("");
+
+		//5
+		case "afterprint":
+		case "focusin":
+		case "focusout":
+		case "mousedown":
+		case "mouseenter":
+		case "mouseleave":
+		case "mousemove":
+		case "mouseover":
+		case "mouseout":
+		case "mouseup":
+		case "touchcancel":
+		case "touchend":
+		case "touchmove":
+		case "touchstart":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[4] = splitted[4].toUpperCase();
+			return splitted.join("");
+
+		//6
+		case "volumechange":
+		case "beforeprint":
+		case "beforeunload":
+		case "loadeddata":
+		case "loadedmetadata":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[5] = splitted[5].toUpperCase();
+			return splitted.join("");
+
+
+		//7
+		case "contextmenu":
+		case "pointerdown":
+		case "pointermove":
+		case "pointerup":
+		case "pointercancel":
+		case "pointerenter":
+		case "pointerleave":
+		case "pointerover":
+		case "pointerout":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[6] = splitted[6].toUpperCase();
+			return splitted.join("");
+
+		//8
+		case "durationchange":
+			return "DurationChange";
+
+		//9
+		case "animationend":
+		case "animationiteration":
+		case "animationstart":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[8] = splitted[8].toUpperCase();
+			return splitted.join("");
+
+		//11
+		case "compositionend": 
+		case "compositionstart":
+		case "compositionupdate":
+			splitted = name.split("");
+			splitted[0] = splitted[0].toUpperCase();
+			splitted[10] = splitted[10].toUpperCase();
+			return splitted.join("");
+
+		case "canplaythrough":
+			return "CanPlayThrough";
+		
+		case "gotpointercapture":
+			return "GotPointerCapture";
+		
+		case "lostpointercapture":
+			return "LostPointerCapture";
+		
+		case "transitionend":
+			return "TransitionEnd";
+		
+		default:
+			return name[0].toUpperCase() + name.slice(1);
+		}
+	}
+	/**
+	 * JSX Generator
+	 *
+	 * @description Take linear AST and generate final JSX Tree
+	 * @private
+	 * @param {Array} JSXArray
+	 *
+	 * @return {Object<HTML: String, conditionals: Array, loops: Array>}
+	 */
+	_JSXGenerator(JSXArray) {
+		//Define empty data for set Components
+		var main;
+		JSXArray.forEach(({tree, content, type, tag}, i) => {
+
+			if (i === 0)
+				main = content;
+
+			if (type === "loop") {
+				this._loops.push(this._generateJSXLoops(JSXArray, i, {tree, content, type, tag}));
+			} else if (type === "conditional") {
+				this._conditionals.push(this._generateJSXConditional(JSXArray, i, {tree, content, type, tag}, this._conditionals));
+			} else {
+				const init = JSXArray[i+1];
+
+				var part = "";
+				if (init) {
+					if (init.type === "loop") {
+						part = `{${init.content.match(/const\s*\w*/)[0].replace(/const\s*/, "")}}`;
+					}
+					else if (init.type === "conditional") {
+						if (init.tag === "if")
+							part = `{${init.content.match(/\w*(?=\s*= @)/)[0]}}`;
+						
+						else
+							part = "";
+					}
+					else {
+						if (init.content)
+							part = init.content;
+					}
+				} else {
+					var altInit = JSXArray[i];
+					part = altInit.content;
+				}
+				if (part) {
+					if (!/@content@/.test(part))
+						part = `${part  }@content@`;
+					
+					main = main.replace("@content@", part);
+				}
+			}
+		});
+		return {
+			loops: this.loops.filter(e => e),
+			conditionals: this.conditionals.filter(e => e),
+			html: main.replace("@content@", "")
+		};
+	}
+	/**
+	 * Generate JSX Loops
+	 *
+	 * @description Generate loop to JSX Generator
+	 * @private
+	 *
+	 * @param {Array} JSXArray
+	 * @param {Int} LoopIndex
+	 * @param {Object} LoopData
+	 *
+	 * @return {String}
+	 */
+	_generateJSXLoops(JSXArray, LoopIndex, LoopData) {
+		const init = JSXArray.slice(LoopIndex);
+		const {tree} = LoopData;
+		var loop;
+
+		if (init) {
+			for (let i = 0; i < init.length; i++) {
+				const {tree:newTree, tag:newTag, type:newType} = init[i];
+				if (tree === newTree && newType === "close" && newTag === "for") {
+					loop = this._JSXGenerator(init.slice(0, i - 1)).html;
+					break;
+				}
+			}
+		}
+
+		const countInit = LoopIndex + 1;
+		var countEnd;
+
+		for (let i = 0; i < init.length; i++) {
+			const newData = init[i];
+			const {tree:newTree, tag:newTag, type:newType} = newData;
+			if (tree === newTree && newType === "close" && newTag === "for") {
+				countEnd = i - 1;
+				break;
+			}
+		}
+		JSXArray.splice(countInit, countEnd - 1);
+
+		return loop;
+	}
+	/**
+	 * Generate JSX Conditional
+	 *
+	 * @description Generate conditional to JSX Generator
+	 * @private
+	 *
+	 * @param {Array} JSXArray
+	 * @param {Int} CondIndex
+	 * @param {Object} CondData
+	 * @param {Array} conditional Ref to main conditional array
+	 */
+	_generateJSXConditional(JSXArray, CondIndex, CondData, conditionals) {
+		const init = JSXArray.slice(CondIndex + 1);
+		const {tree, content, tag} = CondData;
+
+		var cond;
+
+		const actualCond = JSXArray[CondIndex];
+		if (actualCond.tag === "if" && actualCond.type === "conditional") {
+			const varName = actualCond.content.match(/\w*(?=\s*=\s*@)/)[0];
+			conditionals.push(`var ${varName};`);
+		}
+
+		if (init) {
+			for (let a = 0; a < init.length; a++) {
+				const {tree:newTree, tag:newTag, type:newType} = init[a];
+				if (tree === newTree && newType === "close" && newTag === tag) {
+					cond = `${this._JSXGenerator(init.slice(0, a)).html} `;
+					if (cond.startsWith("if") || cond.startsWith("else"))
+						cond = cond.match(/{\s\w*\s/)[0].slice(1);
+					
+					else if (/loop/.test(cond))
+						cond = cond.match(/^const \w*\s/)[0].replace("const ", "");
+					
+					break;
+				}
+			}
+			conditionals.push(content.replace("@content@", cond));
+		}
+
+		var countInit = CondIndex + 1;
+		var countEnd;
+		for (let a = 0; a < init.length; a++) {
+			const newData = init[a];
+			const {tree:newTree, tag:newTag, type:newType} = newData;
+			if (tree === newTree && newType === "close" && newTag === tag) {
+				countEnd = a;
+				break;
+			}
+		}
+		JSXArray.splice(countInit, countEnd);
+	}
+	/**
+	 * Generate JSX
+	 *
+	 * @description JSX Generator Inerface
+	 * @protected
+	 * @param {String} HTML
+	 *
+	 * return {Object}
+	 */
+	_generateJSX(HTML) {
+		return this._JSXGenerator(this._generateJSXAst(this._parseHTML(HTML)));
 	}
 }
 

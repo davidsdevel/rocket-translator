@@ -33,14 +33,7 @@ const ReactCompiler = (name, html, css) => {
 
 	RStateManagement.setVarsToStatesContent(parse.vars);
 
-	//Add new lines and idents to code beauty
-	let pretty = RStateManagement
-		.filterHTML(html)
-		.split(/\n/)
-		.map(e => {
-			if (e) return `\t\t\t${e}\n`;
-		})
-		.join("");
+	const JSX = RStateManagement.filterHTML(html);
 		
 	//Template to Set All Data
 	let template =
@@ -49,9 +42,10 @@ ${RStateManagement.importComponents}
 class ${name || "MyComponent"} extends Component {
 	${RStateManagement.componentData}
 	render(){
-		${RStateManagement.prerenderLogical}
+		${RStateManagement.preRender}
 		return(
-${pretty}\t\t)
+			${JSX}
+		)
 	}
 }
 export default ${name || "MyComponent"};
@@ -97,20 +91,27 @@ const VueCompiler = (name, html, css) => {
 	VStateManagement.watchers = parse.watchers;
 	
 	VStateManagement.setVarsToStatesContent(parse.vars);
+
+	var HTML = "";
 	
-	//Add new lines and idents to code beauty
-	let pretty = VStateManagement
-		.filterHTML(html)
-		.split(/\n/)
-		.map(e => {
-			if (e) return `\t${e}\n`;
-		})
-		.join("");
-	
+	if (!global.RocketTranslator.jsx) {
+
+		//Add new lines and idents to code beauty
+		const pretty = VStateManagement
+			.filterHTML(html)
+			.split(/\n/)
+			.map(e => {
+				if (e) return `\t${e}\n`;
+			})
+			.join("");
+
+		HTML = `<template>\n${pretty}</template>`;
+		
+	}
 	//Template to Set All Data
 	let component = 
-`<template>\n${pretty}</template>
-${VStateManagement.componentData(name)}
+`${HTML}
+${VStateManagement.componentData(name, html)}
 ${style}`;
 
 	return {

@@ -22,7 +22,7 @@ class CLI {
 	 * CLI
 	 * 
 	 * @constructor
-	 * @param {Object} param0 
+	 * @param {Object} options 
 	 */
 	constructor({entry, output, mode, options}) {
 		this.entry = entry;
@@ -33,7 +33,9 @@ class CLI {
 		 * Define Initial CLI Options
 		 */
 		global.RocketTranslator = {
-			ignoreInputName: false
+			ignoreInputName: false,
+			jsx: false,
+			mode
 		};
 
 		options.forEach(option => {
@@ -41,11 +43,14 @@ class CLI {
 			case "--ignore-input-name":
 				global.RocketTranslator.ignoreInputName = true;
 				break;
+			case "--jsx":
+				global.RocketTranslator.jsx = true;
+				break;
 			default: break;
 			}
 		});
 
-		global.Errors = new Array(); //Init Errors Counter
+		global.Errors = new Object(); //Init Errors Counter
 
 		if (this.entry === "not-file") {
 			console.log(clc.redBright("\nError!!!\n"));
@@ -108,10 +113,16 @@ class CLI {
 		}
 
 		const {main, components} = compiler(name, html, css);
-		
-		if (global.Errors.length > 0) {
+
+		const errorKeys = Object.keys(global.Errors);
+		if (errorKeys.length > 0) {
 			console.log(clc.redBright("\nError!!!"));
-			console.error(global.Errors.join(""));
+			errorKeys.forEach(key => {
+				console.log(clc.whiteBright(`\n${key}:\n`));
+				global.Errors[key].forEach(line => {
+					console.log(line);
+				});
+			});
 			process.exit(1);
 		}
 
@@ -148,7 +159,8 @@ Commands:
   ${clc.whiteBright("angular")}		Translate to Angular
 
 Options:
-  ${clc.whiteBright("--ignore-input-name")}	Ignore the filter of name attribute on inputs
+  ${clc.whiteBright("--ignore-input-name")}	Ignore filtering of name attribute on inputs
+  ${clc.whiteBright("--jsx")}			Build with JSX format
 
   ${clc.whiteBright("--help, -h")}		Show help
   ${clc.whiteBright("--version, -v")}		Show version number`);

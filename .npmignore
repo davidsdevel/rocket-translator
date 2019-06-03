@@ -3,6 +3,9 @@ dist/*
 test/*
 *.config.js
 
+# Website
+docs/*
+
 # Main
 src/*
 

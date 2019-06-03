@@ -1,5 +1,29 @@
 # Version 2
 
+## 2.2.0
+
+### JSX
+
+Added support for JSX in Vue, and upgraded JSX generating method.
+
+### Updated CLI Interface
+
+Updated Help Message, and added `--jsx` option, to build with JSX format.
+
+### Nested Conditionals and Loops
+
+Added support dor Nested conditionals and Loops.
+
+## 2.1.1
+
+### Fixed Props Parser
+
+Fixed Props Parser on Bind Attributes with Single Quotes
+
+### Improve Error Message
+
+Error messages now will be agrouped by type.
+
 ## 2.1.0
 
 ### Show All Errors

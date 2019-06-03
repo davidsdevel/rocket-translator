@@ -2,7 +2,7 @@
 
 process.title = "Rocket Translator"; //Process Title
 
-const CLI = require("../lib").default; //CLI Interface Module
+const CLI = require("../src/cli"); //CLI Interface Module
 const clc = require("cli-color");
 
 const {join} = require("path");

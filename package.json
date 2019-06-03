@@ -22,11 +22,11 @@
 	},
 	"scripts": {
 		"postinstall": "node bin/changelog.js",
-		"prepublishOnly": "yarn test && yarn build",
 		"test": "webpack --config testing.config.js && jest",
 		"lint": "eslint -c .eslintrc.js ./src",
 		"lint-fix": "eslint -c .eslintrc.js --fix ./src",
 		"build": "webpack --mode production --optimization-minimize",
+		"build:dev": "webpack --mode development",
 		"dev": "webpack --mode development && node bin"
 	},
 	"bugs": {
@@ -38,8 +38,11 @@
 	"bin": {
 		"rocket": "bin/index.js"
 	},
+	"dependencies": {
+		"cli-color": "^1.4.0"
+		
+	},
 	"devDependencies": {
-		"cli-color": "^1.4.0",
 		"eslint": "^5.11.1",
 		"eslint-plugin-import": "^2.14.0",
 		"eslint-plugin-react": "^7.12.2",

@@ -127,7 +127,7 @@ class TranslatorFileFunctions {
 		let fileData = global.RocketFunction;
 
 		globals.forEach(glob => {
-			fileData = fileData.replace(new RegExp(`:\s*${glob}`), `: "${glob}"`);
+			fileData = fileData.replace(new RegExp(`:\\s*${glob}`), `: "${glob}"`);
 		});
 
 		global.RocketFunction = fileData;

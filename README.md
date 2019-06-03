@@ -156,7 +156,7 @@ export class Test {
 In the **With value** case we obtain. In Vue:
 
 ```js
-data(){
+data() {
     return {
         stateName:"Some Value"
     }
@@ -789,14 +789,15 @@ render() {
 - [x] Input Handlers
 - [x] JavaScript Management \(**partial**\)
 - [x] Conditionals
-- [ ] Nested Conditionals 
+- [x] Nested Conditionals 
 - [x] Loops
-- [ ] Nested Loops
+- [x] Nested Loops
 - [ ] Inner HTML
 - [x] Lifecycles
 - [ ] React without JSX
 - [ ] React without ES6
 - [ ] Vue Standalone
+- [x] Vue With JSX
 - [ ] Next Framework
 - [x] Angular 7 Support
 - [ ] Previous Angular Versions

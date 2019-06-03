@@ -18,12 +18,13 @@ class VueStateManagement extends StateManagement {
 	 * Return the filtered component data
 	 *
 	 * @public
-	 * @param {string} componentName
-	 * @return {string}
+	 * @param {String} componentName
+	 * @param {String} html
 	 *
+	 * @return {String}
 	 */
-	componentData(componentName){
-		return this._mapComponentData(componentName);
+	componentData(componentName, html){
+		return this._mapComponentData(componentName, html);
 	}
 
 	/**
@@ -32,8 +33,8 @@ class VueStateManagement extends StateManagement {
 	 * Filter and return the html with the Vue Syntax
 	 *
 	 * @public
-	 * @param {string} html
-	 * @return {string}
+	 * @param {String} html
+	 * @return {String}
 	 *
 	 */
 	filterHTML(html){
@@ -208,11 +209,12 @@ class VueStateManagement extends StateManagement {
 	 * Map Component Data
 	 *
 	 * @private
-	 * @param {string} componentName
-	 * @return {string}
+	 * @param {String} componentName
+	 * @param {String} html
 	 *
+	 * @return {String}
 	 */
-	_mapComponentData(componentName){
+	_mapComponentData(componentName, html){
 		const haveComponents = this.components.length > 0;
 		const haveProps = this.props.length > 0;
 		const haveStates = this.states.length > 0;
@@ -220,6 +222,7 @@ class VueStateManagement extends StateManagement {
 		const haveComputed = this.computed.length > 0;
 		const haveMethods = this.methods.length > 0;
 		const haveWatchers = this.watchers.length > 0;
+		const haveJSX = global.RocketTranslator.jsx;
 
 		//Strings to data content
 		let importComponents = "";
@@ -230,6 +233,7 @@ class VueStateManagement extends StateManagement {
 		let computed = "";
 		let methods = "";
 		let watchers = "";
+		let jsx = "";
 
 		//Components
 		if (haveComponents) {
@@ -239,7 +243,8 @@ class VueStateManagement extends StateManagement {
 				haveLifecycles ||
 				haveComputed ||
 				haveMethods ||
-				haveWatchers ? "," : "";
+				haveWatchers ||
+				haveJSX ? "," : "";
 				
 			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t}${comma}`;
 
@@ -253,7 +258,8 @@ class VueStateManagement extends StateManagement {
 				haveLifecycles ||
 				haveComputed ||
 				haveMethods ||
-				haveWatchers ? "," : "";
+				haveWatchers ||
+				haveJSX ? "," : "";
 
 			let lastIndex = this.props.length - 1;
 			let mappedProps = this.props.map((e, i) => {
@@ -269,7 +275,8 @@ class VueStateManagement extends StateManagement {
 				haveLifecycles ||
 				haveComputed ||
 				haveMethods ||
-				haveWatchers ? "," : "";
+				haveWatchers ||
+				haveJSX ? "," : "";
 
 			var mappedStates = {};
 
@@ -287,7 +294,8 @@ class VueStateManagement extends StateManagement {
 			const comma = 
 				haveComputed ||
 				haveMethods ||
-				haveWatchers ? "," : "";
+				haveWatchers ||
+				haveJSX ? "," : "";
 
 			const mappedLifecycles = this.lifecycle.map(({name, content}) => {
 				content = content
@@ -305,7 +313,8 @@ class VueStateManagement extends StateManagement {
 		if (haveComputed) {
 			const comma = 
 				haveMethods ||
-				haveWatchers ? "," : "";
+				haveWatchers ||
+				haveJSX ? "," : "";
 
 			let mappedComputed = this.computed.map(({name, content}) => `${name}${content}`);
 
@@ -314,7 +323,9 @@ class VueStateManagement extends StateManagement {
 
 		//Methods
 		if (haveMethods){
-			const comma = haveWatchers ? "," : "";
+			const comma =
+				haveWatchers ||
+				haveJSX ? "," : "";
 
 			let mappedMethods = this.methods.map(({content, name}) => `${name}${content}`);
 
@@ -323,11 +334,22 @@ class VueStateManagement extends StateManagement {
 
 		//Watchers
 		if (haveWatchers) {
+			const comma =
+				haveJSX ? "," : "";
+
 			let mappedWatchers = this._filterJS(this.watchers, "v").map(({content, name}) => `${name}${content}`);
 
-			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join(",\n\t\t")}\n\t}`;
+			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join(",\n\t\t")}\n\t}${comma}`;
 		}
 
+		//JSX
+		if (haveJSX) {
+			const {html: HTML, loops, conditionals} = this._generateJSX(html);
+
+			var preRender = loops.concat(conditionals).join("\n");
+			
+			jsx = `\n\trender() {${preRender} return (${HTML})}`;
+		}
 		const haveData = 
 			haveComponents ||
 			haveProps ||
@@ -335,9 +357,10 @@ class VueStateManagement extends StateManagement {
 			haveLifecycles ||
 			haveComputed ||
 			haveMethods ||
-			haveWatchers;
+			haveWatchers ||
+			haveJSX;
 
-		let mainTemplate = 	`${importComponents}export default {\n\tname:"${componentName || "MyComponent"}"${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}\n}`;
+		let mainTemplate = 	`${importComponents}export default {\n\tname:"${componentName || "MyComponent"}"${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}${jsx}\n}`;
 		
 		if (haveData)
 			return `<script>\n${mainTemplate}\n</script>`;
