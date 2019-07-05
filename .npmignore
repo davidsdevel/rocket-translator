@@ -6,9 +6,6 @@ test/*
 # Website
 docs/*
 
-# Main
-src/*
-
 # Others
 angular-guide.txt
 
