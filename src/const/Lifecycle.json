@@ -1,11 +1,13 @@
 [
     "setInitialState",
     "setStateWatchers",
+    "importExternals",
     "defineGlobals",
     "beforeMount",
     "mounted",
     "beforeUpdate",
     "updated",
+    "checkUpdate",
     "beforeUnmount",
     "unmounted"
 ]
