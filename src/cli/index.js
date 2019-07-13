@@ -1,12 +1,12 @@
 //Const
-import { 
+const { 
 	VueCompiler,
 	ReactCompiler,
 	AngularCompiler
-} from "Core";
-import FF from "FileFunctions";
-import clc from "cli-color";
-import {version} from "../../package.json";
+} = require("../core");
+const FF = require("../file-functions");
+const clc = require("cli-color");
+const {version} = require("../../package.json");
 
 const functions = new FF();
 
@@ -51,6 +51,7 @@ class CLI {
 		});
 
 		global.Errors = new Object(); //Init Errors Counter
+		global.Warnings = new Object();
 
 		if (this.entry === "not-file") {
 			console.log(clc.redBright("\nError!!!\n"));
@@ -93,12 +94,11 @@ class CLI {
 	 * @param {String} mode 
 	 */
 	compile(mode) {
-		
-		let {html, css, js, name} = this.fileContent;
+		const {html, css, js, name} = this.fileContent;
 
 		functions.filterJavascriptDataFile(js);
 
-		let compiler;
+		var compiler;
 		switch(mode) {
 		case "vue":
 			compiler = VueCompiler;
@@ -115,6 +115,7 @@ class CLI {
 		const {main, components} = compiler(name, html, css);
 
 		const errorKeys = Object.keys(global.Errors);
+
 		if (errorKeys.length > 0) {
 			console.log(clc.redBright("\nError!!!"));
 			errorKeys.forEach(key => {
@@ -131,7 +132,7 @@ class CLI {
 			content:main,
 			type:mode
 		});
-		
+
 		functions.writeComponents(name, mode, components);
 		
 		this.sayThanks();
@@ -194,15 +195,15 @@ Options:
 	 * @return {Object}
 	 */
 	get fileContent() {
-		let componentName = this.entry.match(/((\w*-)*\w*|\w*)(?=.html$)/); //Get the name from the file
+		const componentName = this.entry.match(/((\w*-)*\w*|\w*)(?=.html$)/); //Get the name from the file
 
-		let name = componentName[0].split("-").map(e => {
+		const name = componentName[0].split("-").map(e => {
 			return e[0].toUpperCase() + e.slice(1);
 		}).join(""); //convert to CamelCase
 		
-		let html = functions.getFile(); //Get the html file data
-		let js = functions.getJs(); //Get the JS file data
-		let css = functions.getCSS(); //Get the CSS file data
+		const html = functions.getFile(); //Get the html file data
+		const js = functions.getJs(); //Get the JS file data
+		const css = functions.getCSS(); //Get the CSS file data
 
 		return {
 			html,
@@ -219,11 +220,30 @@ Options:
 	 * @public
 	 */
 	sayThanks() {
-		console.log(clc.greenBright("\nSuccess...\n"));
+		const warningKeys = Object.keys(global.Warnings);
+
+		if (warningKeys.length > 0) {
+			var warningMessage = "";
+			var warningCount = 0;
+
+			warningKeys.forEach(key => {
+				warningMessage += clc.whiteBright(`\n${key}:\n`);
+				global.Warnings[key].forEach(line => {
+					warningMessage += `\n${line}`;
+					warningCount++;
+				});
+			});
+
+			console.log(clc.yellowBright(`\nWarning!!! Compiled with ${clc.white(warningCount)} issues`));
+			console.log(`${warningMessage}\n`);
+		}
+		else
+			console.log(clc.greenBright("\nSuccess...\n"));
+
 		console.log(`Thanks for use ${clc.whiteBright("Rocket Translator")}.\n\nOpen ${clc.whiteBright(this.output)} to view your files.`);
 
 		console.log(`\nSend a feedback to ${clc.whiteBright("@davidsdevel")} on Twitter.\n\nTo report a Error, open a new issue on:\n${clc.whiteBright("https://github.com/davidsdevel/rocket-translator")}`);
 	}
 }
 
-export default CLI;
+module.exports = CLI;

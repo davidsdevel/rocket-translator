@@ -1,5 +1,6 @@
-import StateManagement from "./StateManagement";
-import Events from "Const/Events";
+const StateManagement = require("./StateManagement");
+const Events = require("../../const/Events");
+const {transform} = require("babel-core");
 
 /**
  * Vue State Management
@@ -11,7 +12,9 @@ import Events from "Const/Events";
  *
  */
 class VueStateManagement extends StateManagement {
-
+	constructor() {
+		super();
+	}
 	/**
 	 * Component Data
 	 * 
@@ -130,8 +133,20 @@ class VueStateManagement extends StateManagement {
 			})
 			.join("<");
 
+		const closeCondTag = condParsed
+			.split(/<\/(?=if.*>|else.*>)/)
+			.map((cond, i) => {
+				if (i > 0) {
+					const condTagName = cond.match(/^\w*(-\w*)*/)[0];
+
+					return cond.replace(condTagName, "template");
+				}
+				return cond;
+			})
+			.join("</");
+
 		//Parsing the bind attr with the v-bind directive
-		let bindDirectivesReplaced = condParsed
+		let bindDirectivesReplaced = closeCondTag
 			.split(/:(?=\w*=)/)
 			.map((content, i) => {
 				if (i > 0) {
@@ -225,121 +240,82 @@ class VueStateManagement extends StateManagement {
 		const haveJSX = global.RocketTranslator.jsx;
 
 		//Strings to data content
-		let importComponents = "";
-		let components = "";
-		let props = "";
-		let states = "";
-		let lifecycle = "";
-		let computed = "";
-		let methods = "";
-		let watchers = "";
-		let jsx = "";
+		var importComponents = "";
+		var components = "";
+		var props = "";
+		var states = "";
+		var lifecycle = "";
+		var computed = "";
+		var methods = "";
+		var watchers = "";
+		var jsx = "";
 
 		//Components
 		if (haveComponents) {
-			const comma = 
-				haveProps ||
-				haveStates ||
-				haveLifecycles ||
-				haveComputed ||
-				haveMethods ||
-				haveWatchers ||
-				haveJSX ? "," : "";
-				
-			components = `\n\tcomponents:{\n\t\t${this.components.join(",\n\t\t")}\n\t}${comma}`;
+			components = `\ncomponents:{\n${this.components.join(",\n")}\n},`;
 
-			importComponents = this.components.map(e => `import ${e} from "~/components/${e}"\n`).join("");
+			importComponents = this.components.map(({type, name, path}) => {
+				if (type === "internal")
+					return `import ${name} from "~/components/${name}"\n`;
+				else if (type === "external")
+					return `import ${name} from "${path}"`;
+			}).join("");
 		}
 
 		//Props
 		if (haveProps) {
-			const comma = 
-				haveStates ||
-				haveLifecycles ||
-				haveComputed ||
-				haveMethods ||
-				haveWatchers ||
-				haveJSX ? "," : "";
+			const mappedProps = this.props.map(e => {
 
-			let lastIndex = this.props.length - 1;
-			let mappedProps = this.props.map((e, i) => {
-
-				let comma = i === lastIndex ? "" : ",";
-				return `\n\t\t${e}:{\n\t\t\ttype:String,\n\t\t\trequired:true,\n\t\t\tdefault:"Hola Mundo"\n\t\t}${comma}`;
+				return `\n${e}:{\ntype:String,\nrequired:true,\ndefault:"Hello World"\n},`;
 			});
-			props = `\n\tprops:{${mappedProps.join("")}\n\t}${comma}`;
+			props = `\nprops:{${mappedProps.join("")}\n},`;
 		}
 		//Map States
 		if (haveStates) {
-			const comma = 
-				haveLifecycles ||
-				haveComputed ||
-				haveMethods ||
-				haveWatchers ||
-				haveJSX ? "," : "";
-
 			var mappedStates = {};
 
 			this.states.forEach(state => {
-				let isObject = typeof state === "object";
-				let stateName = isObject ? state.key : state.replace(/("|')/g, "");
+				const isObject = typeof state === "object";
+				const stateName = isObject ? state.key : state.replace(/("|')/g, "");
 
 				mappedStates[stateName] = isObject ? state.value : "";
 			});
-			states = `\n\tdata(){\n\t\treturn ${this._JSONPrettify(mappedStates)}\n\t}${comma}`;
+			states = `\ndata(){\nreturn ${this._JSONPrettify(mappedStates)}\n},`;
 		}
 
 		//Lifecycles
 		if(haveLifecycles) {
-			const comma = 
-				haveComputed ||
-				haveMethods ||
-				haveWatchers ||
-				haveJSX ? "," : "";
-
 			const mappedLifecycles = this.lifecycle.map(({name, content}) => {
 				content = content
 					.split(/\n|\r\n|\r/)
-					.map(e => e.replace("\t", ""))
+					.map(e => e.replace("", ""))
 					.join("\r\n");
 
 				return `${name}${content}`;
 			});
 
-			lifecycle = `\n\t${mappedLifecycles.join(",\n\t")}${comma}`;
+			lifecycle = `\n${mappedLifecycles.join(",\n")},`;
 		}
 
 		//Computed Properties
 		if (haveComputed) {
-			const comma = 
-				haveMethods ||
-				haveWatchers ||
-				haveJSX ? "," : "";
+			const mappedComputed = this.computed.map(({name, content}) => `${name}${content}`);
 
-			let mappedComputed = this.computed.map(({name, content}) => `${name}${content}`);
-
-			computed = `\n\tcomputed:{\n\t\t${mappedComputed.join(",\n\t\t")}\n\t}${comma}`;
+			computed = `\ncomputed:{\n${mappedComputed.join(",\n")}\n},`;
 		}
 
 		//Methods
 		if (haveMethods){
-			const comma =
-				haveWatchers ||
-				haveJSX ? "," : "";
+			const mappedMethods = this.methods.map(({content, name}) => `${name}${content}`);
 
-			let mappedMethods = this.methods.map(({content, name}) => `${name}${content}`);
-
-			methods = `\n\tmethods:{\n\t\t${mappedMethods.join(",\n\t\t")}\n\t}${comma}`;
+			methods = `\nmethods:{\n${mappedMethods.join(",\n")}\n},`;
 		}
 
 		//Watchers
 		if (haveWatchers) {
-			const comma =
-				haveJSX ? "," : "";
+			const mappedWatchers = this._filterJS(this.watchers, "v").map(({content, name}) => `${name}${content}`);
 
-			let mappedWatchers = this._filterJS(this.watchers, "v").map(({content, name}) => `${name}${content}`);
-
-			watchers = `\n\twatch:{\n\t\t${mappedWatchers.join(",\n\t\t")}\n\t}${comma}`;
+			watchers = `\nwatch:{\n${mappedWatchers.join(",\n")}\n},`;
 		}
 
 		//JSX
@@ -348,7 +324,7 @@ class VueStateManagement extends StateManagement {
 
 			var preRender = loops.concat(conditionals).join("\n");
 			
-			jsx = `\n\trender() {${preRender} return (${HTML})}`;
+			jsx = `\nrender() {${preRender} return (${HTML})}`;
 		}
 		const haveData = 
 			haveComponents ||
@@ -360,13 +336,19 @@ class VueStateManagement extends StateManagement {
 			haveWatchers ||
 			haveJSX;
 
-		let mainTemplate = 	`${importComponents}export default {\n\tname:"${componentName || "MyComponent"}"${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}${jsx}\n}`;
+		const mainTemplate = `${importComponents}export default {\nname:"${componentName || "MyComponent"}"${haveData ? "," : ""}${components}${props}${states}${lifecycle}${computed}${methods}${watchers}${jsx}\n}`;
 		
-		if (haveData)
-			return `<script>\n${mainTemplate}\n</script>`;
+		if (haveData) {
+			var plugins = [];
+			if (global.RocketTranslator.jsx)
+				plugins = ["babel-plugin-syntax-jsx"];
+
+
+			return `<script>\n${transform(mainTemplate, {plugins}).code}\n</script>`;
+		}
 		
 		return "";
 	}
 }
 
-export default VueStateManagement;
+module.exports = VueStateManagement;

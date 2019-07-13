@@ -1,14 +1,14 @@
-import {
+const {
 	existsSync,
 	mkdirSync,
 	writeFileSync
-} from "fs";
-import { join } from "path";
-import FileUtils from "Commons/file";
-import {VueCompiler, ReactCompiler, AngularCompiler} from "Core";
-import clc from "cli-color";
-import globalList from "Const/Globals";
-import {transform} from "babel-core";
+} = require("fs");
+const { join } = require("path");
+const FileUtils = require("../commons/file");
+const {VueCompiler, ReactCompiler, AngularCompiler} = require("../core");
+const clc = require("cli-color");
+const globalList = require("../const/Globals");
+const {transform} = require("babel-core");
 
 const {readFileAsString} = FileUtils;
 
@@ -96,7 +96,6 @@ class TranslatorFileFunctions {
 		var {code} = transform(js, {
 			compact: false
 		});
-		
 		const splitted = code.split(/\n(?=const|var|let|function|async)/).filter(e => e);
 		
 		var final = splitted.map(data => filterJavascript(data)).join(",\n");
@@ -104,8 +103,8 @@ class TranslatorFileFunctions {
 		global.RocketData = code;
 		global.RocketFunction = final;
 
-		const defineGlobalsFunctionString = splitted.filter(e => /const|var|let|function\s*defineGlobals/.test(e))[0];
-		global.RocketGlobals = filterJavascript(defineGlobalsFunctionString);
+		const defineGlobalsFunctionString = splitted.filter(e => /(const|var|let|function)\s*defineGlobals/.test(e))[0];
+		global.RocketGlobals = filterJavascript(defineGlobalsFunctionString || "");
 
 		this._filterGlobals();
 	}
@@ -124,7 +123,7 @@ class TranslatorFileFunctions {
 		
 		const globals = Object.assign([], globalList, defineGlobals !== undefined ? defineGlobals() : []);
 		
-		let fileData = global.RocketFunction;
+		var fileData = global.RocketFunction;
 
 		globals.forEach(glob => {
 			fileData = fileData.replace(new RegExp(`:\\s*${glob}`), `: "${glob}"`);
@@ -158,13 +157,13 @@ class TranslatorFileFunctions {
 	 */
 	writeComponents(MainComponentName, type, ComponentsArray) {
 		if (ComponentsArray.length > 0) {
-			let componentsFolder = join(this._out, MainComponentName, "components");
+			const componentsFolder = join(this._out, MainComponentName, "components");
 			if(!existsSync(componentsFolder)){
 				mkdirSync(componentsFolder);
 			}
 			for (let i = 0; i <= ComponentsArray.length - 1; i++) {
-				let {name, content} = ComponentsArray[i];
-				let mime;
+				var {name, content} = ComponentsArray[i];
+				var mime;
 				
 				switch(type) {
 				case "vue":
@@ -199,7 +198,7 @@ class TranslatorFileFunctions {
 		if(!existsSync(this._out)){
 			mkdirSync(this._out);
 		}
-		let mime;
+		var mime;
 		switch (type) {
 		case "vue":
 			mime = "vue"; //Set "vue" extension
@@ -241,7 +240,7 @@ class TranslatorFileFunctions {
 			process.exit(1);
 		} else {
 			//If is not a HTML file
-			if (!pathname.match(/\w*.html$/)){
+			if (!/\w*.html$/.test(pathname)) {
 				console.log(clc.redBright("\nError!!!\n"));
 				console.error(clc.whiteBright("Please select a html file."));
 				process.exit(1);
@@ -253,11 +252,9 @@ class TranslatorFileFunctions {
 					.replace(/#js .*(\n|\r)/g, "")
 					.replace(/#css .*(\n|\r|\r\n)/g, "")
 					.split(/<script.*>/g)
-					.map((e, i) => {
-						if (i > 0) return e.replace(/(\n|\r|\r\n)*(.*(\n|\r|\r\n)*)*<\/script>/, "");
-						else return e;
-					})
+					.map((e, i) => i > 0 ? e.replace(/(\n|\r|\r\n)*(.*(\n|\r|\r\n)*)*<\/script>/, "") : e)
 					.join("");
+
 				this._getFileData(data, "js"); //Get Js Route and Data
 				this._getFileData(data, "css"); //Get Css Route and Data
 				this._getScriptTags(data);
@@ -303,9 +300,9 @@ class TranslatorFileFunctions {
 	 */
 	_getFileData(htmlString, type){
 		if (type === "css" || type === "js") {
-			let reg = new RegExp(`#${type} .*`, "g"); //RegExp to get paths
-			let path = null;
-			if (htmlString.match(reg)) {
+			const reg = new RegExp(`#${type} .*`, "g"); //RegExp to get paths
+			var path;
+			if (reg.test(htmlString)) {
 				path = htmlString.match(reg).map(e => {
 					return e.replace(`#${type} `, "");
 				});
@@ -322,4 +319,4 @@ class TranslatorFileFunctions {
 		}
 	}
 }
-export default TranslatorFileFunctions;
+module.exports = TranslatorFileFunctions;

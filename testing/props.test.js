@@ -1,4 +1,4 @@
-const StateManagement = require("../test/StateManagement").default;
+const StateManagement = require("../src/core/StateManagement");
 
 const propInBars = "<h1>Hello {name - prop}!</h1>";
 const propInBarManager = new StateManagement();

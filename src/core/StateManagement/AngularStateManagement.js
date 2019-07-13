@@ -1,6 +1,6 @@
-import StateManagement from "./StateManagement";
-import JavaScriptEvents from "Const/Events.json";
-import Utils from "Commons/utils";
+const StateManagement = require("./StateManagement");
+const JavaScriptEvents = require("../../const/Events.json");
+const Utils = require("../../commons/utils");
 
 const {isUpperCase} = Utils;
 
@@ -28,18 +28,20 @@ class AngularStateManagement extends StateManagement {
 		*/
 		const haveStates = this.states.length > 0;
 		const haveProps = this.props.length > 0;
+		// eslint-disable-next-line no-unused-vars
 		const haveLifecycles = this.lifecycle.length > 0;
 		const haveComputed = this.computed.length > 0;
 		const haveMethods = this.methods.length > 0;
+		// eslint-disable-next-line no-unused-vars
 		const haveWatchers = this.watchers.length > 0;
 
-		let states = "";
-		let methods = "";
-		let props = "";
-		let computed = "";
+		var states = "";
+		var methods = "";
+		var props = "";
+		var computed = "";
 
 		if(haveStates) {
-			let mappedStates = this.states.map(e => {
+			const mappedStates = this.states.map(e => {
 				if(typeof e === "object")
 					return `${e.key} = ${this._toString(e.value)};`;
 				
@@ -48,18 +50,18 @@ class AngularStateManagement extends StateManagement {
 			states = `${mappedStates.join("\n\t")}\n\n\t`;
 		}
 		if(haveMethods){
-			let mappedMethods = this.methods.map(({name, content}) => {
+			const mappedMethods = this.methods.map(({name, content}) => {
 				return `${name}${content}`;
 			});
 			methods = `${mappedMethods.join("\n\t")}\n\n\t`;
 		}
 		if (haveProps) {
-			let mappedProps = this.props.map(e => `@Input() ${e} : string;`);
+			const mappedProps = this.props.map(e => `@Input() ${e} : string;`);
 
 			props = `${mappedProps.join("\n\t")}\n\n\t`;
 		}
 		if (haveComputed) {
-			let mappedComputed = this.computed.map(({name, content}) => `get ${name}(): string ${content.replace(/\(.*\)/, "")}`);
+			const mappedComputed = this.computed.map(({name, content}) => `get ${name}(): string ${content.replace(/\(.*\)/, "")}`);
 
 			computed = `${mappedComputed.join("\n\t")}\n\t`;
 		}
@@ -206,7 +208,7 @@ class AngularStateManagement extends StateManagement {
 							
 						}
 						if (isElse) {
-							let id = ""; //Empty String to set a conditional ID
+							var id = ""; //Empty String to set a conditional ID
 							
 							/*
 							* Generate ID
@@ -245,7 +247,7 @@ class AngularStateManagement extends StateManagement {
 			}).join("<")
 			.split("<component ").map((e, i) => {
 				if (i > 0) {
-					let name = e.match(/component-name=('|")\w*/)[0].replace(/component-name=('|")/, "");
+					var name = e.match(/component-name=('|")\w*/)[0].replace(/component-name=('|")/, "");
 					name = this.generateComponentName(name);
 					const attributes = e.split(">")[0].split(/\s(?=\w*=')/).map((attr, ind) => {
 						if (ind > 0)
@@ -254,8 +256,8 @@ class AngularStateManagement extends StateManagement {
 						return null;
 					}).filter(a => a);
 
-					let splitted = e.split("</component>");
-					let tag = splitted[0].split(/\r\n|\n|\r/)[0];
+					const splitted = e.split("</component>");
+					var tag = splitted[0].split(/\r\n|\n|\r/)[0];
 
 					tag = tag.replace(/component-name=('|")\w*('|")/, `${name}-root`).replace(">", `></${name}-root>`) + splitted[1];
 
@@ -278,10 +280,10 @@ class AngularStateManagement extends StateManagement {
 	 * @return {String}
 	 */
 	generateComponentName(name) {
-		let newName = "";
+		var newName = "";
 
 		for (let i = 0; i < name.length; i++) {
-			let letter = name[i];
+			const letter = name[i];
 
 			if (isUpperCase(letter)) {
 				if (i === 0)
@@ -307,11 +309,11 @@ class AngularStateManagement extends StateManagement {
 	 */
 	_toString(data){
 
-		let _isNull = data === null;
-		let _isUndefined = data === undefined;
+		const _isNull = data === null;
+		const _isUndefined = data === undefined;
 		// eslint-disable-next-line use-isnan
-		let _isNaN = data === NaN;
-		let _isInfinity = data === Infinity;
+		const _isNaN = data === NaN;
+		const _isInfinity = data === Infinity;
 
 		if (_isNull)
 			return "null";
@@ -329,4 +331,4 @@ class AngularStateManagement extends StateManagement {
 	}
 }
 
-export default AngularStateManagement;
+module.exports = AngularStateManagement;

@@ -1,4 +1,4 @@
-const StateManagement = require("../test/StateManagement").default;
+const StateManagement = require("../src/core/StateManagement");
 
 var state;
 

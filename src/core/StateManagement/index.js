@@ -1,8 +1,8 @@
-import ReactStateManagement from "./ReactStateManagement";
-import VueStateManagement from "./VueStateManagement";
-import AngularStateManagement from "./AngularStateManagement";
+const ReactStateManagement = require("./ReactStateManagement");
+const VueStateManagement = require("./VueStateManagement");
+const AngularStateManagement = require("./AngularStateManagement");
 
-export {
+module.exports = {
 	ReactStateManagement,
 	VueStateManagement,
 	AngularStateManagement

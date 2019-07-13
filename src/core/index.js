@@ -1,5 +1,6 @@
-import { ReactStateManagement, VueStateManagement, AngularStateManagement } from "Core/StateManagement";
-import Parser from "Core/JavascriptManagement";
+const { ReactStateManagement, VueStateManagement, AngularStateManagement } = require("./StateManagement");
+const Parser = require("./JavascriptManagement");
+const {transform} = require("babel-core");
 
 /**
  * React Compiler
@@ -12,22 +13,25 @@ import Parser from "Core/JavascriptManagement";
  *
  * @return {string}
  */
+// eslint-disable-next-line no-unused-vars
 const ReactCompiler = (name, html, css) => {
 
-	let RStateManagement = new ReactStateManagement();
+	const RStateManagement = new ReactStateManagement();
 
-	let parse = new Parser(); //JS Parser
+	const parse = new Parser(); //JS Parser
 
 	//Get all data from HTML string
 	RStateManagement.statesFromJS = parse.states;
 
 	//Parse Lifecycles
-	RStateManagement.setLifecycle(parse.lifecycles, "r");
+	RStateManagement.setLifecycle(parse.lifecycles);
 
 	RStateManagement.getHTMLString(html);	
 
+	RStateManagement.externalComponents = parse.components;
+	
 	//Get Methods from JS and set to Data
-	RStateManagement.getJsData(parse.functions, "r");
+	RStateManagement.getJsData(parse.functions);
 
 	RStateManagement.watchers = parse.watchers;
 
@@ -36,7 +40,7 @@ const ReactCompiler = (name, html, css) => {
 	const JSX = RStateManagement.filterHTML(html);
 		
 	//Template to Set All Data
-	let template =
+	var template =
 `import React, {Component} from "react";
 ${RStateManagement.importComponents}
 class ${name || "MyComponent"} extends Component {
@@ -50,6 +54,11 @@ class ${name || "MyComponent"} extends Component {
 }
 export default ${name || "MyComponent"};
 `;
+
+	template = transform(template, {
+		plugins: ["babel-plugin-syntax-jsx"]
+	}).code;
+
 	return {
 		main:template,
 		components:RStateManagement.componentsContent
@@ -69,24 +78,26 @@ export default ${name || "MyComponent"};
  */
 const VueCompiler = (name, html, css) => {
 
-	let VStateManagement = new VueStateManagement();
+	const VStateManagement = new VueStateManagement();
 
-	let parse = new Parser(); //JS Parser
+	const parse = new Parser(); //JS Parser
 
 	// Set Styles
-	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
+	const style = css !== "" ? `\n<style scoped>\n${css}</style>` : "";
 
 	//Get states declarations from JS and set to Data
 	VStateManagement.statesFromJS = parse.states;
 
 	//Parse Lifecycles
-	VStateManagement.setLifecycle(parse.lifecycles, "v");
+	VStateManagement.setLifecycle(parse.lifecycles);
 
 	//Get all data from HTML string
 	VStateManagement.getHTMLString(html);
 
+	VStateManagement.externalComponents = parse.components;
+
 	//Get Methods from JS and set to Data
-	VStateManagement.getJsData(parse.functions, "v");
+	VStateManagement.getJsData(parse.functions);
 	
 	VStateManagement.watchers = parse.watchers;
 	
@@ -105,14 +116,12 @@ const VueCompiler = (name, html, css) => {
 			})
 			.join("");
 
-		HTML = `<template>\n${pretty}</template>`;
+		HTML = `<template>\n${pretty}</template>\n`;
 		
 	}
 	//Template to Set All Data
 	let component = 
-`${HTML}
-${VStateManagement.componentData(name, html)}
-${style}`;
+`${HTML}${VStateManagement.componentData(name, html)}${style}`;
 
 	return {
 		main:component,
@@ -131,33 +140,33 @@ ${style}`;
  * 
  * @return {string}
  */
+// eslint-disable-next-line no-unused-vars
 const AngularCompiler = (name, html, css) => {
 
 	const AStateManagement = new AngularStateManagement();
 
 	const parse = new Parser(); //JS Parser
 
-	// Set Styles
-	let style = css !== "" ? `<style scoped>\n${css}</style>` : "";
-
 	//Get states declarations from JS and set to Data
 	AStateManagement.statesFromJS = parse.states;
 
 	//Parse Lifecycles
-	AStateManagement.setLifecycle(parse.lifecycles, "a");
+	AStateManagement.setLifecycle(parse.lifecycles);
 
 	//Get all data from HTML string
 	AStateManagement.getHTMLString(html);
 
 	//Get Methods from JS and set to Data
-	AStateManagement.getJsData(parse.functions, "a");
-	
+	AStateManagement.getJsData(parse.functions);
+
+	AStateManagement.externalComponents = parse.components;
+
 	AStateManagement.watchers = parse.watchers;
 	
 	AStateManagement.setVarsToStatesContent(parse.vars);
 	
 	//Add new lines and idents to code beauty
-	let pretty = AStateManagement
+	const pretty = AStateManagement
 		.filterHTML(html)
 		.split(/\n/)
 		.map(e => {
@@ -182,7 +191,7 @@ export class ${name} {
 	};
 };
 
-export {
+module.exports = {
 	VueCompiler,
 	AngularCompiler,
 	ReactCompiler

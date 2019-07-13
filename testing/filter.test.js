@@ -1,4 +1,4 @@
-let VueManagement = require("../test/VueStateManagement").default;
+let VueManagement = require("../src/core/VueStateManagement");
 
 const VueFilter = new VueManagement().filterHTML;
 

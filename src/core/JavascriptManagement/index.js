@@ -1,4 +1,4 @@
-import lifecycle from "Const/Lifecycle.json";
+const lifecycle = require("../../const/Lifecycle.json");
 
 class JavascriptManagement {
 	/**
@@ -14,6 +14,7 @@ class JavascriptManagement {
 		this._vars = new Array();
 		this._states = new Array();
 		this._functions = new Array();
+		this._components = new Array();
 		this.lifecycles = new Array();
 		this._main();
 	}
@@ -77,11 +78,14 @@ class JavascriptManagement {
 				content:this._data.beforeUnmount.toString()
 			});
 
-		if(keys.indexOf("unmount") > -1)
+		if(keys.indexOf("unmounted") > -1)
 			this.lifecycles.push({
-				name:"unmount",
-				content:this._data.unmount.toString()
+				name:"unmounted",
+				content:this._data.unmounted.toString()
 			});
+
+		if (keys.indexOf("importExternals") > -1)
+			this.components = this._data.importExternals();
 
 		keys.forEach(key => {
 			if (lifecycle.indexOf(key) === -1) {
@@ -101,8 +105,17 @@ class JavascriptManagement {
 	 * @param {String} functionName
 	 */
 	set functions(functionName) {
-		let name = functionName;
-		let content = this._data[name].toString().replace(/\s*=>\s*/, "");
+		const name = functionName;
+		var content = this._data[name].toString();
+		if (/\w*\s*=>\s*\{/.test(content))
+			content = content
+				.replace(/\s*=>\s*/, ")")
+				.replace(/\s*(?=\w*\))/, "(");
+
+		else
+			content = content
+				.replace(/\s*=>\s*/, "");
+
 		this._functions.push({name, content});
 	}
 	/**
@@ -123,7 +136,7 @@ class JavascriptManagement {
 	 * @param {Object} js
 	 */
 	set states(js){
-		let keys = Object.keys(js);
+		const keys = Object.keys(js);
 		keys.forEach(e => {
 			this._states.push({key:e, value:js[e]});
 		});
@@ -146,15 +159,12 @@ class JavascriptManagement {
 	 * @param {Object} js
 	 */
 	set watchers(js){
-		let keys = Object.keys(js);
+		const keys = Object.keys(js);
 		keys.forEach(e => {
-			let {name} = js[e];
-			let content = js[e].toString()
+			const {name} = js[e];
+			const content = js[e].toString()
 				.replace(/\w*/, "")
-				.replace(/\s*=>\s*/, " ")
-				.split(/\n|\r\n|\r/)
-				.map(e => e.replace(/\t\t|\s\s\s\s\s\s\s\s/, ""))
-				.join("\n");
+				.replace(/\s*=>\s*/, " ");
 
 			this._watchers.push({name, content});
 		});
@@ -179,5 +189,18 @@ class JavascriptManagement {
 	get vars(){
 		return this._vars;
 	}
+
+	set components(data) {
+		this._components = Object.entries(data).map(e => {
+			return {
+				name: e[0],
+				path: e[1],
+				type: "external"
+			};
+		});
+	}
+	get components() {
+		return this._components;
+	}
 }
-export default JavascriptManagement;
+module.exports = JavascriptManagement;

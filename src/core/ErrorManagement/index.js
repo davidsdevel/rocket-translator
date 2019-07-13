@@ -1,7 +1,15 @@
-import FileUtils from "Commons/file";
-import clc from "cli-color";
+const FileUtils = require("../../commons/file");
+const clc = require("cli-color");
+const events = require("../../const/Events.json");
 
 const {readFileAsString} = FileUtils;
+
+const RegExpSanitize = string => {
+	return string
+		.replace(/\+/, "\\+")
+		.replace(/\*/, "\\*")
+		.replace(/\//, "\\/");
+};
 
 class ErrorManagement {
 	constructor() {
@@ -13,12 +21,14 @@ class ErrorManagement {
 	 * 
 	 * Get the Component data and throw a new Error
 	 * 
+	 * @protected
+	 *
 	 * @param {String} data 
 	 * @param {String} type Error Type
 	 */
 	throwError(data, type) {
-		let stringToMatch;
-		let name;
+		var stringToMatch;
+		var name;
 		switch(type) {
 		case "Missing Var":
 			stringToMatch = `{${data.stateName}\\s*-\\s*state\\s*-\\s*${data.varName}}`;
@@ -29,7 +39,7 @@ class ErrorManagement {
 			name = data;
 			break;
 		case "Undefined Method":
-			stringToMatch = `on.*=('|")${data}\\(.*\\)('|")`;
+			stringToMatch = `on(${events.join("|")})=('|")${data}.*('|")`;
 			name = data;
 			break;
 
@@ -73,10 +83,41 @@ class ErrorManagement {
 			global.Errors[type] = [];
 
 		this.lines.forEach((line, i) => {
-			let matched = line.match(new RegExp(stringToMatch));
-			if (matched) {
-				global.Errors[type].push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`
-				);
+			const match = new RegExp(stringToMatch).test(line);
+			if (match) {
+				global.Errors[type].push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.redBright(`${i}|`)}${clc.red(`${this.lines[i-1]}\n`)}${clc.redBright(`${i+1}|${this.lines[i]}\n`)}${clc.redBright(`${i+2}|`)}${clc.red(`${this.lines[i+1]}\n`)}`);
+			}
+		});
+	}
+	/**
+	 * Throw Warning
+	 * 
+	 * Get the Component data and throw a new Warning
+	 * 
+	 * @protected
+	 *
+	 * @param {String} data 
+	 * @param {String} type Error Type
+	 */
+	throwWarning(data, type) {
+		var stringToMatch;
+		var name;
+
+		switch(type) {
+		case "Lifecycle Is Not Used":
+			stringToMatch = `(var|let|const|function)\\s*${data.name}`;
+			// eslint-disable-next-line prefer-destructuring
+			name = data;
+			type = `Lifecycle Is Used Only on ${data.target}`;
+			break;
+		}
+		if (!global.Warnings[type])
+			global.Warnings[type] = [];
+
+		this.lines.forEach((line, i) => {
+			const match = new RegExp(stringToMatch).test(line);
+			if (match) {
+				global.Warnings[type].push(`-> ${clc.whiteBright(name)} on line: ${i+1}\n${clc.yellowBright(`${i}|`)}${clc.yellow(`${this.lines[i-1]}\n`)}${clc.yellowBright(`${i+1}|${this.lines[i]}\n`)}${clc.yellowBright(`${i+2}|`)}${clc.yellow(`${this.lines[i+1]}\n`)}`);
 			}
 		});
 	}
@@ -171,23 +212,27 @@ class UndefinedStateError extends ErrorManagement {
 	 */
 	constructor(data) {
 		super();
-		let {type, name} = data;
-		let stringToMatch;
+		const {type, name, condition, content: cont} = data;
+		const content = RegExpSanitize(cont);
+		var stringToMatch;
 		switch(type) {
 		case "conditional":
-			stringToMatch = `<if\\s*cond=('|")${name}`;
+			stringToMatch = `<(if|else-if)\\s*cond=('|")${condition}`;
 			break;
 		case "loop":
-			stringToMatch = `<for\\s*val=('|")\\w*\\s*in\\s*${name}('|")`;
+			stringToMatch = `<for\\s*val=('|")\\.*\\s*in\\s*${name}('|")`;
 			break;
 		case "watcher":
-			stringToMatch = `watch\\s*${name}\\s*=`;
+			stringToMatch = `${name}(.*)\\s*\\{`;
+			break;
+		case "function":
+			stringToMatch = `on(${events.join("|")})\\s*=\\s*('|")${content}('|")`;
 			break;
 		default: 
 			stringToMatch = type;
 			break;
 		}
-		this.throwError({name, string:stringToMatch}, "Undefined State");
+		this.throwError({name, string: stringToMatch}, "Undefined State");
 	}
 }
 class ExpectedAttributeError extends ErrorManagement {
@@ -230,6 +275,13 @@ class StateAlreadyDefinedError extends ErrorManagement {
 		this.throwError(state, "State Already Defined");
 	}
 }
+class LifecycleIsNotUsed extends ErrorManagement {
+	constructor(name, target) {
+		super();
+		this.throwWarning({name, target}, "Lifecycle Is Not Used");
+	}
+}
+
 const defineGlobals = () => {
 	global.UndefinedTypeError = UndefinedTypeError;
 	global.ExpectedTokenError = ExpectedTokenError;
@@ -241,6 +293,7 @@ const defineGlobals = () => {
 	global.ExpectedAttributeError = ExpectedAttributeError;
 	global.UndefinedInputNameError = UndefinedInputNameError;
 	global.StateAlreadyDefinedError = StateAlreadyDefinedError;
+	global.LifecycleIsNotUsed = LifecycleIsNotUsed;
 };
 
-export default defineGlobals;
+module.exports = defineGlobals;
