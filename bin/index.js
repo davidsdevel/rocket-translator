@@ -10,8 +10,8 @@ const cliDir = process.cwd();
 
 
 function initCLI() {
-	const data = process.argv.filter(e => !e.startsWith("-"))
-	const options = process.argv.filter(e => e.startsWith("-"))
+	const data = process.argv.filter(e => !e.startsWith("-"));
+	const options = process.argv.filter(e => e.startsWith("-"));
 
 	const mode = data[2] || process.argv[2]; //Get the mode to compile
 
