@@ -13,41 +13,36 @@
 	},
 	"directories": {
 		"bin": "bin",
-		"Lib": "Lib"
+		"src": "src"
 	},
-	"main": "./Lib/core/index.js",
+	"main": "./src/index.js",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/davidsdevel/rocket-translator.git"
 	},
 	"scripts": {
-		"postinstall": "node bin/changelog.js",
-		"test": "webpack --config testing.config.js && jest",
-		"lint": "eslint -c .eslintrc.js ./src",
-		"lint-fix": "eslint -c .eslintrc.js --fix ./src",
-		"build": "webpack --mode production --optimization-minimize",
-		"build:dev": "webpack --mode development",
-		"dev": "webpack --mode development && node bin"
+		"test": "jest",
+		"lint": "eslint -c .eslintrc.js ./src"
 	},
 	"bugs": {
 		"url": "https://github.com/davidsdevel/rocket-translator/issues"
 	},
 	"homepage": "https://github.com/davidsdevel/rocket-translator#readme",
-	"author": "David's Devel <djgm1206@gmail.com>",
+	"author": "David's Devel <davidsdevel@gmail.com>",
 	"license": "MIT",
 	"bin": {
 		"rocket": "bin/index.js"
 	},
 	"dependencies": {
+		"@babel/plugin-syntax-jsx": "^7.2.0",
+		"@babel/core": "^7.2.0",
+		"babylon": "^6.18.0",
 		"cli-color": "^1.4.0"
-		
 	},
 	"devDependencies": {
 		"eslint": "^5.11.1",
 		"eslint-plugin-import": "^2.14.0",
 		"eslint-plugin-react": "^7.12.2",
-		"jest": "^23.6.0",
-		"webpack": "^4.29.6",
-		"webpack-cli": "^3.3.0"
+		"jest": "^23.6.0"
 	}
 }
