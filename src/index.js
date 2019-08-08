@@ -55,9 +55,9 @@ function fileContent(filepath) {
 		return e[0].toUpperCase() + e.slice(1);
 	}).join(""); //convert to CamelCase
 		
-	const html = functions.getFile(); //Get the html file data
-	const js = functions.getJs(); //Get the JS file data
-	const css = functions.getCSS(); //Get the CSS file data
+	const html = functions.file; //Get the html file data
+	const js = functions.JS; //Get the JS file data
+	const css = functions.CSS; //Get the CSS file data
 
 	functions.filterJavascriptDataFile(js);
 

@@ -18,7 +18,7 @@ const {readFileAsString} = FileUtils;
   * @class
   */
 class TranslatorFileFunctions {
-	contructor(){
+	contructor() {
 		//Initialize propierties
 		this._file = undefined;
 		this._entry = undefined;
@@ -35,39 +35,37 @@ class TranslatorFileFunctions {
 	 * @param {String} fileName 
 	 * @param {String} output 
 	 */
-	setParams(fileName, output){
+	setParams(fileName, output) {
 		this._entry = fileName;
 		this._out = output;
-		this._js = [];
-		this._css = [];
+		this._js = new Array();
+		this._css = new Array();
 		this._findFile(fileName); //Find all files
 	}
 	/**
-	 * Get File
+	 * File (getter)
 	 * 
 	 * Return the HTML file
 	 * 
 	 * @public
 	 * @return {String}
 	 */
-	getFile(){
+	get file() {
 		return this._file;
 	}
 	/**
-	 * Get Js
+	 * JS (getter)
 	 * 
 	 * Return the Javascript file
 	 * 
 	 * @public
 	 * @return {String}
 	 */
-	getJs(){
-		if (this._js !== undefined){
+	get JS() {
+		if (this._js !== undefined)
 			return this._js.join("\r\n");
 
-		} else {
-			return "";
-		}
+		return "";
 	}
 	/**
 	 * Filter Javascript Data File
@@ -132,19 +130,18 @@ class TranslatorFileFunctions {
 		global.RocketFunction = fileData;
 	}
 	/**
-	 * Get CSS
+	 * CSS (getter)
 	 * 
 	 * Return the Css file
 	 * 
 	 * @public
 	 * @return {String}
 	 */
-	getCSS(){
-		if (this._css !== undefined){
+	get CSS() {
+		if (this._css !== undefined)
 			return this._css.join("\r\n").replace(/^(\n|\r|\r\n)\t*/g, "");
-		} else {
-			return "";
-		}
+		
+		return "";
 	}
 	/**
 	 * Write Components
@@ -158,9 +155,9 @@ class TranslatorFileFunctions {
 	writeComponents(MainComponentName, type, ComponentsArray) {
 		if (ComponentsArray.length > 0) {
 			const componentsFolder = join(this._out, MainComponentName, "components");
-			if(!existsSync(componentsFolder)){
+			if (!existsSync(componentsFolder))
 				mkdirSync(componentsFolder);
-			}
+
 			for (let i = 0; i <= ComponentsArray.length - 1; i++) {
 				var {name, content} = ComponentsArray[i];
 				var mime;
@@ -194,10 +191,10 @@ class TranslatorFileFunctions {
 	 * @public
 	 * @param {Object} param0
 	 */
-	writeFile({content, type, name}){
-		if(!existsSync(this._out)){
+	writeFile({content, type, name}) {
+		if (!existsSync(this._out))
 			mkdirSync(this._out);
-		}
+
 		var mime;
 		switch (type) {
 		case "vue":
@@ -214,17 +211,17 @@ class TranslatorFileFunctions {
 		}
 
 		//Component Folder Name
-		let folderPath = join(this._out, name);
+		const folderPath = join(this._out, name);
 
-		if(!existsSync(folderPath)){
+		if (!existsSync(folderPath))
 			mkdirSync(folderPath);
-		}
 
 		//Component Path
-		let filePath = join(this._out, name, `index.${mime}`);
+		const filePath = join(folderPath, `index.${mime}`);
 		writeFileSync(filePath, content);
 
-		//console.log(content); //Console Log to debug
+		if (type === "react" && !global.allowSSR)
+			writeFileSync(join(folderPath, `${name}.css`), this.CSS);
 	}
 	/**
 	 * Find File
@@ -233,7 +230,7 @@ class TranslatorFileFunctions {
 	 * 
 	 * @param {String} pathname
 	 */
-	_findFile(pathname){
+	_findFile(pathname) {
 		if (!existsSync(pathname)) {
 			console.log(clc.redBright("\nError!!!\n"));
 			console.error(clc.whiteBright("File does not exist."));
@@ -249,8 +246,7 @@ class TranslatorFileFunctions {
 
 				//Remove external files routes
 				this._file = data
-					.replace(/#js .*(\n|\r)/g, "")
-					.replace(/#css .*(\n|\r|\r\n)/g, "")
+					.replace(/#(js|css) .*(\n|\r\n|\r)/g, "")
 					.split(/<script.*>/g)
 					.map((e, i) => i > 0 ? e.replace(/(\n|\r|\r\n)*(.*(\n|\r|\r\n)*)*<\/script>/, "") : e)
 					.join("");
@@ -271,9 +267,8 @@ class TranslatorFileFunctions {
 	 */
 	_getScriptTags(html) {
 		html.split(/<script.*>/g).forEach((e, i) => {
-			if (i > 0) {
+			if (i > 0)
 				this._js.push(e.replace(/<\/script>/g, ""));
-			}
 		});
 	}
 	/**
@@ -283,11 +278,10 @@ class TranslatorFileFunctions {
 	 * 
 	 * @param {String} html 
 	 */
-	_getStyleTags(html){
+	_getStyleTags(html) {
 		html.split(/<style.*>/g).forEach((e, i) => {
-			if (i > 0) {
+			if (i > 0)
 				this._css.push(e.replace(/<\/style>/, ""));
-			}
 		});
 	}
 	/**
@@ -298,25 +292,22 @@ class TranslatorFileFunctions {
 	 * @param {String} htmlString 
 	 * @param {String} type
 	 */
-	_getFileData(htmlString, type){
+	_getFileData(htmlString, type) {
 		if (type === "css" || type === "js") {
 			const reg = new RegExp(`#${type} .*`, "g"); //RegExp to get paths
 			var path;
-			if (reg.test(htmlString)) {
+			if (reg.test(htmlString))
 				path = htmlString.match(reg).map(e => {
 					return e.replace(`#${type} `, "");
 				});
-			}
-			if (path !== null) {
+
+			if (path !== undefined)
 				path.forEach(e => {
 					const data = readFileAsString(join(__dirname, "..", "..", e));
-
 					type === "css" ? this._css.push(data) : this._js.push(data); //Set Data                    
 				});
-			}
-		} else {
+		} else
 			throw new Error(`Invalid Type ${type}`);
-		}
 	}
 }
 module.exports = TranslatorFileFunctions;

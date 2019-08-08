@@ -21,7 +21,7 @@ yarn global add rocket-translator
 
 You can convert this:
 
-```html
+```xml
 <div>Hello {name - state - "World"}!</div>
 ```
 into this:
@@ -46,7 +46,7 @@ export default MyComponent;
 ```
 or this:
 
-```html
+```xml
 <template>
     <div>Hello {{name}}!</div>
 </template>
@@ -115,7 +115,7 @@ The **Simple** mode, is declared writing only the state name into the template a
 
 Example:
 
-```html
+```xml
 <div>{myState - state}</div>
 ```
 
@@ -123,7 +123,7 @@ In the **With Value** mode, is declared when, we write the state name, the type:
 
 Example:
 
-```html
+```xml
 <div>{stateName - state - "Some Value"}</div>
 ```
 The **value** may be `String`, `Number`, `Boolean`,`Array` and  `Object`.
@@ -182,7 +182,7 @@ export class Test {
 Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `stateName - state`;
 
 Example: 
-```html
+```xml
 <div>
     <span :class="className - state">Hello World!!!</span>
 </div>
@@ -197,7 +197,7 @@ Example:
 
 Or you can add the value next the `state` word.
 
-```html
+```xml
 <div>
     <span :class="className - state - 'foo'">Hello World!!!</span>
 </div>
@@ -213,7 +213,7 @@ And like the **state**, we may declare a prop with this format `{propName - prop
 
 Example:
 
-```html
+```xml
 <div>{parentData - prop}</div>
 ```
 
@@ -251,7 +251,7 @@ export class Test {
 Since version `2.0.0` you can add a prop in a bind attribute with the same format that in the bars expression `propName - prop`;
 
 Example: 
-```html
+```xml
 <span :class="externalState - prop">Hello World</span>
 ```
 
@@ -259,7 +259,7 @@ Example:
 
 A **Computed** propierty is a function that return a `String` or `Number` value, and this is render on the template. And to declare a computed propierty, simply we can set the computed propierty name and the type: **computed** and create the function to execute that match with the computed name.
 
-```html
+```xml
 <div>{hello - computed}</div>
 ```
 ```js
@@ -270,7 +270,7 @@ function hello() {
 This will create a computed properties that returns a **Hello World**.
 
 Example:
-```html
+```xml
 <div>Hi I Am {fullName - computed}!</div>
 <script>
 function fullName() {
@@ -287,7 +287,7 @@ Too know more about JavaScript Management go to [JavaScript Management](#js-mana
 
 A **Method** is a function executed by an event on the final render or by the render. Is not necesary declare the method only set the event into the tag.
 
-```html
+```xml
 <button onclick="hello()">Say Hello</button>
 <script>
 function hello() {
@@ -298,7 +298,7 @@ function hello() {
 
 Since Version 2.1.0 you can use `async` funtions.
 
-```html
+```xml
 <div>
     <div>{data - state}</div>
     <button onclick="fetchData()">Fetch Data</button>
@@ -326,18 +326,18 @@ Since Version 2.1.0 you can use `async` funtions.
 
 To import a **component** inside the main component. Only add the tag with the component syntax.
 
-```html
+```xml
 <MyComponent />
 ```
 And to add a attr with a state value add `:` on the attr front.
 
-```html
+```xml
 <MyComponent :my-bind-attr="stateName" />
 ```
 
 To write the component content, add a `component` tag with the **component content**. And add the attr `component-name` with the **component name**. And others attrs can be passed to the component.
 
-```html
+```xml
 <component component-name="HelloWorldComponent" name="World">
     <div>
         <h1>Hello {name - prop}!</h1>
@@ -376,13 +376,13 @@ const setStateWatchers = () => {
 
 To **handle** a input, you must add the attr `name` on the input tag, and the value will be take to add a state with that name.
 
-```html
+```xml
 <input type="text" name="username" />
 ```
 
 On **Vue** will render.
 
-```html
+```xml
 <template>
     <input type="text" v-model="username" name="username"/>
 </template>
@@ -428,14 +428,14 @@ To declare a **conditional**, add the `if` tag, with the `cond` attr, where `con
 
 Example:
 
-```html
+```xml
 <if cond="auth">
     <span>Congratulations! you are Sign in this platform</span>
 </if>
 ```
 
 And you can set it with an `else` tag.
-```html
+```xml
 <if cond="password.length < 6">
     <span>Password must have more of 6 characters</span>
 </if>
@@ -445,7 +445,7 @@ And you can set it with an `else` tag.
 ```
 Since version **2.0.0** we add the `else-if` tag. Like the `if` tag, this take the attr `cond` with the condition.
 
-```html
+```xml
 <if cond="age < 18">
     <span>Too Young</span>
 </if>
@@ -458,7 +458,7 @@ And now you can add the `tag` attribute to set conditional **tag name**.
 
 
 Example: 
-```html
+```xml
 <div>
     <if cond="auth === true" tag="span">
         I must buy {item}
@@ -468,7 +468,7 @@ Example:
 The `for` tag now will be a `li` tag.
 
 **Vue**
-```html
+```xml
 <ul>
     <li v-for="item in buyList">
         I must buy {{item}}
@@ -477,7 +477,7 @@ The `for` tag now will be a `li` tag.
 ```
 
 **Angular**
-```html
+```xml
 <ul>
     <li *ngFor="let item of buyList">
         I must buy {{item}}
@@ -501,7 +501,7 @@ And on **Angular** the default tag is the `div` tag.
 
 Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val` attr.
 
-```html
+```xml
 <for val="varName in stateName">
     <span>{varName}</span>
 </for>
@@ -510,7 +510,7 @@ Like the conditionals, add a loop is't very easy, add a `for` tag, with the `val
 And since the version `2.0.0` you can add the `tag` attribute to define the tag to put the loop content.
 
 Example: 
-```html
+```xml
 <ul>
     <for val="item in buyList" tag="li">
         I must buy {item}
@@ -520,7 +520,7 @@ Example:
 The `for` tag now will be a `li` tag.
 
 **Vue**
-```html
+```xml
 <ul>
     <li v-for="item in buyList">
         I must buy {{item}}
@@ -529,7 +529,7 @@ The `for` tag now will be a `li` tag.
 ```
 
 **Angular**
-```html
+```xml
 <ul>
     <li *ngFor="let item of buyList">
         I must buy {{item}}
@@ -555,14 +555,14 @@ A **Bind Attribute** is a form to set a state value on a tag attribute. And the 
 
 If you want add a default value you must add a `-` followed of the type.
 
-```html
+```xml
 <button :class="classButton - state">Do Click</button>
 ```
 The type can be `state` or `prop`.
 
 And with the type `state` you can add the `String` value next `state` word.
 
-```html
+```xml
 <button :class="classButton - state - 'bar'">Do Click</button>
 ```
 ### JavaScript Management <a name="js-management"></a>
@@ -591,7 +591,7 @@ We add 8 lifecycles to define the final component.
 
 Example:
 
-```html
+```xml
 <div>
     <span>Hi I Am: {fullName - computed}</span>
 </div>
@@ -614,7 +614,7 @@ Example:
 
 Example:
 
-```html
+```xml
 <div>
     <span>You have do {clicks - state - 0} clicks</span>
     <button onclick="countClick()">Do Click</button>
@@ -639,7 +639,7 @@ Example:
 
 The **Functions** are to change the method and computed properties execution. If the method or computed name match with the function name, this will be that method or computed.
 
-```html
+```xml
 <div>
     <span>This is my {computedPropierty - computed} propierty</span>
     <button onclick="sayHello()">Say Hello</button>
@@ -710,7 +710,7 @@ To execute JavaScript syntax or assign a state or prop value on an HTML attribut
 
 We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else-if`, `else` and `for`.
 
-```html
+```xml
 <if cond="condToEvaluate">
     <span>If Content</span>
 </if>
@@ -728,7 +728,7 @@ We add three HTML tags to assign **Conditionals** and **Loops**. `if`, `else-if`
 
 We add this tag to declare a **custom** component inside the **Main Component**
 
-```html
+```xml
 <component component-name="ComponentName">
     <span>Component Content</span>
 </component>
@@ -774,6 +774,15 @@ render() {
     )
 }
 ```
+##### --jsx
+
+Option `--jsx` is used to compile Vue and React as JSX, without this, Vue will be compiled as HTML and React with `React.createElement`
+
+##### --allow-ssr
+
+Option `--allow-ssr` compile frameworks as Server Side Render-Frameworks, **Next** to React, **Nuxt** to Vue. With this `a` tags will be converted on `Link` or `nuxt-link` and can add, `getInitialProps` and `asyncData` methods.
+
+**Note**: Angular SSR are not currently supported
 
 ## To Do
 
@@ -801,6 +810,7 @@ render() {
 - [ ] Next Framework
 - [x] Angular 7 Support
 - [ ] Previous Angular Versions
+- [ ] Compiler Directives
 
 **Note:** If you see that some feature is missing, you can open a pull request or write an issue, and tell what feature is missing.
 

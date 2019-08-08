@@ -30,7 +30,7 @@ class ReactStateManagement extends StateManagement {
 				if (type === "internal")
 					components += `import ${name} from "./components/${name}"\n`; //Add Import for each Component Value
 				else if (type === "external")
-					components += `import ${name} from "${path}"`;
+					components += `import ${name} from "${path}"\n`;
 			});
 		}
 		return components;

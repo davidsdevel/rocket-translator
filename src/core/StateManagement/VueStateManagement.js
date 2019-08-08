@@ -1,6 +1,6 @@
 const StateManagement = require("./StateManagement");
 const Events = require("../../const/Events");
-const {transform} = require("babel-core");
+const {transform} = require("@babel/core");
 
 /**
  * Vue State Management
@@ -341,7 +341,7 @@ class VueStateManagement extends StateManagement {
 		if (haveData) {
 			var plugins = [];
 			if (global.RocketTranslator.jsx)
-				plugins = ["babel-plugin-syntax-jsx"];
+				plugins = ["@babel/plugin-syntax-jsx"];
 
 
 			return `<script>\n${transform(mainTemplate, {plugins}).code}\n</script>`;

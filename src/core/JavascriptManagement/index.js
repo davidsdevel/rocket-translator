@@ -37,7 +37,6 @@ class JavascriptManagement {
 		if (!global.RocketFunction)
 			return;
 
-
 		this._data = new Function(`return {${global.RocketFunction}}`)();
 
 		const keys = Object.keys(this._data);

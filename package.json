@@ -13,7 +13,9 @@
 	},
 	"directories": {
 		"bin": "bin",
-		"src": "src"
+		"src": "src",
+		"docs": "docs",
+		"testing": "testing"
 	},
 	"main": "./src/index.js",
 	"repository": {
@@ -36,6 +38,7 @@
 	"dependencies": {
 		"@babel/plugin-syntax-jsx": "^7.2.0",
 		"@babel/core": "^7.2.0",
+		"@babel/plugin-transform-react-jsx": "^7.2.0",
 		"babylon": "^6.18.0",
 		"cli-color": "^1.4.0"
 	},

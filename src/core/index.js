@@ -1,6 +1,6 @@
 const { ReactStateManagement, VueStateManagement, AngularStateManagement } = require("./StateManagement");
 const Parser = require("./JavascriptManagement");
-const {transform} = require("babel-core");
+const {transform} = require("@babel/core");
 
 /**
  * React Compiler
@@ -15,6 +15,10 @@ const {transform} = require("babel-core");
  */
 // eslint-disable-next-line no-unused-vars
 const ReactCompiler = (name, html, css) => {
+	var CSS = "";
+
+	if (css && !global.RocketTranslator.allowSSR)
+		CSS = `\nimport "./${name}.css"`;
 
 	const RStateManagement = new ReactStateManagement();
 
@@ -26,10 +30,13 @@ const ReactCompiler = (name, html, css) => {
 	//Parse Lifecycles
 	RStateManagement.setLifecycle(parse.lifecycles);
 
-	RStateManagement.getHTMLString(html);	
+	if (global.RocketTranslator.allowSSR)
+		RStateManagement.styles = css;
+
+	RStateManagement.getHTMLString(html);
 
 	RStateManagement.externalComponents = parse.components;
-	
+
 	//Get Methods from JS and set to Data
 	RStateManagement.getJsData(parse.functions);
 
@@ -38,26 +45,26 @@ const ReactCompiler = (name, html, css) => {
 	RStateManagement.setVarsToStatesContent(parse.vars);
 
 	const JSX = RStateManagement.filterHTML(html);
-		
+
+	const plugins = ["@babel/plugin-syntax-jsx"];
+	if (!global.RocketTranslator.jsx)
+		plugins.push("@babel/plugin-transform-react-jsx");
+
 	//Template to Set All Data
 	var template =
-`import React, {Component} from "react";
+`import React, {Component} from "react";${CSS}
 ${RStateManagement.importComponents}
 class ${name || "MyComponent"} extends Component {
 	${RStateManagement.componentData}
-	render(){
+	render() {
 		${RStateManagement.preRender}
-		return(
-			${JSX}
-		)
+		return (${JSX})
 	}
 }
 export default ${name || "MyComponent"};
 `;
 
-	template = transform(template, {
-		plugins: ["babel-plugin-syntax-jsx"]
-	}).code;
+	template = transform(template, {plugins}).code;
 
 	return {
 		main:template,
@@ -120,7 +127,7 @@ const VueCompiler = (name, html, css) => {
 		
 	}
 	//Template to Set All Data
-	let component = 
+	const component = 
 `${HTML}${VStateManagement.componentData(name, html)}${style}`;
 
 	return {

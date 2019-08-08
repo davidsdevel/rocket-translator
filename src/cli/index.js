@@ -35,6 +35,7 @@ class CLI {
 		global.RocketTranslator = {
 			ignoreInputName: false,
 			jsx: false,
+			allowSSR: false,
 			mode
 		};
 
@@ -45,6 +46,9 @@ class CLI {
 				break;
 			case "--jsx":
 				global.RocketTranslator.jsx = true;
+				break;
+			case "--allow-ssr":
+				global.RocketTranslator.allowSSR = true;
 				break;
 			default: break;
 			}
@@ -94,9 +98,7 @@ class CLI {
 	 * @param {String} mode 
 	 */
 	compile(mode) {
-		const {html, css, js, name} = this.fileContent;
-
-		functions.filterJavascriptDataFile(js);
+		const {html, css, name} = this.fileContent;
 
 		var compiler;
 		switch(mode) {
@@ -162,6 +164,7 @@ Commands:
 Options:
   ${clc.whiteBright("--ignore-input-name")}	Ignore filtering of name attribute on inputs
   ${clc.whiteBright("--jsx")}			Build with JSX format
+  ${clc.whiteBright("--allow-ssr")}		Build with SSR Frameworks support
 
   ${clc.whiteBright("--help, -h")}		Show help
   ${clc.whiteBright("--version, -v")}		Show version number`);
@@ -201,14 +204,15 @@ Options:
 			return e[0].toUpperCase() + e.slice(1);
 		}).join(""); //convert to CamelCase
 		
-		const html = functions.getFile(); //Get the html file data
-		const js = functions.getJs(); //Get the JS file data
-		const css = functions.getCSS(); //Get the CSS file data
+		const html = functions.file; //Get the html file data
+		const js = functions.JS; //Get the JS file data
+		const css = functions.CSS; //Get the CSS file data
+
+		functions.filterJavascriptDataFile(js);
 
 		return {
 			html,
 			css,
-			js,
 			name
 		};
 	}

@@ -32,10 +32,21 @@ class StateManagement {
 		this._regExpToMatchProps = /^\w*\s*-\s*prop/g; //RegExp to get Props
 		
 		this.componentsContent = new Array();
+		this._styles = undefined;
 	}
 
 	//--------------- Public Methods -----------------
+	set styles(css) {
+		this._styles = css;
+	}
+	get styles() {
+		if (this._styles) {
+			if (global.RocketTranslator.mode === "react")
+				return `<style jsx>{\`${this._styles}\`}</style>`;
+		}
 
+		return "";
+	}
 	/**
 	 * Get HTML String
 	 * 
@@ -303,18 +314,6 @@ class StateManagement {
 		if (Array.isArray(_matchComponents)) {
 			_matchComponents.forEach(e => {
 				const name = e.match(/[A-Z]\w*/g)[0]; //Get Component Name
-				const bindData = e.match(/:\w*=('|")\w*('|")/g); //Get Bind Prop Data
-				const bindDataHasNameAndValue = e.match(/:\w*=('|")\w*\s-\s('|")\w*('|")('|")/g); //Get Bind Prop Data and Value
-				if (Array.isArray(bindData)) {
-					this._states.push(bindData[0].replace(/'|"/g, "").slice(1).split("=")[1]); //Push Bind Data to States
-				}
-				if (Array.isArray(bindDataHasNameAndValue)) {
-					const dataArray = bindDataHasNameAndValue[0].split("="); //Get Data Array
-					const keyValue = dataArray[1].split(" - "); //Split Key And Value
-					const key = keyValue[0].slice(1); //Set Key Name
-					const value = this._defineTypeFromString(keyValue[1].slice(0, keyValue[1].length - 1)); //Get Type of Value and Set it
-					this._states.push({key, value}); //Push Bind Data With Value to States
-				}
 				this._components.push({name, type: "internal"});
 			});
 			this._components.forEach(({name}) => {
@@ -417,7 +416,7 @@ class StateManagement {
 	set statesInBindAttributes(html) {
 		html.split(/:(?=\w*=)/).forEach((bindAttr, i) => {
 			if (i > 0) {
-				const withTypeRegExp = /^\w*=("|')\w*\s*-\s*\w*("|')/;
+				const withTypeRegExp = /^\w*=("|')(\w*(\s*-\s*\w*)*)("|')/;
 
 				if (withTypeRegExp.test(bindAttr)) {
 					const attrib = bindAttr.match(withTypeRegExp)[0];
@@ -750,6 +749,12 @@ class StateManagement {
 	 * @return {String}
 	 */
 	_JSONPrettify(json){
+		Object.entries(json).forEach(e => {
+			const name = e[0];
+			const value = e[1];
+			if (value === undefined)
+				json[name] = null;
+		})
 		var jsonToString = JSON.stringify(json); //Convert to String
 		const quoteMatch = jsonToString.match(/"\w*"(?=:)/g); //Get Object keys
 		quoteMatch.forEach(e => {
@@ -774,7 +779,6 @@ class StateManagement {
 	 * @param {string} html
 	 */
 	_setDataFromHTML(html){
-
 		this.components = html; //Get Components
 		html = html
 			.split("<component ")
@@ -791,7 +795,7 @@ class StateManagement {
 		/*
 		 *	Get all data that was be declared with "{Name - Type}" format.
 		 */
-		let _getBarsSyntax = html
+		const _getBarsSyntax = html
 			.split("{")
 			.map((e, i) => {
 				if (i > 0) {
@@ -1313,7 +1317,7 @@ class StateManagement {
 		parsedCode.forEach(({type, mode, tag, content, attr}, i) => {
 			const isOpen = mode === "open";
 			if (i === 0) {
-				parts.push({tag, tree: Object.assign([], tree).join(","), content: `\n<${tag}>@content@\n</${tag}>`, type: "root"});
+				parts.push({tag, tree: Object.assign([], tree).join(","), content: `\n<${tag}>@content@${this.styles}\n</${tag}>`, type: "root"});
 				tree.push(tag);
 			} else {
 				if (isOpen) {
@@ -1374,8 +1378,33 @@ class StateManagement {
 						parts.push({tag, tree: Object.assign([], tree).join(","), content:`${newTag}${condition} { conditional${condID} = @content@}`, type:"conditional"});
 					}
 					else {
-						const attributes = parseAttributes(attr);
+						if (tag === "a" && global.RocketTranslator.allowSSR) {
+							var href;
+							for (let i = 0; i < attr.length; i++) {
+								const {name} = attr[i];
 
+								if (name === "href") {
+									href = parseAttributes([attr[i]]);
+									delete attr[i];
+									break;
+								}
+							}
+
+							parts.push({tag: "Link", tree: Object.assign([], tree).join(","), type: "content", content: `\n<Link${href ? ` ${href}` : ""} prefetch>@content@\n</Link>@content@`});
+							tree.push("Link");
+
+							var existsLink = false;
+							for (let i = 0; i < this._components.length; i++) {
+								const {name, path} = this._components[i];
+								if (name === "Link" && path === "next/link") {
+									existsLink = true;
+									break;
+								}
+							}
+							if (!existsLink)
+								this._components.push({name: "Link", type: "external", path: "next/link"})
+						}
+						const attributes = parseAttributes(attr);
 						parts.push({tag, tree: Object.assign([], tree).join(","), type: "content", content: `\n<${tag}${attributes ? ` ${attributes}` : ""}>${content ? content : "@content@\n"}</${tag}>`});
 					}
 					tree.push(tag);
@@ -1397,6 +1426,10 @@ class StateManagement {
 	
 					tree.pop();
 					parts.push({tag, type: "close", content:"", tree: Object.assign([], tree).join(",")});
+					if (tag === "a" && global.RocketTranslator.allowSSR) {
+						tree.pop();
+						parts.push({tag: "Link", type: "close", content:"", tree: Object.assign([], tree).join(",")});
+					}
 				}
 			}
 		});
@@ -1573,9 +1606,9 @@ class StateManagement {
 					part = altInit.content;
 				}
 				if (part) {
-					if (!/@content@/.test(part))
-						part = `${part  }@content@`;
-					
+					if (!/@content@/.test(part) && !/<a>/.test(part))
+						part = `${part}@content@`;
+
 					main = main.replace("@content@", part);
 				}
 			}

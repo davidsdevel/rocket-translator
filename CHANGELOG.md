@@ -12,7 +12,31 @@ Updated Help Message, and added `--jsx` option, to build with JSX format.
 
 ### Nested Conditionals and Loops
 
-Added support dor Nested conditionals and Loops.
+Added support to Nested conditionals and Loops.
+
+### States and Props Globals
+
+Use `RocketStates` or `RocketProps` to get data if have a `var` with the same name
+
+Example: We define the state `name`, 
+```js
+function setInitialState() {
+    return {
+        name: "Foo"
+    }
+}
+
+function HelloWorld() {
+    var name = "World";
+    alert(`Hello ${name}`); //Will render: "Hello World"
+
+    alert(`Hello ${RocketStates.name}`); //Will render: "Hello Foo"
+}
+
+function HelloFoo() {
+    alert(`Hello ${name}`); //Will render: "Hello Foo"
+}
+```
 
 ## 2.1.1
 
@@ -42,7 +66,7 @@ Reformated Help Message, and added `--ignore-input-name` option, to evite parse 
 
 Normaly when we exec `rocket vue my-component.html` or `rocket react my-component.html`, the final component will parse name attribute.
 
-```html
+```xml
 <div>
     <input type="text" name="username">
     <input type="password" name="password">
@@ -57,7 +81,7 @@ Normaly when we exec `rocket vue my-component.html` or `rocket react my-componen
 </script>
 ```
 Vue:
-```html
+```xml
 <template>
     <div>
         <input v-model="username" type="text" name="username">
@@ -111,7 +135,7 @@ class MyComponent extends Component {
 But, if we exec the same with `--ignore-input-name` flag. We optain:
 
 Vue:
-```html
+```xml
 <template>
     <div>
         <input type="text" name="username">
@@ -158,7 +182,7 @@ export default MyComponent;
 ### Added Async Functions Support
 
 Now we can declare a `async` function in **Rocket Translator**.
-```html
+```xml
 <div>
     <div>{data - state}</div>
     <button onclick="fetchData()">Fetch Data</button>
@@ -222,7 +246,7 @@ Rocket Translator, now will be compiled with webpack to improve the performance,
 
 If a state is defined on Javascript and on HTML is defined without value, this don't assign the value.
 
-```html
+```xml
 <div>
     <span>Hello {name - state}</span>
 </div>
@@ -286,7 +310,7 @@ Fixed the bind attribute value assignament.
 Now you can add the `tag` attribute to set the tag to put the loop content.
 
 Example: 
-```html
+```xml
 <ul>
     <for val="item in buyList" tag="li">
         I must buy {item}
@@ -295,7 +319,7 @@ Example:
 ```
 The `for` tag now will be a `li` tag.
 
-```html
+```xml
 <ul>
     <li v-for="item in buyList">
         I must buy {{item}}
@@ -318,7 +342,7 @@ And on **Angular** the default tag is the `div` tag.
 
 Now you can use the `else-if` tag, like the `if` tag, this have must have the `cond` attribute to define the condition.
 
-```html 
+```xml 
 <if cond="condition">
     <span>Content</span>
 </if>
